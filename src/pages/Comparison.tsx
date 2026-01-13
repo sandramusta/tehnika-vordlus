@@ -15,8 +15,6 @@ import { BarChart3, Trophy, Calculator } from "lucide-react";
 
 export default function Comparison() {
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedBrand, setSelectedBrand] = useState<string>("all");
-  const [selectedPowerClass, setSelectedPowerClass] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
 
   const { data: types } = useEquipmentTypes();
@@ -48,28 +46,13 @@ export default function Comparison() {
       if (e.brand_id === johnDeereBrand?.id) return false;
       // Must be same power class
       if (e.power_class_id !== selectedJohnDeereModel.power_class_id) return false;
-      // Filter by brand if selected
-      if (selectedBrand !== "all" && e.brand_id !== selectedBrand) return false;
       return true;
     });
-  }, [selectedJohnDeereModel, allEquipment, johnDeereBrand, selectedBrand]);
+  }, [selectedJohnDeereModel, allEquipment, johnDeereBrand]);
 
-  // Filter equipment for other views
-  const filteredEquipment = allEquipment.filter((item) => {
-    if (selectedBrand !== "all" && item.brand_id !== selectedBrand) return false;
-    if (selectedPowerClass !== "all" && item.power_class_id !== selectedPowerClass)
-      return false;
-    return true;
-  });
-
-  // Reset model when type or power class changes
+  // Reset model when type changes
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
-    setSelectedModel("all");
-  };
-
-  const handlePowerClassChange = (value: string) => {
-    setSelectedPowerClass(value);
     setSelectedModel("all");
   };
 
@@ -86,15 +69,11 @@ export default function Comparison() {
 
         {/* Filters */}
         <div className="rounded-lg border border-border bg-card p-6">
-          <h2 className="mb-4 text-lg font-semibold">Filtrid</h2>
+          <h2 className="mb-4 text-lg font-semibold">Vali John Deere mudel</h2>
           <EquipmentFilters
             selectedType={selectedType}
-            selectedBrand={selectedBrand}
-            selectedPowerClass={selectedPowerClass}
             selectedModel={selectedModel}
             onTypeChange={handleTypeChange}
-            onBrandChange={setSelectedBrand}
-            onPowerClassChange={handlePowerClassChange}
             onModelChange={setSelectedModel}
             equipment={allEquipment}
           />
@@ -137,7 +116,7 @@ export default function Comparison() {
           </TabsContent>
 
           <TabsContent value="tco">
-            <TCOSummary equipment={filteredEquipment} />
+            <TCOSummary equipment={allEquipment} />
           </TabsContent>
         </Tabs>
       </div>

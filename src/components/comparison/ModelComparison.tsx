@@ -94,7 +94,7 @@ export function ModelComparison({
           Vali John Deere mudel võrdluseks
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Filtritest vali tehnika tüüp, jõuklass ja mudel, et näha võrdlust konkurentidega.
+          Vali tehnika tüüp ja John Deere mudel, et näha võrdlust konkurentidega samas jõuklassis.
         </p>
       </div>
     );
