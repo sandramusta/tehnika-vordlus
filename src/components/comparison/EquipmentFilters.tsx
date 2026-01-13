@@ -83,24 +83,7 @@ export function EquipmentFilters({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted-foreground">John Deere mudel</label>
-        <Select value={selectedModel} onValueChange={onModelChange}>
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Vali mudel" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Kõik mudelid</SelectItem>
-            {filteredModels.map((model) => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.model_name} ({model.power_class?.name || "—"})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted-foreground">Bränd (filter)</label>
+        <label className="text-sm font-medium text-muted-foreground">Bränd</label>
         <Select value={selectedBrand} onValueChange={onBrandChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Vali bränd" />
@@ -110,6 +93,23 @@ export function EquipmentFilters({
             {brands?.map((brand) => (
               <SelectItem key={brand.id} value={brand.id}>
                 {brand.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-muted-foreground">Mudel</label>
+        <Select value={selectedModel} onValueChange={onModelChange}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Vali mudel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Kõik mudelid</SelectItem>
+            {filteredModels.map((model) => (
+              <SelectItem key={model.id} value={model.id}>
+                {model.model_name} ({model.power_class?.name || "—"})
               </SelectItem>
             ))}
           </SelectContent>
