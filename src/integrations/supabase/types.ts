@@ -99,10 +99,12 @@ export type Database = {
           grain_tank_liters: number | null
           header_width_m: number | null
           id: string
+          image_url: string | null
           model_name: string
           notes: string | null
           power_class_id: string | null
           price_eur: number | null
+          threshing_system_image_url: string | null
           updated_at: string
           weight_kg: number | null
         }
@@ -118,10 +120,12 @@ export type Database = {
           grain_tank_liters?: number | null
           header_width_m?: number | null
           id?: string
+          image_url?: string | null
           model_name: string
           notes?: string | null
           power_class_id?: string | null
           price_eur?: number | null
+          threshing_system_image_url?: string | null
           updated_at?: string
           weight_kg?: number | null
         }
@@ -137,10 +141,12 @@ export type Database = {
           grain_tank_liters?: number | null
           header_width_m?: number | null
           id?: string
+          image_url?: string | null
           model_name?: string
           notes?: string | null
           power_class_id?: string | null
           price_eur?: number | null
+          threshing_system_image_url?: string | null
           updated_at?: string
           weight_kg?: number | null
         }

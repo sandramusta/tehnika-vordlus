@@ -37,6 +37,8 @@ export interface Equipment {
   expected_lifespan_years: number;
   features: string[];
   notes: string | null;
+  image_url: string | null;
+  threshing_system_image_url: string | null;
   created_at: string;
   updated_at: string;
   // Joined data

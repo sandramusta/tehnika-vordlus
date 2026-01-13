@@ -72,6 +72,8 @@ export default function Admin() {
         expected_lifespan_years: Number(formData.get("expected_lifespan_years")) || 10,
         features: [],
         notes: formData.get("notes") as string || null,
+        image_url: null,
+        threshing_system_image_url: null,
       });
       setEquipmentDialogOpen(false);
       toast({ title: "Tehnika lisatud!" });
