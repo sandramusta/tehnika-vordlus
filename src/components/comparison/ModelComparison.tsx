@@ -151,7 +151,7 @@ export function ModelComparison({
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">TCO ({selectedModel.expected_lifespan_years}a)</p>
+              <p className="text-sm text-muted-foreground">Omamiskogukulu ({selectedModel.expected_lifespan_years}a)</p>
               <p className={cn("text-lg font-bold", isJohnDeere ? "text-primary" : "text-foreground")}>{formatCurrency(selectedTCO)}</p>
             </div>
           </div>
@@ -270,7 +270,7 @@ export function ModelComparison({
                       </div>
                       
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">TCO</span>
+                        <span className="text-muted-foreground">Omamiskogukulu</span>
                         <span className="font-semibold">{formatCurrency(competitorTCO)}</span>
                       </div>
                       
