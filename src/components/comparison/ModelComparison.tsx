@@ -91,25 +91,33 @@ export function ModelComparison({
       <div className="rounded-lg border border-border bg-card p-12 text-center">
         <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
         <p className="mt-4 text-lg font-medium text-muted-foreground">
-          Vali John Deere mudel võrdluseks
+          Vali mudel võrdluseks
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Vali tehnika tüüp ja John Deere mudel, et näha võrdlust konkurentidega samas jõuklassis.
+          Vali tehnika tüüp, bränd ja mudel, et näha võrdlust konkurentidega samas jõuklassis.
         </p>
       </div>
     );
   }
 
+  const isJohnDeere = selectedModel.brand?.name === "John Deere";
+
   const selectedTCO = calculateTCO(selectedModel);
 
   return (
     <div className="space-y-8">
-      {/* Selected John Deere Model Card */}
-      <Card className="border-2 border-primary bg-primary/5">
+      {/* Selected Model Card */}
+      <Card className={cn(
+        "border-2",
+        isJohnDeere ? "border-primary bg-primary/5" : `border-l-4 ${getBrandColorClass(selectedModel.brand?.name || "").replace("bg-", "border-")}`
+      )}>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <Trophy className="h-6 w-6 text-primary" />
+            <Trophy className={cn("h-6 w-6", isJohnDeere ? "text-primary" : "text-foreground")} />
             <CardTitle className="text-xl">Valitud mudel</CardTitle>
+            <Badge className={cn("text-white", getBrandColorClass(selectedModel.brand?.name || ""))}>
+              {selectedModel.brand?.name}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -127,9 +135,6 @@ export function ModelComparison({
             <div>
               <p className="text-sm text-muted-foreground">Mudel</p>
               <p className="text-lg font-bold text-foreground">{selectedModel.model_name}</p>
-              <Badge className="mt-1 bg-primary text-primary-foreground">
-                {selectedModel.brand?.name}
-              </Badge>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Jõuklass</p>
@@ -147,7 +152,7 @@ export function ModelComparison({
             </div>
             <div>
               <p className="text-sm text-muted-foreground">TCO ({selectedModel.expected_lifespan_years}a)</p>
-              <p className="text-lg font-bold text-primary">{formatCurrency(selectedTCO)}</p>
+              <p className={cn("text-lg font-bold", isJohnDeere ? "text-primary" : "text-foreground")}>{formatCurrency(selectedTCO)}</p>
             </div>
           </div>
           {/* Threshing System Image */}
@@ -175,9 +180,13 @@ export function ModelComparison({
             {competitors.map((competitor) => {
               const competitorTCO = calculateTCO(competitor);
               const tcoSavings = selectedTCO && competitorTCO ? competitorTCO - selectedTCO : null;
-              const competitorArgs = competitiveArgs.filter(
-                (arg) => arg.competitor_brand_id === competitor.brand_id
-              );
+              
+              // Get competitive arguments - show John Deere advantages if comparing with JD, otherwise show selected brand's advantages
+              const competitorArgs = isJohnDeere 
+                ? competitiveArgs.filter((arg) => arg.competitor_brand_id === competitor.brand_id)
+                : competitor.brand?.name === "John Deere" 
+                  ? competitiveArgs.filter((arg) => arg.competitor_brand_id === selectedModel.brand_id)
+                  : [];
 
               return (
                 <Card key={competitor.id} className="relative overflow-hidden">
@@ -268,20 +277,29 @@ export function ModelComparison({
                       {tcoSavings && tcoSavings > 0 && (
                         <div className="flex items-center justify-between rounded-md bg-success/10 px-2 py-1">
                           <span className="text-xs font-medium text-success">
-                            John Deere sääst
+                            {selectedModel.brand?.name} sääst
                           </span>
                           <span className="text-sm font-bold text-success">
                             {formatCurrency(tcoSavings)}
                           </span>
                         </div>
                       )}
+                      {tcoSavings && tcoSavings < 0 && (
+                        <div className="flex items-center justify-between rounded-md bg-destructive/10 px-2 py-1">
+                          <span className="text-xs font-medium text-destructive">
+                            {competitor.brand?.name} sääst
+                          </span>
+                          <span className="text-sm font-bold text-destructive">
+                            {formatCurrency(Math.abs(tcoSavings))}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Competitive Advantages */}
                     {competitorArgs.length > 0 && (
                       <div className="space-y-2 border-t pt-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          John Deere eelised
+                          {isJohnDeere ? "John Deere eelised" : competitor.brand?.name === "John Deere" ? "John Deere eelised" : "Eelised"}
                         </p>
                         <div className="space-y-2">
                           {competitorArgs.slice(0, 3).map((arg) => {

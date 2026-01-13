@@ -4,16 +4,20 @@ import { Equipment } from "@/types/equipment";
 
 interface EquipmentFiltersProps {
   selectedType: string;
+  selectedBrand: string;
   selectedModel: string;
   onTypeChange: (value: string) => void;
+  onBrandChange: (value: string) => void;
   onModelChange: (value: string) => void;
   equipment: Equipment[];
 }
 
 export function EquipmentFilters({
   selectedType,
+  selectedBrand,
   selectedModel,
   onTypeChange,
+  onBrandChange,
   onModelChange,
   equipment,
 }: EquipmentFiltersProps) {
@@ -24,15 +28,10 @@ export function EquipmentFilters({
   const allowedTypes = ["combine", "sprayer", "tractor"];
   const filteredTypes = types?.filter((t) => allowedTypes.includes(t.name)) || [];
 
-  // Get John Deere models for model filter
-  const johnDeereBrand = brands?.find((b) => b.name === "John Deere");
-  const johnDeereModels = equipment.filter(
-    (e) => e.brand_id === johnDeereBrand?.id
-  );
-
-  // Filter models by selected type
-  const filteredModels = johnDeereModels.filter((model) => {
+  // Filter models by selected type and brand
+  const filteredModels = equipment.filter((model) => {
     if (selectedType !== "all" && model.equipment_type_id !== selectedType) return false;
+    if (selectedBrand !== "all" && model.brand_id !== selectedBrand) return false;
     return true;
   });
 
@@ -56,7 +55,24 @@ export function EquipmentFilters({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted-foreground">John Deere mudel</label>
+        <label className="text-sm font-medium text-muted-foreground">Bränd</label>
+        <Select value={selectedBrand} onValueChange={onBrandChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Vali bränd" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Kõik brändid</SelectItem>
+            {brands?.map((brand) => (
+              <SelectItem key={brand.id} value={brand.id}>
+                {brand.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-muted-foreground">Mudel</label>
         <Select value={selectedModel} onValueChange={onModelChange}>
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="Vali mudel" />

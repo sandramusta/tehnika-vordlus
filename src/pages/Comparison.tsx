@@ -15,6 +15,7 @@ import { BarChart3, Trophy, Calculator } from "lucide-react";
 
 export default function Comparison() {
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
 
   const { data: types } = useEquipmentTypes();
@@ -28,31 +29,33 @@ export default function Comparison() {
     selectedType !== "all" ? selectedType : undefined
   );
 
-  // Find John Deere brand
-  const johnDeereBrand = brands.find((b) => b.name === "John Deere");
-
-  // Get the selected John Deere model
-  const selectedJohnDeereModel = useMemo(() => {
+  // Get the selected model (any brand)
+  const selectedEquipmentModel = useMemo(() => {
     if (selectedModel === "all") return null;
     return allEquipment.find((e) => e.id === selectedModel) || null;
   }, [selectedModel, allEquipment]);
 
-  // Get competitors in the same power class as the selected model
+  // Get competitors in the same power class as the selected model (from other brands)
   const competitors = useMemo(() => {
-    if (!selectedJohnDeereModel || !selectedJohnDeereModel.power_class_id) return [];
+    if (!selectedEquipmentModel || !selectedEquipmentModel.power_class_id) return [];
     
     return allEquipment.filter((e) => {
-      // Exclude John Deere models
-      if (e.brand_id === johnDeereBrand?.id) return false;
+      // Exclude same brand
+      if (e.brand_id === selectedEquipmentModel.brand_id) return false;
       // Must be same power class
-      if (e.power_class_id !== selectedJohnDeereModel.power_class_id) return false;
+      if (e.power_class_id !== selectedEquipmentModel.power_class_id) return false;
       return true;
     });
-  }, [selectedJohnDeereModel, allEquipment, johnDeereBrand]);
+  }, [selectedEquipmentModel, allEquipment]);
 
-  // Reset model when type changes
+  // Reset model when type or brand changes
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
+    setSelectedModel("all");
+  };
+
+  const handleBrandChange = (value: string) => {
+    setSelectedBrand(value);
     setSelectedModel("all");
   };
 
@@ -69,11 +72,13 @@ export default function Comparison() {
 
         {/* Filters */}
         <div className="rounded-lg border border-border bg-card p-6">
-          <h2 className="mb-4 text-lg font-semibold">Vali John Deere mudel</h2>
+          <h2 className="mb-4 text-lg font-semibold">Vali mudel võrdluseks</h2>
           <EquipmentFilters
             selectedType={selectedType}
+            selectedBrand={selectedBrand}
             selectedModel={selectedModel}
             onTypeChange={handleTypeChange}
+            onBrandChange={handleBrandChange}
             onModelChange={setSelectedModel}
             equipment={allEquipment}
           />
@@ -103,7 +108,7 @@ export default function Comparison() {
               </div>
             ) : (
               <ModelComparison
-                selectedModel={selectedJohnDeereModel}
+                selectedModel={selectedEquipmentModel}
                 competitors={competitors}
                 competitiveArgs={competitiveArgs}
                 brands={brands}
