@@ -10,8 +10,6 @@ import {
   useCompetitiveArguments,
   useEquipmentTypes,
 } from "@/hooks/useEquipmentData";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, Trophy, Calculator } from "lucide-react";
 
 export default function Comparison() {
   const [selectedType, setSelectedType] = useState<string>("all");
@@ -84,46 +82,38 @@ export default function Comparison() {
           />
         </div>
 
-        {/* Content Tabs */}
-        <Tabs defaultValue="comparison" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-none">
-            <TabsTrigger value="comparison" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Mudeli võrdlus</span>
-            </TabsTrigger>
-            <TabsTrigger value="advantages" className="gap-2">
-              <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Eelised</span>
-            </TabsTrigger>
-            <TabsTrigger value="tco" className="gap-2">
-              <Calculator className="h-4 w-4" />
-              <span className="hidden sm:inline">TCO analüüs</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* Comparison Content */}
+        {loadingEquipment ? (
+          <div className="flex h-32 items-center justify-center">
+            <div className="text-muted-foreground">Laadin andmeid...</div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <ModelComparison
+              selectedModel={selectedEquipmentModel}
+              competitors={competitors}
+              competitiveArgs={competitiveArgs}
+              brands={brands}
+            />
 
-          <TabsContent value="comparison" className="space-y-4">
-            {loadingEquipment ? (
-              <div className="flex h-32 items-center justify-center">
-                <div className="text-muted-foreground">Laadin andmeid...</div>
-              </div>
-            ) : (
-              <ModelComparison
-                selectedModel={selectedEquipmentModel}
-                competitors={competitors}
-                competitiveArgs={competitiveArgs}
-                brands={brands}
-              />
+            {/* Show TCO and Advantages sections when model is selected */}
+            {selectedEquipmentModel && competitors.length > 0 && (
+              <>
+                <TCOSummary
+                  selectedModel={selectedEquipmentModel}
+                  competitors={competitors}
+                />
+
+                <CompetitiveAdvantages
+                  selectedModel={selectedEquipmentModel}
+                  competitors={competitors}
+                  arguments={competitiveArgs}
+                  brands={brands}
+                />
+              </>
             )}
-          </TabsContent>
-
-          <TabsContent value="advantages">
-            <CompetitiveAdvantages arguments={competitiveArgs} brands={brands} />
-          </TabsContent>
-
-          <TabsContent value="tco">
-            <TCOSummary equipment={allEquipment} />
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </Layout>
   );
