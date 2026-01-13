@@ -1,7 +1,5 @@
 import { Equipment, CompetitiveArgument, Brand } from "@/types/equipment";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, TrendingUp, CheckCircle2, Shield, Zap, Wrench, Leaf } from "lucide-react";
+import { Trophy, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ModelComparisonProps {
@@ -31,60 +29,24 @@ function calculateTCO(equipment: Equipment): number | null {
   return equipment.price_eur + equipment.annual_maintenance_eur * lifespan;
 }
 
-function getBrandColorClass(brandName: string): string {
+function getBrandTextColor(brandName: string): string {
   switch (brandName) {
     case "John Deere":
-      return "bg-primary";
+      return "text-primary";
     case "Claas":
-      return "bg-claas";
+      return "text-claas";
     case "Case IH":
-      return "bg-case-ih";
+      return "text-case-ih";
     case "New Holland":
-      return "bg-new-holland";
+      return "text-new-holland";
     default:
-      return "bg-muted";
-  }
-}
-
-function getCategoryIcon(category: string) {
-  switch (category) {
-    case "technology":
-      return Zap;
-    case "reliability":
-      return Shield;
-    case "service":
-      return Wrench;
-    case "efficiency":
-      return Leaf;
-    case "value":
-      return TrendingUp;
-    default:
-      return Shield;
-  }
-}
-
-function getCategoryLabel(category: string): string {
-  switch (category) {
-    case "technology":
-      return "Tehnoloogia";
-    case "reliability":
-      return "Töökindlus";
-    case "service":
-      return "Teenindus";
-    case "efficiency":
-      return "Efektiivsus";
-    case "value":
-      return "Väärtus";
-    default:
-      return "Üldine";
+      return "text-foreground";
   }
 }
 
 export function ModelComparison({
   selectedModel,
   competitors,
-  competitiveArgs,
-  brands,
 }: ModelComparisonProps) {
   if (!selectedModel) {
     return (
@@ -100,245 +62,374 @@ export function ModelComparison({
     );
   }
 
-  const isJohnDeere = selectedModel.brand?.name === "John Deere";
+  const allModels = [selectedModel, ...competitors];
+
+  // Calculate best values for highlighting
+  const bestValues = {
+    power: Math.max(...allModels.filter(m => m.engine_power_hp).map(m => m.engine_power_hp!)),
+    tank: Math.max(...allModels.filter(m => m.grain_tank_liters).map(m => m.grain_tank_liters!)),
+    headerWidth: Math.max(...allModels.filter(m => m.header_width_m).map(m => m.header_width_m!)),
+    lowestWeight: Math.min(...allModels.filter(m => m.weight_kg).map(m => m.weight_kg!)),
+    lowestFuel: Math.min(...allModels.filter(m => m.fuel_consumption_lh).map(m => m.fuel_consumption_lh!)),
+    lowestPrice: Math.min(...allModels.filter(m => m.price_eur).map(m => m.price_eur!)),
+    lowestMaintenance: Math.min(...allModels.filter(m => m.annual_maintenance_eur).map(m => m.annual_maintenance_eur!)),
+    lowestTCO: Math.min(...allModels.filter(m => calculateTCO(m)).map(m => calculateTCO(m)!)),
+    highestLifespan: Math.max(...allModels.map(m => m.expected_lifespan_years || 10)),
+  };
 
   const selectedTCO = calculateTCO(selectedModel);
 
-  return (
-    <div className="space-y-8">
-      {/* Selected Model Card */}
-      <Card className={cn(
-        "border-2",
-        isJohnDeere ? "border-primary bg-primary/5" : `border-l-4 ${getBrandColorClass(selectedModel.brand?.name || "").replace("bg-", "border-")}`
-      )}>
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <Trophy className={cn("h-6 w-6", isJohnDeere ? "text-primary" : "text-foreground")} />
-            <CardTitle className="text-xl">Valitud mudel</CardTitle>
-            <Badge className={cn("text-white", getBrandColorClass(selectedModel.brand?.name || ""))}>
-              {selectedModel.brand?.name}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            {/* Model Image */}
-            {selectedModel.image_url && (
-              <div className="md:col-span-2 lg:col-span-1">
-                <img 
-                  src={selectedModel.image_url} 
-                  alt={selectedModel.model_name}
-                  className="h-32 w-full rounded-lg object-contain bg-white"
-                />
-              </div>
-            )}
-            <div>
-              <p className="text-sm text-muted-foreground">Mudel</p>
-              <p className="text-lg font-bold text-foreground">{selectedModel.model_name}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Jõuklass</p>
-              <p className="font-semibold">{selectedModel.power_class?.name || "—"}</p>
-              <p className="text-sm text-muted-foreground">
-                {formatNumber(selectedModel.engine_power_hp)} hj
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Hind</p>
-              <p className="font-semibold">{formatCurrency(selectedModel.price_eur)}</p>
-              <p className="text-sm text-muted-foreground">
-                Hooldus: {formatCurrency(selectedModel.annual_maintenance_eur)}/a
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Omamiskogukulu ({selectedModel.expected_lifespan_years}a)</p>
-              <p className={cn("text-lg font-bold", isJohnDeere ? "text-primary" : "text-foreground")}>{formatCurrency(selectedTCO)}</p>
-            </div>
-          </div>
-          {/* Threshing System Image */}
-          {selectedModel.threshing_system_image_url && (
-            <div className="mt-4 border-t pt-4">
-              <p className="mb-2 text-sm font-medium text-muted-foreground">Peksu- ja puhastussüsteem</p>
-              <img 
-                src={selectedModel.threshing_system_image_url} 
-                alt="Peksusüsteem"
-                className="h-40 w-full rounded-lg object-contain bg-muted/20"
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Competitors Comparison */}
-      {competitors.length > 0 ? (
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-foreground">
-            Konkurendid samas jõuklassis ({selectedModel.power_class?.name})
-          </h3>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {competitors.map((competitor) => {
-              const competitorTCO = calculateTCO(competitor);
-              const tcoSavings = selectedTCO && competitorTCO ? competitorTCO - selectedTCO : null;
-              
-              // Get competitive arguments - show John Deere advantages if comparing with JD, otherwise show selected brand's advantages
-              const competitorArgs = isJohnDeere 
-                ? competitiveArgs.filter((arg) => arg.competitor_brand_id === competitor.brand_id)
-                : competitor.brand?.name === "John Deere" 
-                  ? competitiveArgs.filter((arg) => arg.competitor_brand_id === selectedModel.brand_id)
-                  : [];
-
-              return (
-                <Card key={competitor.id} className="relative overflow-hidden">
-                  {/* Brand color accent */}
-                  <div
-                    className={cn(
-                      "absolute left-0 top-0 h-full w-1",
-                      getBrandColorClass(competitor.brand?.name || "")
-                    )}
-                  />
-                  
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{competitor.model_name}</CardTitle>
-                      <Badge
-                        className={cn(
-                          "text-xs text-white",
-                          getBrandColorClass(competitor.brand?.name || "")
-                        )}
-                      >
-                        {competitor.brand?.name}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    {/* Competitor Image */}
-                    {competitor.image_url && (
-                      <img 
-                        src={competitor.image_url} 
-                        alt={competitor.model_name}
-                        className="h-24 w-full rounded-md object-contain bg-white"
-                      />
-                    )}
-                    {/* Technical Specs Comparison */}
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Võimsus</span>
-                        <span className="font-medium">
-                          {formatNumber(competitor.engine_power_hp)} hj
-                          {selectedModel.engine_power_hp && competitor.engine_power_hp && (
-                            <span className={cn(
-                              "ml-1 text-xs",
-                              selectedModel.engine_power_hp >= competitor.engine_power_hp 
-                                ? "text-success" 
-                                : "text-destructive"
-                            )}>
-                              {selectedModel.engine_power_hp >= competitor.engine_power_hp ? "✓" : ""}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Viljabunker</span>
-                        <span className="font-medium">
-                          {formatNumber(competitor.grain_tank_liters)} l
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Kütusekulu</span>
-                        <span className="font-medium">
-                          {competitor.fuel_consumption_lh || "—"} l/h
-                          {selectedModel.fuel_consumption_lh && competitor.fuel_consumption_lh && (
-                            <span className={cn(
-                              "ml-1 text-xs",
-                              selectedModel.fuel_consumption_lh <= competitor.fuel_consumption_lh 
-                                ? "text-success" 
-                                : "text-destructive"
-                            )}>
-                              {selectedModel.fuel_consumption_lh <= competitor.fuel_consumption_lh ? "✓" : ""}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between border-t pt-2">
-                        <span className="text-muted-foreground">Hind</span>
-                        <span className="font-semibold">{formatCurrency(competitor.price_eur)}</span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Omamiskogukulu</span>
-                        <span className="font-semibold">{formatCurrency(competitorTCO)}</span>
-                      </div>
-                      
-                      {tcoSavings && tcoSavings > 0 && (
-                        <div className="flex items-center justify-between rounded-md bg-success/10 px-2 py-1">
-                          <span className="text-xs font-medium text-success">
-                            {selectedModel.brand?.name} sääst
-                          </span>
-                          <span className="text-sm font-bold text-success">
-                            {formatCurrency(tcoSavings)}
-                          </span>
-                        </div>
-                      )}
-                      {tcoSavings && tcoSavings < 0 && (
-                        <div className="flex items-center justify-between rounded-md bg-destructive/10 px-2 py-1">
-                          <span className="text-xs font-medium text-destructive">
-                            {competitor.brand?.name} sääst
-                          </span>
-                          <span className="text-sm font-bold text-destructive">
-                            {formatCurrency(Math.abs(tcoSavings))}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {competitorArgs.length > 0 && (
-                      <div className="space-y-2 border-t pt-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {isJohnDeere ? "John Deere eelised" : competitor.brand?.name === "John Deere" ? "John Deere eelised" : "Eelised"}
-                        </p>
-                        <div className="space-y-2">
-                          {competitorArgs.slice(0, 3).map((arg) => {
-                            const Icon = getCategoryIcon(arg.category);
-                            return (
-                              <div
-                                key={arg.id}
-                                className="flex items-start gap-2 text-xs"
-                              >
-                                <Icon className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
-                                <div>
-                                  <p className="font-medium text-foreground">
-                                    {arg.argument_title}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {competitorArgs.length > 3 && (
-                            <p className="text-xs text-muted-foreground">
-                              +{competitorArgs.length - 3} veel...
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-lg border border-border bg-card p-8 text-center">
+  if (competitors.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+          <Trophy className="h-5 w-5 text-primary" />
+          Mudeli võrdlus
+        </h3>
+        <div className="rounded-lg border border-border bg-muted/30 p-8 text-center">
           <p className="text-muted-foreground">
-            Samas jõuklassis konkurente ei leitud.
+            Samas jõuklassis ({selectedModel.power_class?.name}) konkurente ei leitud.
           </p>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6">
+      <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+        <Trophy className="h-5 w-5 text-primary" />
+        Mudeli võrdlus — Jõuklass: {selectedModel.power_class?.name}
+      </h3>
+
+      {/* Comparison Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px]">Näitaja</th>
+              {allModels.map((model) => (
+                <th 
+                  key={model.id} 
+                  className={cn(
+                    "p-3 text-center text-sm font-semibold min-w-[160px]",
+                    model.id === selectedModel.id && "bg-primary/5"
+                  )}
+                >
+                  <span className={getBrandTextColor(model.brand?.name || "")}>
+                    {model.brand?.name}
+                  </span>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">
+                    {model.model_name}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {/* Model Image */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Pilt</td>
+              {allModels.map((model) => (
+                <td 
+                  key={model.id} 
+                  className={cn(
+                    "p-3 text-center",
+                    model.id === selectedModel.id && "bg-primary/5"
+                  )}
+                >
+                  {model.image_url ? (
+                    <img 
+                      src={model.image_url} 
+                      alt={model.model_name}
+                      className="h-20 w-full rounded-md object-contain bg-white mx-auto"
+                    />
+                  ) : (
+                    <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
+                      Pilt puudub
+                    </div>
+                  )}
+                </td>
+              ))}
+            </tr>
+
+            {/* Engine Power */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Võimsus (hj)</td>
+              {allModels.map((model) => {
+                const isBest = model.engine_power_hp === bestValues.power;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {formatNumber(model.engine_power_hp)}
+                      {isBest && model.engine_power_hp && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Grain Tank */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Viljabunker (l)</td>
+              {allModels.map((model) => {
+                const isBest = model.grain_tank_liters === bestValues.tank;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {formatNumber(model.grain_tank_liters)}
+                      {isBest && model.grain_tank_liters && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Header Width */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Heedri laius (m)</td>
+              {allModels.map((model) => {
+                const isBest = model.header_width_m === bestValues.headerWidth;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {model.header_width_m || "—"}
+                      {isBest && model.header_width_m && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Weight */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Kaal (kg)</td>
+              {allModels.map((model) => {
+                const isBest = model.weight_kg === bestValues.lowestWeight;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {formatNumber(model.weight_kg)}
+                      {isBest && model.weight_kg && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Fuel Consumption */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Kütusekulu (l/h)</td>
+              {allModels.map((model) => {
+                const isBest = model.fuel_consumption_lh === bestValues.lowestFuel;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {model.fuel_consumption_lh || "—"}
+                      {isBest && model.fuel_consumption_lh && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Price */}
+            <tr className="border-b border-border/50 bg-muted/20">
+              <td className="p-3 text-sm font-medium text-foreground">Hind (€)</td>
+              {allModels.map((model) => {
+                const isBest = model.price_eur === bestValues.lowestPrice;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-semibold",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {formatCurrency(model.price_eur)}
+                      {isBest && model.price_eur && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Annual Maintenance */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Hooldus/aasta (€)</td>
+              {allModels.map((model) => {
+                const isBest = model.annual_maintenance_eur === bestValues.lowestMaintenance;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {formatCurrency(model.annual_maintenance_eur)}
+                      {isBest && model.annual_maintenance_eur && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Lifespan */}
+            <tr className="border-b border-border/50">
+              <td className="p-3 text-sm text-muted-foreground">Eeldatav eluiga (a)</td>
+              {allModels.map((model) => {
+                const lifespan = model.expected_lifespan_years || 10;
+                const isBest = lifespan === bestValues.highestLifespan;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {lifespan}
+                      {isBest && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* TCO */}
+            <tr className="border-b border-border bg-muted/30">
+              <td className="p-3 text-sm font-semibold text-foreground">Omamiskogukulu (€)</td>
+              {allModels.map((model) => {
+                const tco = calculateTCO(model);
+                const isBest = tco === bestValues.lowestTCO;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center font-bold",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={isBest ? "text-success" : ""}>
+                        {formatCurrency(tco)}
+                      </span>
+                      {isBest && tco && (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Savings compared to selected */}
+            <tr>
+              <td className="p-3 text-sm text-muted-foreground">Sääst/lisakulu vs valitud</td>
+              {allModels.map((model) => {
+                const tco = calculateTCO(model);
+                const savings = selectedTCO && tco ? tco - selectedTCO : null;
+                return (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center text-sm font-medium",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    {model.id === selectedModel.id ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : savings !== null ? (
+                      <span className={savings > 0 ? "text-success" : savings < 0 ? "text-destructive" : ""}>
+                        {savings > 0 ? "+" : ""}{formatCurrency(Math.abs(savings))}
+                        {savings > 0 ? " kallim" : savings < 0 ? " odavam" : ""}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Threshing System Images */}
+            {allModels.some(m => m.threshing_system_image_url) && (
+              <tr className="border-t border-border">
+                <td className="p-3 text-sm text-muted-foreground">Peksusüsteem</td>
+                {allModels.map((model) => (
+                  <td 
+                    key={model.id} 
+                    className={cn(
+                      "p-3 text-center",
+                      model.id === selectedModel.id && "bg-primary/5"
+                    )}
+                  >
+                    {model.threshing_system_image_url ? (
+                      <img 
+                        src={model.threshing_system_image_url} 
+                        alt="Peksusüsteem"
+                        className="h-24 w-full rounded-md object-contain bg-muted/20 mx-auto"
+                      />
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
