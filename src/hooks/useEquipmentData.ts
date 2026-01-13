@@ -202,3 +202,23 @@ export function useDeleteArgument() {
     },
   });
 }
+
+export function useUpdateArgument() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...argument }: Partial<CompetitiveArgument> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("competitive_arguments")
+        .update(argument)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["competitive-arguments"] });
+    },
+  });
+}
