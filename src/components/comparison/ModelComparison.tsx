@@ -113,7 +113,17 @@ export function ModelComparison({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+            {/* Model Image */}
+            {selectedModel.image_url && (
+              <div className="md:col-span-2 lg:col-span-1">
+                <img 
+                  src={selectedModel.image_url} 
+                  alt={selectedModel.model_name}
+                  className="h-32 w-full rounded-lg object-contain bg-white"
+                />
+              </div>
+            )}
             <div>
               <p className="text-sm text-muted-foreground">Mudel</p>
               <p className="text-lg font-bold text-foreground">{selectedModel.model_name}</p>
@@ -140,6 +150,17 @@ export function ModelComparison({
               <p className="text-lg font-bold text-primary">{formatCurrency(selectedTCO)}</p>
             </div>
           </div>
+          {/* Threshing System Image */}
+          {selectedModel.threshing_system_image_url && (
+            <div className="mt-4 border-t pt-4">
+              <p className="mb-2 text-sm font-medium text-muted-foreground">Peksu- ja puhastussüsteem</p>
+              <img 
+                src={selectedModel.threshing_system_image_url} 
+                alt="Peksusüsteem"
+                className="h-40 w-full rounded-lg object-contain bg-muted/20"
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -183,6 +204,14 @@ export function ModelComparison({
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
+                    {/* Competitor Image */}
+                    {competitor.image_url && (
+                      <img 
+                        src={competitor.image_url} 
+                        alt={competitor.model_name}
+                        className="h-24 w-full rounded-md object-contain bg-white"
+                      />
+                    )}
                     {/* Technical Specs Comparison */}
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
