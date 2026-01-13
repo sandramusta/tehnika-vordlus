@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { EquipmentFilters } from "@/components/comparison/EquipmentFilters";
-import { ComparisonTable } from "@/components/comparison/ComparisonTable";
+import { ModelComparison } from "@/components/comparison/ModelComparison";
 import { CompetitiveAdvantages } from "@/components/comparison/CompetitiveAdvantages";
 import { TCOSummary } from "@/components/comparison/TCOSummary";
 import {
@@ -17,25 +17,61 @@ export default function Comparison() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedPowerClass, setSelectedPowerClass] = useState<string>("all");
+  const [selectedModel, setSelectedModel] = useState<string>("all");
 
   const { data: types } = useEquipmentTypes();
-  const combineType = types?.find((t) => t.name === "combine");
-
-  const { data: equipment = [], isLoading: loadingEquipment } = useEquipment(
-    selectedType !== "all" ? selectedType : combineType?.id
+  
+  // Get equipment for the selected type (or all types for "all")
+  const { data: allEquipment = [], isLoading: loadingEquipment } = useEquipment(
+    selectedType !== "all" ? selectedType : undefined
   );
   const { data: brands = [] } = useBrands();
   const { data: competitiveArgs = [] } = useCompetitiveArguments(
-    selectedType !== "all" ? selectedType : combineType?.id
+    selectedType !== "all" ? selectedType : undefined
   );
 
-  // Filter equipment
-  const filteredEquipment = equipment.filter((item) => {
+  // Find John Deere brand
+  const johnDeereBrand = brands.find((b) => b.name === "John Deere");
+
+  // Get the selected John Deere model
+  const selectedJohnDeereModel = useMemo(() => {
+    if (selectedModel === "all") return null;
+    return allEquipment.find((e) => e.id === selectedModel) || null;
+  }, [selectedModel, allEquipment]);
+
+  // Get competitors in the same power class as the selected model
+  const competitors = useMemo(() => {
+    if (!selectedJohnDeereModel || !selectedJohnDeereModel.power_class_id) return [];
+    
+    return allEquipment.filter((e) => {
+      // Exclude John Deere models
+      if (e.brand_id === johnDeereBrand?.id) return false;
+      // Must be same power class
+      if (e.power_class_id !== selectedJohnDeereModel.power_class_id) return false;
+      // Filter by brand if selected
+      if (selectedBrand !== "all" && e.brand_id !== selectedBrand) return false;
+      return true;
+    });
+  }, [selectedJohnDeereModel, allEquipment, johnDeereBrand, selectedBrand]);
+
+  // Filter equipment for other views
+  const filteredEquipment = allEquipment.filter((item) => {
     if (selectedBrand !== "all" && item.brand_id !== selectedBrand) return false;
     if (selectedPowerClass !== "all" && item.power_class_id !== selectedPowerClass)
       return false;
     return true;
   });
+
+  // Reset model when type or power class changes
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+    setSelectedModel("all");
+  };
+
+  const handlePowerClassChange = (value: string) => {
+    setSelectedPowerClass(value);
+    setSelectedModel("all");
+  };
 
   return (
     <Layout>
@@ -44,8 +80,7 @@ export default function Comparison() {
         <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
           <h1 className="text-3xl font-bold">Tehnika võrdlus</h1>
           <p className="mt-2 text-primary-foreground/80">
-            Võrdle John Deere kombaine konkurentidega. Vaata tehnilisi näitajaid,
-            jõuklasse ja TCO analüüsi.
+            Vali John Deere mudel ja vaata, kuidas see võrdleb konkurentide alternatiividega samas jõuklassis.
           </p>
         </div>
 
@@ -56,9 +91,12 @@ export default function Comparison() {
             selectedType={selectedType}
             selectedBrand={selectedBrand}
             selectedPowerClass={selectedPowerClass}
-            onTypeChange={setSelectedType}
+            selectedModel={selectedModel}
+            onTypeChange={handleTypeChange}
             onBrandChange={setSelectedBrand}
-            onPowerClassChange={setSelectedPowerClass}
+            onPowerClassChange={handlePowerClassChange}
+            onModelChange={setSelectedModel}
+            equipment={allEquipment}
           />
         </div>
 
@@ -67,7 +105,7 @@ export default function Comparison() {
           <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-none">
             <TabsTrigger value="comparison" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Võrdlustabel</span>
+              <span className="hidden sm:inline">Mudeli võrdlus</span>
             </TabsTrigger>
             <TabsTrigger value="advantages" className="gap-2">
               <Trophy className="h-4 w-4" />
@@ -85,7 +123,12 @@ export default function Comparison() {
                 <div className="text-muted-foreground">Laadin andmeid...</div>
               </div>
             ) : (
-              <ComparisonTable equipment={filteredEquipment} />
+              <ModelComparison
+                selectedModel={selectedJohnDeereModel}
+                competitors={competitors}
+                competitiveArgs={competitiveArgs}
+                brands={brands}
+              />
             )}
           </TabsContent>
 
