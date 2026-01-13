@@ -1,10 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Tractor, BarChart3, Settings, FileText } from "lucide-react";
+import { Tractor, BarChart3, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Võrdlus", icon: BarChart3 },
-  { href: "/documentation", label: "Dokumentatsioon", icon: FileText },
   { href: "/admin", label: "Haldus", icon: Settings },
 ];
 
