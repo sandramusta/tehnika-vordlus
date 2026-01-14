@@ -36,6 +36,7 @@ import { Plus, Trash2, Tractor, MessageSquare, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import type { Equipment, CompetitiveArgument } from "@/types/equipment";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export default function Admin() {
   const { toast } = useToast();
@@ -43,6 +44,8 @@ export default function Admin() {
   const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
   const [editingArgument, setEditingArgument] = useState<CompetitiveArgument | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [threshingImageUrl, setThreshingImageUrl] = useState<string>("");
 
   const { data: equipment = [] } = useEquipment();
   const { data: brands = [] } = useBrands();
@@ -77,8 +80,8 @@ export default function Admin() {
       annual_maintenance_eur: Number(formData.get("annual_maintenance_eur")) || null,
       expected_lifespan_years: Number(formData.get("expected_lifespan_years")) || 10,
       notes: (formData.get("notes") as string) || null,
-      image_url: (formData.get("image_url") as string) || null,
-      threshing_system_image_url: (formData.get("threshing_system_image_url") as string) || null,
+      image_url: imageUrl || null,
+      threshing_system_image_url: threshingImageUrl || null,
     };
 
     try {
@@ -91,6 +94,8 @@ export default function Admin() {
       }
       setEquipmentDialogOpen(false);
       setEditingEquipment(null);
+      setImageUrl("");
+      setThreshingImageUrl("");
     } catch (error) {
       toast({
         title: "Viga",
@@ -134,6 +139,8 @@ export default function Admin() {
 
   const openEditEquipment = (item: Equipment) => {
     setEditingEquipment(item);
+    setImageUrl(item.image_url || "");
+    setThreshingImageUrl(item.threshing_system_image_url || "");
     setEquipmentDialogOpen(true);
   };
 
@@ -145,6 +152,8 @@ export default function Admin() {
   const closeEquipmentDialog = () => {
     setEquipmentDialogOpen(false);
     setEditingEquipment(null);
+    setImageUrl("");
+    setThreshingImageUrl("");
   };
 
   const closeArgumentDialog = () => {
@@ -349,22 +358,20 @@ export default function Admin() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="image_url">Pildi URL</Label>
-                        <Input
-                          name="image_url"
-                          placeholder="/images/combines/mudeli-nimi.jpg"
-                          defaultValue={editingEquipment?.image_url ?? ""}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="threshing_system_image_url">Peksusüsteemi pildi URL</Label>
-                        <Input
-                          name="threshing_system_image_url"
-                          placeholder="/images/threshing/susteemi-nimi.jpg"
-                          defaultValue={editingEquipment?.threshing_system_image_url ?? ""}
-                        />
-                      </div>
+                      <ImageUpload
+                        name="image_url"
+                        label="Toote pilt"
+                        currentImageUrl={editingEquipment?.image_url}
+                        onImageUploaded={setImageUrl}
+                        folder="equipment"
+                      />
+                      <ImageUpload
+                        name="threshing_system_image_url"
+                        label="Peksusüsteemi pilt"
+                        currentImageUrl={editingEquipment?.threshing_system_image_url}
+                        onImageUploaded={setThreshingImageUrl}
+                        folder="threshing"
+                      />
                     </div>
 
                     <div className="space-y-2">
