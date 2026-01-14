@@ -4,6 +4,7 @@ import { EquipmentFilters } from "@/components/comparison/EquipmentFilters";
 import { ModelComparison } from "@/components/comparison/ModelComparison";
 import { CompetitiveAdvantages } from "@/components/comparison/CompetitiveAdvantages";
 import { TCOSummary } from "@/components/comparison/TCOSummary";
+import { ROICalculator } from "@/components/comparison/ROICalculator";
 import {
   useEquipment,
   useBrands,
@@ -112,6 +113,9 @@ export default function Comparison() {
                 />
               </>
             )}
+
+            {/* ROI Calculator - always visible */}
+            <ROICalculator />
           </div>
         )}
       </div>
