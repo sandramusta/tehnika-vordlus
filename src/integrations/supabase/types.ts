@@ -89,79 +89,145 @@ export type Database = {
       equipment: {
         Row: {
           annual_maintenance_eur: number | null
+          auger_reach_m: number | null
           brand_id: string
+          chopper_width_mm: number | null
           cleaning_area_m2: number | null
           created_at: string
+          detailed_specs: Json | null
+          engine_cylinders: number | null
           engine_displacement_liters: number | null
           engine_power_hp: number | null
           equipment_type_id: string
           expected_lifespan_years: number | null
           features: Json | null
+          feeder_width_mm: number | null
           fuel_consumption_lh: number | null
           fuel_tank_liters: number | null
           grain_tank_liters: number | null
           header_width_m: number | null
+          header_width_max_m: number | null
+          header_width_min_m: number | null
           id: string
           image_url: string | null
+          max_slope_percent: number | null
+          max_torque_nm: number | null
           model_name: string
           notes: string | null
           power_class_id: string | null
           price_eur: number | null
+          rasp_bar_count: number | null
           rotor_diameter_mm: number | null
+          rotor_length_mm: number | null
+          separator_area_m2: number | null
+          sieve_area_m2: number | null
+          straw_walker_area_m2: number | null
+          straw_walker_count: number | null
+          threshing_area_m2: number | null
+          threshing_drum_diameter_mm: number | null
+          threshing_drum_width_mm: number | null
           threshing_system_image_url: string | null
           throughput_tons_h: number | null
+          transport_height_mm: number | null
+          transport_length_mm: number | null
+          transport_width_mm: number | null
+          unloading_rate_ls: number | null
           updated_at: string
           weight_kg: number | null
         }
         Insert: {
           annual_maintenance_eur?: number | null
+          auger_reach_m?: number | null
           brand_id: string
+          chopper_width_mm?: number | null
           cleaning_area_m2?: number | null
           created_at?: string
+          detailed_specs?: Json | null
+          engine_cylinders?: number | null
           engine_displacement_liters?: number | null
           engine_power_hp?: number | null
           equipment_type_id: string
           expected_lifespan_years?: number | null
           features?: Json | null
+          feeder_width_mm?: number | null
           fuel_consumption_lh?: number | null
           fuel_tank_liters?: number | null
           grain_tank_liters?: number | null
           header_width_m?: number | null
+          header_width_max_m?: number | null
+          header_width_min_m?: number | null
           id?: string
           image_url?: string | null
+          max_slope_percent?: number | null
+          max_torque_nm?: number | null
           model_name: string
           notes?: string | null
           power_class_id?: string | null
           price_eur?: number | null
+          rasp_bar_count?: number | null
           rotor_diameter_mm?: number | null
+          rotor_length_mm?: number | null
+          separator_area_m2?: number | null
+          sieve_area_m2?: number | null
+          straw_walker_area_m2?: number | null
+          straw_walker_count?: number | null
+          threshing_area_m2?: number | null
+          threshing_drum_diameter_mm?: number | null
+          threshing_drum_width_mm?: number | null
           threshing_system_image_url?: string | null
           throughput_tons_h?: number | null
+          transport_height_mm?: number | null
+          transport_length_mm?: number | null
+          transport_width_mm?: number | null
+          unloading_rate_ls?: number | null
           updated_at?: string
           weight_kg?: number | null
         }
         Update: {
           annual_maintenance_eur?: number | null
+          auger_reach_m?: number | null
           brand_id?: string
+          chopper_width_mm?: number | null
           cleaning_area_m2?: number | null
           created_at?: string
+          detailed_specs?: Json | null
+          engine_cylinders?: number | null
           engine_displacement_liters?: number | null
           engine_power_hp?: number | null
           equipment_type_id?: string
           expected_lifespan_years?: number | null
           features?: Json | null
+          feeder_width_mm?: number | null
           fuel_consumption_lh?: number | null
           fuel_tank_liters?: number | null
           grain_tank_liters?: number | null
           header_width_m?: number | null
+          header_width_max_m?: number | null
+          header_width_min_m?: number | null
           id?: string
           image_url?: string | null
+          max_slope_percent?: number | null
+          max_torque_nm?: number | null
           model_name?: string
           notes?: string | null
           power_class_id?: string | null
           price_eur?: number | null
+          rasp_bar_count?: number | null
           rotor_diameter_mm?: number | null
+          rotor_length_mm?: number | null
+          separator_area_m2?: number | null
+          sieve_area_m2?: number | null
+          straw_walker_area_m2?: number | null
+          straw_walker_count?: number | null
+          threshing_area_m2?: number | null
+          threshing_drum_diameter_mm?: number | null
+          threshing_drum_width_mm?: number | null
           threshing_system_image_url?: string | null
           throughput_tons_h?: number | null
+          transport_height_mm?: number | null
+          transport_length_mm?: number | null
+          transport_width_mm?: number | null
+          unloading_rate_ls?: number | null
           updated_at?: string
           weight_kg?: number | null
         }

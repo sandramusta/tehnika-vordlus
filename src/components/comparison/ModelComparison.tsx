@@ -75,12 +75,25 @@ export function ModelComparison({
     lowestMaintenance: Math.min(...allModels.filter(m => m.annual_maintenance_eur).map(m => m.annual_maintenance_eur!)),
     lowestTCO: Math.min(...allModels.filter(m => calculateTCO(m)).map(m => calculateTCO(m)!)),
     highestLifespan: Math.max(...allModels.map(m => m.expected_lifespan_years || 10)),
-    // New fields from brochures
+    // Technical specs from brochures
     fuelTank: Math.max(...allModels.filter(m => m.fuel_tank_liters).map(m => m.fuel_tank_liters!)),
     cleaningArea: Math.max(...allModels.filter(m => m.cleaning_area_m2).map(m => m.cleaning_area_m2!)),
     rotorDiameter: Math.max(...allModels.filter(m => m.rotor_diameter_mm).map(m => m.rotor_diameter_mm!)),
     throughput: Math.max(...allModels.filter(m => m.throughput_tons_h).map(m => m.throughput_tons_h!)),
     engineDisplacement: Math.max(...allModels.filter(m => m.engine_displacement_liters).map(m => m.engine_displacement_liters!)),
+    // New detailed specs
+    engineCylinders: Math.max(...allModels.filter(m => m.engine_cylinders).map(m => m.engine_cylinders!)),
+    maxTorque: Math.max(...allModels.filter(m => m.max_torque_nm).map(m => m.max_torque_nm!)),
+    feederWidth: Math.max(...allModels.filter(m => m.feeder_width_mm).map(m => m.feeder_width_mm!)),
+    rotorLength: Math.max(...allModels.filter(m => m.rotor_length_mm).map(m => m.rotor_length_mm!)),
+    separatorArea: Math.max(...allModels.filter(m => m.separator_area_m2).map(m => m.separator_area_m2!)),
+    sieveArea: Math.max(...allModels.filter(m => m.sieve_area_m2).map(m => m.sieve_area_m2!)),
+    unloadingRate: Math.max(...allModels.filter(m => m.unloading_rate_ls).map(m => m.unloading_rate_ls!)),
+    augerReach: Math.max(...allModels.filter(m => m.auger_reach_m).map(m => m.auger_reach_m!)),
+    maxSlope: Math.max(...allModels.filter(m => m.max_slope_percent).map(m => m.max_slope_percent!)),
+    strawWalkerArea: Math.max(...allModels.filter(m => m.straw_walker_area_m2).map(m => m.straw_walker_area_m2!)),
+    threshingArea: Math.max(...allModels.filter(m => m.threshing_area_m2).map(m => m.threshing_area_m2!)),
+    headerWidthMax: Math.max(...allModels.filter(m => m.header_width_max_m).map(m => m.header_width_max_m!)),
   };
 
   const selectedTCO = calculateTCO(selectedModel);
@@ -326,6 +339,320 @@ export function ModelComparison({
                       <div className="flex items-center justify-center gap-1">
                         {model.throughput_tons_h ? `>${model.throughput_tons_h}` : "—"}
                         {isBest && model.throughput_tons_h && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Engine Cylinders */}
+            {allModels.some(m => m.engine_cylinders) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Silindrid</td>
+                {allModels.map((model) => {
+                  const isBest = model.engine_cylinders === bestValues.engineCylinders;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.engine_cylinders || "—"}
+                        {isBest && model.engine_cylinders && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Max Torque */}
+            {allModels.some(m => m.max_torque_nm) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Max pöördemoment (Nm)</td>
+                {allModels.map((model) => {
+                  const isBest = model.max_torque_nm === bestValues.maxTorque;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.max_torque_nm ? formatNumber(model.max_torque_nm) : "—"}
+                        {isBest && model.max_torque_nm && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Feeder Width */}
+            {allModels.some(m => m.feeder_width_mm) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Etteande laius (mm)</td>
+                {allModels.map((model) => {
+                  const isBest = model.feeder_width_mm === bestValues.feederWidth;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.feeder_width_mm ? formatNumber(model.feeder_width_mm) : "—"}
+                        {isBest && model.feeder_width_mm && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Threshing Area (for conventional) */}
+            {allModels.some(m => m.threshing_area_m2) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Peksupind (m²)</td>
+                {allModels.map((model) => {
+                  const isBest = model.threshing_area_m2 === bestValues.threshingArea;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.threshing_area_m2 || "—"}
+                        {isBest && model.threshing_area_m2 && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Rotor Length */}
+            {allModels.some(m => m.rotor_length_mm) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Rootori pikkus (mm)</td>
+                {allModels.map((model) => {
+                  const isBest = model.rotor_length_mm === bestValues.rotorLength;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.rotor_length_mm ? formatNumber(model.rotor_length_mm) : "—"}
+                        {isBest && model.rotor_length_mm && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Separator Area */}
+            {allModels.some(m => m.separator_area_m2) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Separaatori pindala (m²)</td>
+                {allModels.map((model) => {
+                  const isBest = model.separator_area_m2 === bestValues.separatorArea;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.separator_area_m2 || "—"}
+                        {isBest && model.separator_area_m2 && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Straw Walker Area */}
+            {allModels.some(m => m.straw_walker_area_m2) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Klahvpuisturite pindala (m²)</td>
+                {allModels.map((model) => {
+                  const isBest = model.straw_walker_area_m2 === bestValues.strawWalkerArea;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.straw_walker_area_m2 || "—"}
+                        {isBest && model.straw_walker_area_m2 && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Sieve Area */}
+            {allModels.some(m => m.sieve_area_m2) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Sõelapind (m²)</td>
+                {allModels.map((model) => {
+                  const isBest = model.sieve_area_m2 === bestValues.sieveArea;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.sieve_area_m2 || "—"}
+                        {isBest && model.sieve_area_m2 && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Unloading Rate */}
+            {allModels.some(m => m.unloading_rate_ls) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Mahalaadimiskiirus (l/s)</td>
+                {allModels.map((model) => {
+                  const isBest = model.unloading_rate_ls === bestValues.unloadingRate;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.unloading_rate_ls || "—"}
+                        {isBest && model.unloading_rate_ls && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Auger Reach */}
+            {allModels.some(m => m.auger_reach_m) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Tigukõrgus (m)</td>
+                {allModels.map((model) => {
+                  const isBest = model.auger_reach_m === bestValues.augerReach;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.auger_reach_m || "—"}
+                        {isBest && model.auger_reach_m && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Max Slope */}
+            {allModels.some(m => m.max_slope_percent) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Max nõlvakald (%)</td>
+                {allModels.map((model) => {
+                  const isBest = model.max_slope_percent === bestValues.maxSlope;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.max_slope_percent ? `${model.max_slope_percent}%` : "—"}
+                        {isBest && model.max_slope_percent && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Header Width Range */}
+            {allModels.some(m => m.header_width_min_m || m.header_width_max_m) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Heedri laiusvahemik (m)</td>
+                {allModels.map((model) => {
+                  const isBest = model.header_width_max_m === bestValues.headerWidthMax;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.header_width_min_m && model.header_width_max_m 
+                          ? `${model.header_width_min_m}–${model.header_width_max_m}` 
+                          : "—"}
+                        {isBest && model.header_width_max_m && (
                           <CheckCircle2 className="h-4 w-4 text-success" />
                         )}
                       </div>

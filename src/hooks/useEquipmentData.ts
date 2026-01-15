@@ -121,7 +121,7 @@ export function useCreateEquipment() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (equipment: Omit<Equipment, "id" | "created_at" | "updated_at" | "brand" | "power_class" | "equipment_type">) => {
+    mutationFn: async (equipment: Partial<Omit<Equipment, "id" | "created_at" | "updated_at" | "brand" | "power_class" | "equipment_type">> & { equipment_type_id: string; brand_id: string; model_name: string }) => {
       const { data, error } = await supabase
         .from("equipment")
         .insert(equipment)
