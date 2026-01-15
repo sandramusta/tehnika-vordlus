@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>John Deere</title>
+    <script src="https://assets.adobedtm.com/2049358d456be09212c0f542d1c8301b8a4e2545/satelliteLib-ac7036f0c9a23e0ca6c71b717895ab75c8412405.js"></script>
+    <script type="text/javascript" src="https://secure.api.viewer.zmags.com/viewer/viewer.js"></script>
+	<meta name="robots" content="noindex" />
+</head>
+<body>
+
+<script>
+	// This block of code retrieves parameters from the URL.
+	function getUrlVars(name)
+	{
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]"+name+"=([^&#]*)";
+		var regex = new RegExp(regexS);
+		var results = regex.exec(window.location.href);
+		if(results == null)
+			return "";
+		else
+			return results[1];
+	}
+
+	var viewer = new com.zmags.api.Viewer();
+	
+	// Set publication ID.
+	var pubID = getUrlVars("id");
+	if(pubID != ""){
+		viewer.setPublicationID(pubID); // Use ID from URL.
+	}
+	else {
+		viewer.setPublicationID(""); // Default publication ID.
+	}
+	
+	viewer.setParentElementID('myViewerContent'); // Element to insert publication into.
+	viewer.show();
+	
+    window.document.onkeydown = function(e) {
+                             switch (e.keyCode) {
+        case 37:
+            viewer.gotoPreviousPages();
+            break;
+        case 39:
+            viewer.gotoNextPages();
+            break;
+        case 52: // 4
+            if (e.ctrlKey && e.altKey) {
+                viewer.downloadPDF();
+            }
+            break;
+    	}
+	}
+    
+	<!-- This block of code displays the page specified in the URL. -->
+    if(window.location.hash != ""){ viewer.gotoPage(window.location.hash.replace("#","")); }
+    window.onhashchange = function(event){ viewer.gotoPage(window.location.hash.replace("#","")); }
+    <!-- This block of code updates the URL when pages are turned. -->
+    viewer.oncurrentpageschange = function(event){
+        viewer.getCurrentPages(function(data){
+            window.location.hash = data.firstPage;
+			window.document.title = 'John Deere';
+        });
+    }
+
+
+</script>
+
+<div id="myViewerContent" style="position:absolute; top:0px; left:0px; width:100%; height:100%;"></div>
+<script src="/common/deere-resources/js/jquery.js" type="text/javascript"></script>
+<script type="text/javascript">if(typeof _satellite !="undefined"){
+_satellite.pageBottom();}</script>
+</body>
+</html>
