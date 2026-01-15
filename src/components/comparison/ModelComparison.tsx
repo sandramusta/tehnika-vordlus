@@ -75,6 +75,12 @@ export function ModelComparison({
     lowestMaintenance: Math.min(...allModels.filter(m => m.annual_maintenance_eur).map(m => m.annual_maintenance_eur!)),
     lowestTCO: Math.min(...allModels.filter(m => calculateTCO(m)).map(m => calculateTCO(m)!)),
     highestLifespan: Math.max(...allModels.map(m => m.expected_lifespan_years || 10)),
+    // New fields from brochures
+    fuelTank: Math.max(...allModels.filter(m => m.fuel_tank_liters).map(m => m.fuel_tank_liters!)),
+    cleaningArea: Math.max(...allModels.filter(m => m.cleaning_area_m2).map(m => m.cleaning_area_m2!)),
+    rotorDiameter: Math.max(...allModels.filter(m => m.rotor_diameter_mm).map(m => m.rotor_diameter_mm!)),
+    throughput: Math.max(...allModels.filter(m => m.throughput_tons_h).map(m => m.throughput_tons_h!)),
+    engineDisplacement: Math.max(...allModels.filter(m => m.engine_displacement_liters).map(m => m.engine_displacement_liters!)),
   };
 
   const selectedTCO = calculateTCO(selectedModel);
@@ -224,6 +230,110 @@ export function ModelComparison({
                 );
               })}
             </tr>
+
+            {/* Fuel Tank */}
+            {allModels.some(m => m.fuel_tank_liters) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Kütusepaak (L)</td>
+                {allModels.map((model) => {
+                  const isBest = model.fuel_tank_liters === bestValues.fuelTank;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.fuel_tank_liters ? formatNumber(model.fuel_tank_liters) : "—"}
+                        {isBest && model.fuel_tank_liters && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Cleaning Area */}
+            {allModels.some(m => m.cleaning_area_m2) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Puhasti pindala (m²)</td>
+                {allModels.map((model) => {
+                  const isBest = model.cleaning_area_m2 === bestValues.cleaningArea;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.cleaning_area_m2 || "—"}
+                        {isBest && model.cleaning_area_m2 && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Rotor Diameter */}
+            {allModels.some(m => m.rotor_diameter_mm) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Rootori läbimõõt (mm)</td>
+                {allModels.map((model) => {
+                  const isBest = model.rotor_diameter_mm === bestValues.rotorDiameter;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.rotor_diameter_mm ? formatNumber(model.rotor_diameter_mm) : "—"}
+                        {isBest && model.rotor_diameter_mm && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
+            {/* Throughput */}
+            {allModels.some(m => m.throughput_tons_h) && (
+              <tr className="border-b border-border/50">
+                <td className="p-3 text-sm text-muted-foreground">Läbilaskevõime (t/h)</td>
+                {allModels.map((model) => {
+                  const isBest = model.throughput_tons_h === bestValues.throughput;
+                  return (
+                    <td 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-medium",
+                        model.id === selectedModel.id && "bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {model.throughput_tons_h ? `>${model.throughput_tons_h}` : "—"}
+                        {isBest && model.throughput_tons_h && (
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
 
             {/* Weight */}
             <tr className="border-b border-border/50">

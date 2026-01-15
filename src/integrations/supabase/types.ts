@@ -90,12 +90,15 @@ export type Database = {
         Row: {
           annual_maintenance_eur: number | null
           brand_id: string
+          cleaning_area_m2: number | null
           created_at: string
+          engine_displacement_liters: number | null
           engine_power_hp: number | null
           equipment_type_id: string
           expected_lifespan_years: number | null
           features: Json | null
           fuel_consumption_lh: number | null
+          fuel_tank_liters: number | null
           grain_tank_liters: number | null
           header_width_m: number | null
           id: string
@@ -104,19 +107,24 @@ export type Database = {
           notes: string | null
           power_class_id: string | null
           price_eur: number | null
+          rotor_diameter_mm: number | null
           threshing_system_image_url: string | null
+          throughput_tons_h: number | null
           updated_at: string
           weight_kg: number | null
         }
         Insert: {
           annual_maintenance_eur?: number | null
           brand_id: string
+          cleaning_area_m2?: number | null
           created_at?: string
+          engine_displacement_liters?: number | null
           engine_power_hp?: number | null
           equipment_type_id: string
           expected_lifespan_years?: number | null
           features?: Json | null
           fuel_consumption_lh?: number | null
+          fuel_tank_liters?: number | null
           grain_tank_liters?: number | null
           header_width_m?: number | null
           id?: string
@@ -125,19 +133,24 @@ export type Database = {
           notes?: string | null
           power_class_id?: string | null
           price_eur?: number | null
+          rotor_diameter_mm?: number | null
           threshing_system_image_url?: string | null
+          throughput_tons_h?: number | null
           updated_at?: string
           weight_kg?: number | null
         }
         Update: {
           annual_maintenance_eur?: number | null
           brand_id?: string
+          cleaning_area_m2?: number | null
           created_at?: string
+          engine_displacement_liters?: number | null
           engine_power_hp?: number | null
           equipment_type_id?: string
           expected_lifespan_years?: number | null
           features?: Json | null
           fuel_consumption_lh?: number | null
+          fuel_tank_liters?: number | null
           grain_tank_liters?: number | null
           header_width_m?: number | null
           id?: string
@@ -146,7 +159,9 @@ export type Database = {
           notes?: string | null
           power_class_id?: string | null
           price_eur?: number | null
+          rotor_diameter_mm?: number | null
           threshing_system_image_url?: string | null
+          throughput_tons_h?: number | null
           updated_at?: string
           weight_kg?: number | null
         }

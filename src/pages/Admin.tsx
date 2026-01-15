@@ -82,6 +82,12 @@ export default function Admin() {
       notes: (formData.get("notes") as string) || null,
       image_url: imageUrl || null,
       threshing_system_image_url: threshingImageUrl || null,
+      // New fields from brochures
+      fuel_tank_liters: Number(formData.get("fuel_tank_liters")) || null,
+      cleaning_area_m2: Number(formData.get("cleaning_area_m2")) || null,
+      rotor_diameter_mm: Number(formData.get("rotor_diameter_mm")) || null,
+      throughput_tons_h: Number(formData.get("throughput_tons_h")) || null,
+      engine_displacement_liters: Number(formData.get("engine_displacement_liters")) || null,
     };
 
     try {
@@ -353,6 +359,61 @@ export default function Admin() {
                           type="number"
                           placeholder="12000"
                           defaultValue={editingEquipment?.annual_maintenance_eur ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* New fields from brochures */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="fuel_tank_liters">Kütusepaak (L)</Label>
+                        <Input
+                          name="fuel_tank_liters"
+                          type="number"
+                          placeholder="950"
+                          defaultValue={editingEquipment?.fuel_tank_liters ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cleaning_area_m2">Puhasti pindala (m²)</Label>
+                        <Input
+                          name="cleaning_area_m2"
+                          type="number"
+                          step="0.1"
+                          placeholder="5.9"
+                          defaultValue={editingEquipment?.cleaning_area_m2 ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="rotor_diameter_mm">Rootori läbimõõt (mm)</Label>
+                        <Input
+                          name="rotor_diameter_mm"
+                          type="number"
+                          placeholder="834"
+                          defaultValue={editingEquipment?.rotor_diameter_mm ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="throughput_tons_h">Läbilaskevõime (t/h)</Label>
+                        <Input
+                          name="throughput_tons_h"
+                          type="number"
+                          step="0.1"
+                          placeholder="100"
+                          defaultValue={editingEquipment?.throughput_tons_h ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="engine_displacement_liters">Mootori töömaht (L)</Label>
+                        <Input
+                          name="engine_displacement_liters"
+                          type="number"
+                          step="0.1"
+                          placeholder="13.6"
+                          defaultValue={editingEquipment?.engine_displacement_liters ?? ""}
                         />
                       </div>
                     </div>
