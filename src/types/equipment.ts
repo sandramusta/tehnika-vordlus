@@ -39,6 +39,12 @@ export interface Equipment {
   notes: string | null;
   image_url: string | null;
   threshing_system_image_url: string | null;
+  // New fields from brochures
+  fuel_tank_liters: number | null;
+  cleaning_area_m2: number | null;
+  rotor_diameter_mm: number | null;
+  throughput_tons_h: number | null;
+  engine_displacement_liters: number | null;
   created_at: string;
   updated_at: string;
   // Joined data
