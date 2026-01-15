@@ -21,6 +21,9 @@ export interface PowerClass {
   created_at: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DetailedSpecs = Record<string, any>;
+
 export interface Equipment {
   id: string;
   equipment_type_id: string;
@@ -39,12 +42,35 @@ export interface Equipment {
   notes: string | null;
   image_url: string | null;
   threshing_system_image_url: string | null;
-  // New fields from brochures
+  // Technical specifications from brochures
   fuel_tank_liters: number | null;
   cleaning_area_m2: number | null;
   rotor_diameter_mm: number | null;
   throughput_tons_h: number | null;
   engine_displacement_liters: number | null;
+  // Additional detailed specs
+  engine_cylinders: number | null;
+  max_torque_nm: number | null;
+  feeder_width_mm: number | null;
+  rasp_bar_count: number | null;
+  threshing_drum_diameter_mm: number | null;
+  threshing_drum_width_mm: number | null;
+  threshing_area_m2: number | null;
+  rotor_length_mm: number | null;
+  separator_area_m2: number | null;
+  straw_walker_count: number | null;
+  straw_walker_area_m2: number | null;
+  sieve_area_m2: number | null;
+  unloading_rate_ls: number | null;
+  auger_reach_m: number | null;
+  chopper_width_mm: number | null;
+  max_slope_percent: number | null;
+  transport_width_mm: number | null;
+  transport_height_mm: number | null;
+  transport_length_mm: number | null;
+  header_width_min_m: number | null;
+  header_width_max_m: number | null;
+  detailed_specs: DetailedSpecs | null;
   created_at: string;
   updated_at: string;
   // Joined data

@@ -82,7 +82,7 @@ export default function Admin() {
       notes: (formData.get("notes") as string) || null,
       image_url: imageUrl || null,
       threshing_system_image_url: threshingImageUrl || null,
-      // New fields from brochures
+      // Technical specs from brochures
       fuel_tank_liters: Number(formData.get("fuel_tank_liters")) || null,
       cleaning_area_m2: Number(formData.get("cleaning_area_m2")) || null,
       rotor_diameter_mm: Number(formData.get("rotor_diameter_mm")) || null,
