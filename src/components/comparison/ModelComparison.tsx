@@ -1,6 +1,7 @@
 import { Equipment, CompetitiveArgument, Brand } from "@/types/equipment";
 import { Trophy, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DetailedSpecsAccordion } from "./DetailedSpecsAccordion";
 
 interface ModelComparisonProps {
   selectedModel: Equipment | null;
@@ -867,6 +868,18 @@ export function ModelComparison({
           </tbody>
         </table>
       </div>
+
+      {/* Detailed Specs Accordions */}
+      {allModels.some(m => m.detailed_specs) && (
+        <div className="mt-8 space-y-6">
+          <h4 className="text-lg font-semibold text-foreground">Detailsed tehnilised andmed</h4>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {allModels.filter(m => m.detailed_specs).map((model) => (
+              <DetailedSpecsAccordion key={model.id} equipment={model} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
