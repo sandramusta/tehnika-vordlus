@@ -34,15 +34,20 @@ export default function Comparison() {
     return allEquipment.find((e) => e.id === selectedModel) || null;
   }, [selectedModel, allEquipment]);
 
-  // Get competitors in the same power class as the selected model (from other brands)
+  // Get competitors within 100 HP of the selected model (from other brands)
   const competitors = useMemo(() => {
-    if (!selectedEquipmentModel || !selectedEquipmentModel.power_class_id) return [];
+    if (!selectedEquipmentModel || !selectedEquipmentModel.engine_power_hp) return [];
+    
+    const selectedPower = selectedEquipmentModel.engine_power_hp;
     
     return allEquipment.filter((e) => {
       // Exclude same brand
       if (e.brand_id === selectedEquipmentModel.brand_id) return false;
-      // Must be same power class
-      if (e.power_class_id !== selectedEquipmentModel.power_class_id) return false;
+      // Must have engine power defined
+      if (!e.engine_power_hp) return false;
+      // Power difference must be within 100 HP
+      const powerDiff = Math.abs(e.engine_power_hp - selectedPower);
+      if (powerDiff > 100) return false;
       return true;
     });
   }, [selectedEquipmentModel, allEquipment]);
