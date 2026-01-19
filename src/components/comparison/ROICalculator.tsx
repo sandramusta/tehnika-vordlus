@@ -2,29 +2,57 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, TrendingUp, Clock, Fuel, Wrench } from "lucide-react";
+import { Calculator, TrendingUp, Clock, Fuel, Wrench, Wheat, Cog, PiggyBank } from "lucide-react";
 
 interface ROIInputs {
+  // Purchase & depreciation
   purchasePrice: number;
+  expectedLifespan: number;
+  residualValuePercent: number;
+  
+  // Operating parameters
   annualWorkHours: number;
+  annualHectares: number;
+  
+  // Fuel
   fuelConsumption: number;
   fuelPrice: number;
+  fuelSavingsPercent: number;
+  
+  // Maintenance
   annualMaintenance: number;
+  maintenanceSavingsPercent: number;
+  
+  // Harvest quality
+  grainLossReduction: number; // €/ha savings from reduced grain loss
+  
+  // Labor
   operatorHourlyCost: number;
-  expectedLifespan: number;
-  annualHectares: number;
+  
+  // Revenue (optional for profit calculation)
   revenuePerHectare: number;
 }
 
+// Default values based on the article: 500,000€ combine, 800 ha farm
 const defaultInputs: ROIInputs = {
-  purchasePrice: 450000,
+  purchasePrice: 500000,
+  expectedLifespan: 5,
+  residualValuePercent: 52, // 260,000 / 500,000 = 52%
+  
   annualWorkHours: 400,
+  annualHectares: 800,
+  
   fuelConsumption: 45,
   fuelPrice: 1.5,
-  annualMaintenance: 15000,
+  fuelSavingsPercent: 5, // 5% fuel savings from optimization
+  
+  annualMaintenance: 12000,
+  maintenanceSavingsPercent: 25, // 25% savings from preventive maintenance
+  
+  grainLossReduction: 3, // 3 €/ha from reduced grain losses
+  
   operatorHourlyCost: 25,
-  expectedLifespan: 10,
-  annualHectares: 800,
+  
   revenuePerHectare: 150,
 };
 
@@ -37,34 +65,86 @@ export function ROICalculator() {
   };
 
   const calculations = useMemo(() => {
-    const annualFuelCost = inputs.annualWorkHours * inputs.fuelConsumption * inputs.fuelPrice;
-    const annualOperatorCost = inputs.annualWorkHours * inputs.operatorHourlyCost;
-    const annualDepreciation = inputs.purchasePrice / inputs.expectedLifespan;
+    // Base costs
+    const baseFuelCost = inputs.annualWorkHours * inputs.fuelConsumption * inputs.fuelPrice;
+    const baseMaintenanceCost = inputs.annualMaintenance;
     
-    const totalAnnualCosts = annualFuelCost + annualOperatorCost + inputs.annualMaintenance + annualDepreciation;
-    const totalLifetimeCosts = totalAnnualCosts * inputs.expectedLifespan;
+    // Benefits (savings) from modern equipment - based on article methodology
+    const grainLossSavings = inputs.grainLossReduction * inputs.annualHectares; // Terakadude vähenemine
+    const fuelSavings = baseFuelCost * (inputs.fuelSavingsPercent / 100); // Kütusesääst
+    const maintenanceSavings = baseMaintenanceCost * (inputs.maintenanceSavingsPercent / 100); // Hoolduse kokkuhoid
+    const totalAnnualBenefits = grainLossSavings + fuelSavings + maintenanceSavings; // Aastane kogukasulikkus
     
+    // Actual costs after savings
+    const actualFuelCost = baseFuelCost - fuelSavings;
+    const actualMaintenanceCost = baseMaintenanceCost - maintenanceSavings;
+    const operatorCost = inputs.annualWorkHours * inputs.operatorHourlyCost;
+    
+    // Depreciation calculation with residual value
+    const residualValue = inputs.purchasePrice * (inputs.residualValuePercent / 100);
+    const annualDepreciation = (inputs.purchasePrice - residualValue) / inputs.expectedLifespan;
+    
+    // Total annual ownership cost (TCO components)
+    const totalAnnualCosts = actualFuelCost + actualMaintenanceCost + operatorCost + annualDepreciation;
+    
+    // Net annual ownership cost (depreciation minus benefits)
+    const netAnnualOwnershipCost = annualDepreciation - totalAnnualBenefits;
+    
+    // Revenue and profit
     const annualRevenue = inputs.annualHectares * inputs.revenuePerHectare;
     const annualProfit = annualRevenue - totalAnnualCosts;
     
+    // Per-unit costs
     const costPerHectare = inputs.annualHectares > 0 ? totalAnnualCosts / inputs.annualHectares : 0;
     const costPerHour = inputs.annualWorkHours > 0 ? totalAnnualCosts / inputs.annualWorkHours : 0;
     
-    const paybackYears = annualProfit > 0 ? inputs.purchasePrice / annualProfit : Infinity;
-    const roi = inputs.purchasePrice > 0 ? ((annualProfit * inputs.expectedLifespan) / inputs.purchasePrice) * 100 : 0;
+    // ROI calculation based on article formula
+    // ROI = total benefits over lifetime / purchase price
+    const totalLifetimeBenefits = totalAnnualBenefits * inputs.expectedLifespan;
+    const roi = inputs.purchasePrice > 0 ? (totalLifetimeBenefits / inputs.purchasePrice) * 100 : 0;
+    
+    // Payback period based on annual benefits
+    const paybackYears = totalAnnualBenefits > 0 ? inputs.purchasePrice / totalAnnualBenefits : Infinity;
+    
+    // Alternative payback based on profit
+    const profitBasedPayback = annualProfit > 0 ? inputs.purchasePrice / annualProfit : Infinity;
+    
+    // Total cost of ownership over lifespan
+    const totalLifetimeCosts = totalAnnualCosts * inputs.expectedLifespan;
 
     return {
-      annualFuelCost,
-      annualOperatorCost,
+      // Benefits
+      grainLossSavings,
+      fuelSavings,
+      maintenanceSavings,
+      totalAnnualBenefits,
+      
+      // Costs
+      baseFuelCost,
+      actualFuelCost,
+      actualMaintenanceCost,
+      operatorCost,
       annualDepreciation,
       totalAnnualCosts,
-      totalLifetimeCosts,
+      netAnnualOwnershipCost,
+      
+      // Residual value
+      residualValue,
+      
+      // Revenue & profit
       annualRevenue,
       annualProfit,
+      
+      // Per-unit
       costPerHectare,
       costPerHour,
-      paybackYears,
+      
+      // ROI metrics
+      totalLifetimeBenefits,
       roi,
+      paybackYears,
+      profitBasedPayback,
+      totalLifetimeCosts,
     };
   }, [inputs]);
 
@@ -86,8 +166,11 @@ export function ROICalculator() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calculator className="h-5 w-5 text-primary" />
-          ROI kalkulaator
+          ROI ja TCO kalkulaator
         </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          Tasuvuse ja kogukulu analüüs artikli metoodika põhjal
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Input Fields */}
@@ -95,7 +178,7 @@ export function ROICalculator() {
           {/* Purchase & Depreciation */}
           <div className="space-y-4">
             <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-              Soetamine
+              Soetamine & Jääkväärtus
             </h3>
             <div className="space-y-3">
               <div className="space-y-1.5">
@@ -111,7 +194,7 @@ export function ROICalculator() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="expectedLifespan" className="text-sm">
-                  Eeldatav kasutusaeg (aastat)
+                  Analüüsiperiood (aastat)
                 </Label>
                 <Input
                   id="expectedLifespan"
@@ -120,15 +203,40 @@ export function ROICalculator() {
                   onChange={(e) => updateInput("expectedLifespan", e.target.value)}
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="residualValuePercent" className="text-sm">
+                  Jääkväärtus perioodi lõpus (%)
+                </Label>
+                <Input
+                  id="residualValuePercent"
+                  type="number"
+                  value={inputs.residualValuePercent}
+                  onChange={(e) => updateInput("residualValuePercent", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(inputs.purchasePrice * (inputs.residualValuePercent / 100))} järelturu väärtus
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Operating Costs */}
+          {/* Operating Parameters */}
           <div className="space-y-4">
             <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-              Tegevuskulud
+              Töö parameetrid
             </h3>
             <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="annualHectares" className="text-sm">
+                  Hektarid aastas
+                </Label>
+                <Input
+                  id="annualHectares"
+                  type="number"
+                  value={inputs.annualHectares}
+                  onChange={(e) => updateInput("annualHectares", e.target.value)}
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="annualWorkHours" className="text-sm">
                   Töötunnid aastas
@@ -140,6 +248,27 @@ export function ROICalculator() {
                   onChange={(e) => updateInput("annualWorkHours", e.target.value)}
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="operatorHourlyCost" className="text-sm">
+                  Operaatori tunnihind (€/h)
+                </Label>
+                <Input
+                  id="operatorHourlyCost"
+                  type="number"
+                  value={inputs.operatorHourlyCost}
+                  onChange={(e) => updateInput("operatorHourlyCost", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Fuel */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              <Fuel className="h-4 w-4" />
+              Kütus
+            </h3>
+            <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="fuelConsumption" className="text-sm">
                   Kütusekulu (l/h)
@@ -164,13 +293,25 @@ export function ROICalculator() {
                   onChange={(e) => updateInput("fuelPrice", e.target.value)}
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="fuelSavingsPercent" className="text-sm">
+                  Kütusesääst optimeerimisest (%)
+                </Label>
+                <Input
+                  id="fuelSavingsPercent"
+                  type="number"
+                  value={inputs.fuelSavingsPercent}
+                  onChange={(e) => updateInput("fuelSavingsPercent", e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Maintenance & Labor */}
+          {/* Maintenance */}
           <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-              Hooldus & Tööjõud
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              <Cog className="h-4 w-4" />
+              Hooldus
             </h3>
             <div className="space-y-3">
               <div className="space-y-1.5">
@@ -185,36 +326,54 @@ export function ROICalculator() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="operatorHourlyCost" className="text-sm">
-                  Operaatori tunnihind (€/h)
+                <Label htmlFor="maintenanceSavingsPercent" className="text-sm">
+                  Sääst ennetavast hooldusest (%)
                 </Label>
                 <Input
-                  id="operatorHourlyCost"
+                  id="maintenanceSavingsPercent"
                   type="number"
-                  value={inputs.operatorHourlyCost}
-                  onChange={(e) => updateInput("operatorHourlyCost", e.target.value)}
+                  value={inputs.maintenanceSavingsPercent}
+                  onChange={(e) => updateInput("maintenanceSavingsPercent", e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Ootamatute kulude vähenemine ennetava hoolduse tõttu
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Harvest Quality */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              <Wheat className="h-4 w-4" />
+              Koristuse kvaliteet
+            </h3>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="grainLossReduction" className="text-sm">
+                  Terakadude vähenemine (€/ha)
+                </Label>
+                <Input
+                  id="grainLossReduction"
+                  type="number"
+                  step="0.5"
+                  value={inputs.grainLossReduction}
+                  onChange={(e) => updateInput("grainLossReduction", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Automaatika tänu vähenev terakadu hektari kohta
+                </p>
               </div>
             </div>
           </div>
 
           {/* Revenue */}
-          <div className="space-y-4 md:col-span-2 lg:col-span-3">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+          <div className="space-y-4">
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              <PiggyBank className="h-4 w-4" />
               Tulu
             </h3>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="annualHectares" className="text-sm">
-                  Hektarid aastas
-                </Label>
-                <Input
-                  id="annualHectares"
-                  type="number"
-                  value={inputs.annualHectares}
-                  onChange={(e) => updateInput("annualHectares", e.target.value)}
-                />
-              </div>
+            <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="revenuePerHectare" className="text-sm">
                   Tulu hektari kohta (€/ha)
@@ -230,7 +389,68 @@ export function ROICalculator() {
           </div>
         </div>
 
-        {/* Results */}
+        {/* Benefits Summary - Key metric from article */}
+        <div className="border-t border-border pt-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Aastane kasulikkus (artikli metoodika)
+          </h3>
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="rounded-lg bg-green-500/10 p-4">
+              <div className="flex items-center gap-2 text-green-600 mb-2">
+                <Wheat className="h-4 w-4" />
+                <span className="text-sm font-medium">Terakadude vähenemine</span>
+              </div>
+              <div className="text-xl font-bold text-green-600">
+                +{formatCurrency(calculations.grainLossSavings)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {inputs.grainLossReduction} €/ha × {inputs.annualHectares} ha
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-green-500/10 p-4">
+              <div className="flex items-center gap-2 text-green-600 mb-2">
+                <Fuel className="h-4 w-4" />
+                <span className="text-sm font-medium">Kütusesääst</span>
+              </div>
+              <div className="text-xl font-bold text-green-600">
+                +{formatCurrency(calculations.fuelSavings)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {formatCurrency(calculations.baseFuelCost)} × {inputs.fuelSavingsPercent}%
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-green-500/10 p-4">
+              <div className="flex items-center gap-2 text-green-600 mb-2">
+                <Cog className="h-4 w-4" />
+                <span className="text-sm font-medium">Hoolduse kokkuhoid</span>
+              </div>
+              <div className="text-xl font-bold text-green-600">
+                +{formatCurrency(calculations.maintenanceSavings)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {formatCurrency(inputs.annualMaintenance)} × {inputs.maintenanceSavingsPercent}%
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-primary/10 p-4">
+              <div className="flex items-center gap-2 text-primary mb-2">
+                <TrendingUp className="h-4 w-4" />
+                <span className="text-sm font-medium">Aastane kogukasulikkus</span>
+              </div>
+              <div className="text-2xl font-bold">
+                +{formatCurrency(calculations.totalAnnualBenefits)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Kokku sääst aastas
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Results */}
         <div className="border-t border-border pt-6">
           <h3 className="font-semibold mb-4">Tulemused</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -241,26 +461,24 @@ export function ROICalculator() {
                 <span className="text-sm font-medium">ROI</span>
               </div>
               <div className="text-2xl font-bold">
-                {formatNumber(calculations.roi, 0)}%
+                ≈ {formatNumber(calculations.roi, 0)}%
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Kogu eluea jooksul
+                {inputs.expectedLifespan} aasta jooksul
               </div>
             </div>
 
-            {/* Payback Period */}
+            {/* Net Ownership Cost */}
             <div className="rounded-lg bg-accent/50 p-4">
               <div className="flex items-center gap-2 text-accent-foreground mb-2">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm font-medium">Tasuvusaeg</span>
+                <Wrench className="h-4 w-4" />
+                <span className="text-sm font-medium">Tegelik omamiskulu</span>
               </div>
               <div className="text-2xl font-bold">
-                {calculations.paybackYears === Infinity
-                  ? "—"
-                  : `${formatNumber(calculations.paybackYears)} a`}
+                {formatCurrency(Math.max(0, calculations.netAnnualOwnershipCost))}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Investeeringu tagasi
+                Amort. - kasulikkus aastas
               </div>
             </div>
 
@@ -293,7 +511,7 @@ export function ROICalculator() {
                     : "text-destructive"
                 }`}
               >
-                <Wrench className="h-4 w-4" />
+                <PiggyBank className="h-4 w-4" />
                 <span className="text-sm font-medium">Aastane kasum</span>
               </div>
               <div className="text-2xl font-bold">
@@ -308,45 +526,49 @@ export function ROICalculator() {
           {/* Detailed Breakdown */}
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-border p-4">
-              <h4 className="font-medium mb-3">Aastased kulud</h4>
+              <h4 className="font-medium mb-3">Aastased kulud (pärast sääste)</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kütus</span>
-                  <span>{formatCurrency(calculations.annualFuelCost)}</span>
+                  <span className="text-muted-foreground">Kütus (pärast säästu)</span>
+                  <span>{formatCurrency(calculations.actualFuelCost)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Hooldus (pärast säästu)</span>
+                  <span>{formatCurrency(calculations.actualMaintenanceCost)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Operaator</span>
-                  <span>{formatCurrency(calculations.annualOperatorCost)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Hooldus</span>
-                  <span>{formatCurrency(inputs.annualMaintenance)}</span>
+                  <span>{formatCurrency(calculations.operatorCost)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Amortisatsioon</span>
                   <span>{formatCurrency(calculations.annualDepreciation)}</span>
                 </div>
                 <div className="flex justify-between border-t border-border pt-2 font-medium">
-                  <span>Kokku</span>
+                  <span>Kokku aastas</span>
                   <span>{formatCurrency(calculations.totalAnnualCosts)}</span>
                 </div>
               </div>
             </div>
 
             <div className="rounded-lg border border-border p-4">
-              <h4 className="font-medium mb-3">Kokkuvõte</h4>
+              <h4 className="font-medium mb-3">Kogukulu analüüs (TCO)</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Aastane tulu</span>
-                  <span>{formatCurrency(calculations.annualRevenue)}</span>
+                  <span className="text-muted-foreground">Ostuhind</span>
+                  <span>{formatCurrency(inputs.purchasePrice)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Aastane kulu</span>
-                  <span>{formatCurrency(calculations.totalAnnualCosts)}</span>
+                  <span className="text-muted-foreground">Jääkväärtus ({inputs.expectedLifespan}a pärast)</span>
+                  <span className="text-green-600">-{formatCurrency(calculations.residualValue)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Kulu tunni kohta</span>
                   <span>{formatCurrency(calculations.costPerHour)}/h</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kogusääst ({inputs.expectedLifespan}a)</span>
+                  <span className="text-green-600">{formatCurrency(calculations.totalLifetimeBenefits)}</span>
                 </div>
                 <div className="flex justify-between border-t border-border pt-2 font-medium">
                   <span>Kogu omamiskulu ({inputs.expectedLifespan}a)</span>
