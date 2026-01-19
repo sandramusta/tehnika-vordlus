@@ -147,6 +147,31 @@ export function ModelComparison({
             </tr>
           </thead>
           <tbody>
+            {/* Model Image */}
+            <tr className="border-b border-border/50">
+              <td className="p-3"></td>
+              {allModels.map((model) => (
+                <td 
+                  key={model.id} 
+                  className={cn(
+                    "p-3 text-center",
+                    model.id === selectedModel.id && "bg-primary/5"
+                  )}
+                >
+                  {model.image_url ? (
+                    <img 
+                      src={model.image_url} 
+                      alt={model.model_name}
+                      className="h-20 w-full rounded-md object-contain bg-white mx-auto"
+                    />
+                  ) : (
+                    <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
+                      Pilt puudub
+                    </div>
+                  )}
+                </td>
+              ))}
+            </tr>
             {/* Engine Power */}
             <tr className="border-b border-border/50">
               <td className="p-3 text-sm text-muted-foreground">Võimsus (hj)</td>
