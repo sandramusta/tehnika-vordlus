@@ -232,16 +232,10 @@ export function DetailedSpecsTableRows({
                 <td
                   key={model.id}
                   className={cn(
-                    "p-3 text-center text-xs text-muted-foreground",
+                    "p-3 text-center",
                     model.id === selectedModelId && "bg-primary/5"
                   )}
-                >
-                  {!isExpanded && (
-                    <span className="text-muted-foreground/60">
-                      Kliki avamiseks
-                    </span>
-                  )}
-                </td>
+                />
               ))}
             </tr>
 
