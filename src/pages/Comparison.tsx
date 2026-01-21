@@ -13,24 +13,24 @@ import {
 } from "@/hooks/useEquipmentData";
 
 export default function Comparison() {
-  const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedBrand, setSelectedBrand] = useState<string>("all");
-  const [selectedModel, setSelectedModel] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedBrand, setSelectedBrand] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("");
 
   const { data: types } = useEquipmentTypes();
   
-  // Get equipment for the selected type (or all types for "all")
+  // Get equipment for the selected type (only when type is selected)
   const { data: allEquipment = [], isLoading: loadingEquipment } = useEquipment(
-    selectedType !== "all" ? selectedType : undefined
+    selectedType && selectedType !== "all" && selectedType !== "" ? selectedType : undefined
   );
   const { data: brands = [] } = useBrands();
   const { data: competitiveArgs = [] } = useCompetitiveArguments(
-    selectedType !== "all" ? selectedType : undefined
+    selectedType && selectedType !== "all" && selectedType !== "" ? selectedType : undefined
   );
 
-  // Get the selected model (any brand)
+  // Get the selected model (any brand) - only when a specific model is selected
   const selectedEquipmentModel = useMemo(() => {
-    if (selectedModel === "all") return null;
+    if (!selectedModel || selectedModel === "all" || selectedModel === "") return null;
     return allEquipment.find((e) => e.id === selectedModel) || null;
   }, [selectedModel, allEquipment]);
 
@@ -52,15 +52,16 @@ export default function Comparison() {
     });
   }, [selectedEquipmentModel, allEquipment]);
 
-  // Reset model when type or brand changes
+  // Reset downstream selections when upstream changes
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
-    setSelectedModel("all");
+    setSelectedBrand(""); // Reset brand when type changes
+    setSelectedModel(""); // Reset model when type changes
   };
 
   const handleBrandChange = (value: string) => {
     setSelectedBrand(value);
-    setSelectedModel("all");
+    setSelectedModel(""); // Reset model when brand changes
   };
 
   return (
