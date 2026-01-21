@@ -160,10 +160,11 @@ export function ModelComparison({
       </h3>
 
       {/* Comparison Table with sticky header and first column */}
-      <div className="relative overflow-x-auto max-w-full border border-border rounded-lg">
+      <div className="relative overflow-x-auto overflow-y-auto max-w-full max-h-[70vh] border border-border rounded-lg">
         <div className="min-w-[800px]">
           <table className="w-full border-collapse">
-            <thead className="sticky top-0 z-20 bg-card">
+            <thead className="sticky top-0 z-20">
+              {/* Model Names Row */}
               <tr className="border-b border-border">
                 <th className="sticky left-0 z-30 bg-muted p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-r border-border">
                   Näitaja
@@ -185,17 +186,15 @@ export function ModelComparison({
                   </th>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {/* Model Image */}
-              <tr className="border-b border-border/50">
-                <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground border-r border-border"></td>
+              {/* Model Images Row - Part of sticky header */}
+              <tr className="border-b border-border">
+                <th className="sticky left-0 z-30 bg-card p-3 text-sm text-muted-foreground border-r border-border"></th>
                 {allModels.map((model) => (
-                  <td 
+                  <th 
                     key={model.id} 
                     className={cn(
                       "p-3 text-center",
-                      model.id === selectedModel.id && "bg-primary/5"
+                      model.id === selectedModel.id ? "bg-primary/5" : "bg-card"
                     )}
                   >
                     {model.image_url ? (
@@ -209,9 +208,11 @@ export function ModelComparison({
                         Pilt puudub
                       </div>
                     )}
-                  </td>
+                  </th>
                 ))}
               </tr>
+            </thead>
+            <tbody>
 
               {/* Engine Power */}
               <tr className="border-b border-border/50">
