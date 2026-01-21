@@ -125,8 +125,8 @@ export function EditableCell({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           className={cn(
-            "w-24 rounded-md border-2 border-primary bg-card px-2 py-1 text-center text-sm font-medium",
-            "outline-none ring-2 ring-primary/30",
+            "w-24 bg-transparent px-2 py-1 text-center text-sm font-medium",
+            "border-none outline-none focus:outline-none focus:ring-0",
             "transition-all duration-150"
           )}
           disabled={isSaving}
@@ -139,9 +139,9 @@ export function EditableCell({
     <div
       onClick={handleClick}
       className={cn(
-        "group relative cursor-pointer rounded-md px-2 py-1 transition-all duration-150",
-        "hover:bg-primary/10 hover:ring-2 hover:ring-primary/30",
-        showSuccess && "bg-success/10 ring-2 ring-success/30",
+        "group relative cursor-pointer px-2 py-1 transition-colors duration-150",
+        "hover:bg-muted/40",
+        showSuccess && "bg-success/10",
         isSelectedModel && "bg-primary/5"
       )}
     >

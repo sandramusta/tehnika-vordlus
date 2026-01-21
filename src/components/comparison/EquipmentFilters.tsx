@@ -28,23 +28,29 @@ export function EquipmentFilters({
   const allowedTypes = ["combine", "sprayer", "tractor"];
   const filteredTypes = types?.filter((t) => allowedTypes.includes(t.name)) || [];
 
-  // Filter models by selected type and brand
+  // Check if selections are made (not "all" or empty)
+  const isTypeSelected = selectedType !== "all" && selectedType !== "";
+  const isBrandSelected = selectedBrand !== "all" && selectedBrand !== "";
+
+  // Filter models by selected type and brand - only show when both are selected
   const filteredModels = equipment.filter((model) => {
-    if (selectedType !== "all" && model.equipment_type_id !== selectedType) return false;
-    if (selectedBrand !== "all" && model.brand_id !== selectedBrand) return false;
+    if (!isTypeSelected || model.equipment_type_id !== selectedType) return false;
+    if (!isBrandSelected || model.brand_id !== selectedBrand) return false;
     return true;
   });
 
   return (
     <div className="flex flex-wrap gap-4">
+      {/* Step 1: Equipment Type - always enabled */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
+        <label className="text-sm font-medium text-muted-foreground">
+          1. Tehnika tüüp <span className="text-destructive">*</span>
+        </label>
         <Select value={selectedType} onValueChange={onTypeChange}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Vali tüüp" />
+            <SelectValue placeholder="Vali tüüp..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Kõik tüübid</SelectItem>
             {filteredTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name_et}
@@ -54,14 +60,20 @@ export function EquipmentFilters({
         </Select>
       </div>
 
+      {/* Step 2: Brand - enabled only after type is selected */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted-foreground">Bränd</label>
-        <Select value={selectedBrand} onValueChange={onBrandChange}>
+        <label className="text-sm font-medium text-muted-foreground">
+          2. Bränd <span className="text-destructive">*</span>
+        </label>
+        <Select 
+          value={selectedBrand} 
+          onValueChange={onBrandChange}
+          disabled={!isTypeSelected}
+        >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Vali bränd" />
+            <SelectValue placeholder={isTypeSelected ? "Vali bränd..." : "Vali esmalt tüüp"} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Kõik brändid</SelectItem>
             {brands?.map((brand) => (
               <SelectItem key={brand.id} value={brand.id}>
                 {brand.name}
@@ -71,14 +83,20 @@ export function EquipmentFilters({
         </Select>
       </div>
 
+      {/* Step 3: Model - enabled only after brand is selected */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted-foreground">Mudel</label>
-        <Select value={selectedModel} onValueChange={onModelChange}>
+        <label className="text-sm font-medium text-muted-foreground">
+          3. Mudel <span className="text-destructive">*</span>
+        </label>
+        <Select 
+          value={selectedModel} 
+          onValueChange={onModelChange}
+          disabled={!isBrandSelected}
+        >
           <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Vali mudel" />
+            <SelectValue placeholder={isBrandSelected ? "Vali mudel..." : "Vali esmalt bränd"} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Vali mudel...</SelectItem>
             {filteredModels.map((model) => (
               <SelectItem key={model.id} value={model.id}>
                 {model.model_name}
