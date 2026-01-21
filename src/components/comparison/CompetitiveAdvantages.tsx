@@ -34,52 +34,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const TOP_COUNT = 3;
 
-// Helper function to get brand-specific styling
-function getBrandBorderClass(brandName: string): string {
-  switch (brandName) {
-    case "Claas":
-      return "border-claas";
-    case "Case IH":
-      return "border-case-ih";
-    case "New Holland":
-      return "border-new-holland";
-    case "Fendt":
-      return "border-fendt";
-    default:
-      return "border-primary";
-  }
-}
-
-function getBrandBgClass(brandName: string): string {
-  switch (brandName) {
-    case "Claas":
-      return "bg-claas/10";
-    case "Case IH":
-      return "bg-case-ih/10";
-    case "New Holland":
-      return "bg-new-holland/10";
-    case "Fendt":
-      return "bg-fendt/10";
-    default:
-      return "bg-muted";
-  }
-}
-
-function getBrandTextClass(brandName: string): string {
-  switch (brandName) {
-    case "Claas":
-      return "text-claas";
-    case "Case IH":
-      return "text-case-ih";
-    case "New Holland":
-      return "text-new-holland";
-    case "Fendt":
-      return "text-fendt";
-    default:
-      return "text-foreground";
-  }
-}
-
 export function CompetitiveAdvantages({
   selectedModel,
   competitors,
@@ -91,16 +45,11 @@ export function CompetitiveAdvantages({
   const [selectedCompetitorBrandId, setSelectedCompetitorBrandId] = useState<string>("");
   
   // Get unique competitor brands from the actual competitors in the comparison
+  // ONLY include competitor brands (exclude John Deere)
   const availableCompetitorBrands = useMemo(() => {
     const brandIds = new Set(competitors.map(c => c.brand_id));
-    return brands.filter(b => brandIds.has(b.id));
+    return brands.filter(b => brandIds.has(b.id) && b.name !== "John Deere");
   }, [competitors, brands]);
-
-  // Get selected competitor brand
-  const selectedCompetitorBrand = useMemo(() => 
-    brands.find(b => b.id === selectedCompetitorBrandId),
-    [brands, selectedCompetitorBrandId]
-  );
   
   // Filter arguments: only show those matching selected competitor brand
   const filteredArguments = useMemo(() => {
@@ -184,9 +133,7 @@ export function CompetitiveAdvantages({
                   value={brand.id}
                   className="cursor-pointer"
                 >
-                  <span className={getBrandTextClass(brand.name)}>
-                    vs {brand.name}
-                  </span>
+                  vs {brand.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -209,57 +156,42 @@ export function CompetitiveAdvantages({
         <div className="rounded-lg border border-border bg-card p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <p className="mt-4 text-muted-foreground">
-            Konkurentsieelised pole veel lisatud {selectedCompetitorBrand?.name} kohta.
+            Konkurentsieelised pole veel lisatud selle brändi kohta.
           </p>
         </div>
       )}
 
-      {/* Categories with Top 3 logic */}
+      {/* Categories with Top 3 logic - Clean minimal design */}
       {selectedCompetitorBrandId && categories.map(category => {
         const categoryArgs = argumentsByCategory[category];
         const isExpanded = expandedCategories.has(category);
         const displayedArgs = isExpanded ? categoryArgs : categoryArgs.slice(0, TOP_COUNT);
         const hasMore = categoryArgs.length > TOP_COUNT;
         const remainingCount = categoryArgs.length - TOP_COUNT;
-        
-        // Get brand-specific styling
-        const brandBorderClass = selectedCompetitorBrand ? getBrandBorderClass(selectedCompetitorBrand.name) : "border-border";
-        const brandBgClass = selectedCompetitorBrand ? getBrandBgClass(selectedCompetitorBrand.name) : "bg-muted";
 
         return (
           <div 
             key={category} 
-            className={`rounded-xl border-2 ${brandBorderClass} bg-card p-6`}
+            className="rounded-xl border border-border bg-card p-6"
           >
-            {/* Category Header with brand badge */}
-            <div className="mb-4 flex items-center justify-between">
+            {/* Category Header - Clean without brand badge */}
+            <div className="mb-4">
               <h4 className="text-base font-semibold text-foreground">
                 {CATEGORY_LABELS[category] || category}
                 <span className="ml-2 text-sm font-normal text-muted-foreground">
                   ({categoryArgs.length} argumenti)
                 </span>
               </h4>
-              {selectedCompetitorBrand && (
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${brandBgClass} ${getBrandTextClass(selectedCompetitorBrand.name)}`}>
-                  Eelis vs {selectedCompetitorBrand.name}
-                </span>
-              )}
             </div>
 
-            {/* Advantage Cards Grid */}
+            {/* Advantage Cards Grid - Clean design without brand borders */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {displayedArgs.map((arg) => {
-                const competitorBrand = brands.find(b => b.id === arg.competitor_brand_id);
-                
-                return (
-                  <AdvantageCard
-                    key={arg.id}
-                    argument={arg}
-                    competitorBrand={competitorBrand}
-                    isHighlighted={true}
-                  />
-                );
-              })}
+              {displayedArgs.map((arg) => (
+                <AdvantageCard
+                  key={arg.id}
+                  argument={arg}
+                />
+              ))}
             </div>
 
             {/* Show More/Less Button */}
