@@ -59,6 +59,7 @@ export default {
         "claas": "hsl(var(--claas))",
         "case-ih": "hsl(var(--case-ih))",
         "new-holland": "hsl(var(--new-holland))",
+        "fendt": "hsl(var(--fendt))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

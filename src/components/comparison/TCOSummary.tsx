@@ -25,13 +25,15 @@ function formatCurrency(num: number | null): string {
 function getBrandColorClass(brandName: string): string {
   switch (brandName) {
     case "John Deere":
-      return "text-primary";
+      return "text-john-deere";
     case "Claas":
       return "text-claas";
     case "Case IH":
       return "text-case-ih";
     case "New Holland":
       return "text-new-holland";
+    case "Fendt":
+      return "text-fendt";
     default:
       return "text-foreground";
   }
@@ -239,19 +241,10 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
       </div>
 
       {/* Summary message */}
-      {tcoSavings !== 0 && selectedTCO && (
-        <div className={cn(
-          "mt-4 rounded-lg p-4 text-center",
-          tcoSavings > 0 ? "bg-success/10" : "bg-destructive/10"
-        )}>
-          <span className={cn(
-            "text-lg font-semibold",
-            tcoSavings > 0 ? "text-success" : "text-destructive"
-          )}>
-            {tcoSavings > 0 
-              ? `${selectedModel.brand?.name} säästab keskmiselt ${formatCurrency(tcoSavings)} võrreldes konkurentidega!`
-              : `Konkurendid säästaksid keskmiselt ${formatCurrency(Math.abs(tcoSavings))} võrreldes ${selectedModel.brand?.name} mudeliga.`
-            }
+      {tcoSavings > 0 && selectedTCO && (
+        <div className="mt-4 rounded-lg bg-success/10 p-4 text-center">
+          <span className="text-lg font-semibold text-success">
+            Konkureerivate brändidega säästaksid keskmiselt {formatCurrency(tcoSavings)}
           </span>
         </div>
       )}

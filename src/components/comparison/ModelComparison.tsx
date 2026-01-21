@@ -33,13 +33,15 @@ function calculateTCO(equipment: Equipment): number | null {
 function getBrandTextColor(brandName: string): string {
   switch (brandName) {
     case "John Deere":
-      return "text-primary";
+      return "text-john-deere";
     case "Claas":
       return "text-claas";
     case "Case IH":
       return "text-case-ih";
     case "New Holland":
       return "text-new-holland";
+    case "Fendt":
+      return "text-fendt";
     default:
       return "text-foreground";
   }
@@ -172,7 +174,7 @@ export function ModelComparison({
       <div className="relative overflow-x-auto overflow-y-auto max-w-full max-h-[70vh] border border-border rounded-lg">
         <div className="min-w-[800px]">
           <table className="w-full border-collapse">
-            <thead className="sticky top-0 z-20">
+            <thead className="sticky top-0 z-20 bg-card">
               {/* Model Names Row */}
               <tr className="border-b border-border">
                 <th className="sticky left-0 z-30 bg-muted p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-r border-border">
@@ -205,12 +207,13 @@ export function ModelComparison({
                       "p-3 text-center",
                       model.id === selectedModel.id ? "bg-primary/5" : "bg-card"
                     )}
+                    style={{ backgroundColor: model.id === selectedModel.id ? 'hsl(var(--primary) / 0.05)' : 'hsl(var(--card))' }}
                   >
                     {model.image_url ? (
                       <img 
                         src={model.image_url} 
                         alt={model.model_name}
-                        className="h-20 w-full rounded-md object-contain bg-white mx-auto"
+                        className="h-20 w-full rounded-md object-contain bg-card mx-auto"
                       />
                     ) : (
                       <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
