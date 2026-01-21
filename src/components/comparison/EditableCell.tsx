@@ -139,14 +139,12 @@ export function EditableCell({
     <div
       onClick={handleClick}
       className={cn(
-        "group relative cursor-pointer px-2 py-1 transition-colors duration-150",
-        "hover:bg-muted/40",
-        showSuccess && "bg-success/10",
-        isSelectedModel && "bg-primary/5"
+        "group relative cursor-pointer px-2 py-3 transition-colors duration-150",
+        "hover:bg-muted/30"
       )}
     >
       {isSaving && (
-        <div className="absolute inset-0 flex items-center justify-center bg-card/80 rounded-md">
+        <div className="absolute inset-0 flex items-center justify-center bg-card/80">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
         </div>
       )}
@@ -173,7 +171,7 @@ export function EditableCell({
       </div>
       
       {/* Edit hint on hover */}
-      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-foreground/90 px-1.5 py-0.5 text-[10px] text-background opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-foreground/90 px-1.5 py-0.5 text-[10px] text-background opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
         Kliki muutmiseks
       </span>
     </div>

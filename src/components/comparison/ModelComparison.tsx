@@ -174,7 +174,7 @@ export function ModelComparison({
             <td 
               key={model.id} 
               className={cn(
-                "p-2 text-center text-sm font-medium",
+                "p-0 text-center text-sm font-medium",
                 model.id === selectedModel.id && "bg-primary/5"
               )}
             >

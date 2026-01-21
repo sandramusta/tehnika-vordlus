@@ -34,7 +34,7 @@ export default function Comparison() {
     return allEquipment.find((e) => e.id === selectedModel) || null;
   }, [selectedModel, allEquipment]);
 
-  // Get competitors within 100 HP of the selected model (from other brands)
+  // Get competitors within 50 HP of the selected model (from other brands)
   const competitors = useMemo(() => {
     if (!selectedEquipmentModel || !selectedEquipmentModel.engine_power_hp) return [];
     
@@ -45,9 +45,9 @@ export default function Comparison() {
       if (e.brand_id === selectedEquipmentModel.brand_id) return false;
       // Must have engine power defined
       if (!e.engine_power_hp) return false;
-      // Power difference must be within 100 HP
+      // Power difference must be within 50 HP
       const powerDiff = Math.abs(e.engine_power_hp - selectedPower);
-      if (powerDiff > 100) return false;
+      if (powerDiff > 50) return false;
       return true;
     });
   }, [selectedEquipmentModel, allEquipment]);
