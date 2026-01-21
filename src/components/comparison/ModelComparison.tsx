@@ -174,19 +174,25 @@ export function ModelComparison({
       <div className="relative overflow-x-auto overflow-y-auto max-w-full max-h-[70vh] border border-border rounded-lg">
         <div className="min-w-[800px]">
           <table className="w-full border-collapse">
-            <thead className="sticky top-0 z-20 bg-card">
-              {/* Model Names Row */}
-              <tr className="border-b border-border">
-                <th className="sticky left-0 z-30 bg-muted p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-r border-border">
+            {/* Sticky header with fully opaque white background */}
+            <thead className="sticky top-0 z-20">
+              {/* Model Names Row - Opaque white background */}
+              <tr className="border-b border-border" style={{ backgroundColor: 'white' }}>
+                <th 
+                  className="sticky left-0 z-30 p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-r border-border"
+                  style={{ backgroundColor: 'white' }}
+                >
                   Näitaja
                 </th>
                 {allModels.map((model) => (
                   <th 
                     key={model.id} 
-                    className={cn(
-                      "p-3 text-center text-sm font-semibold min-w-[160px]",
-                      model.id === selectedModel.id ? "bg-primary/10" : "bg-muted"
-                    )}
+                    className="p-3 text-center text-sm font-semibold min-w-[160px]"
+                    style={{ 
+                      backgroundColor: model.id === selectedModel.id 
+                        ? 'hsl(var(--primary) / 0.1)' 
+                        : 'white' 
+                    }}
                   >
                     <span className={getBrandTextColor(model.brand?.name || "")}>
                       {model.brand?.name}
@@ -197,23 +203,28 @@ export function ModelComparison({
                   </th>
                 ))}
               </tr>
-              {/* Model Images Row - Part of sticky header */}
-              <tr className="border-b border-border">
-                <th className="sticky left-0 z-30 bg-card p-3 text-sm text-muted-foreground border-r border-border"></th>
+              {/* Model Images Row - Part of sticky header with opaque white background */}
+              <tr className="border-b border-border" style={{ backgroundColor: 'white' }}>
+                <th 
+                  className="sticky left-0 z-30 p-3 text-sm text-muted-foreground border-r border-border"
+                  style={{ backgroundColor: 'white' }}
+                ></th>
                 {allModels.map((model) => (
                   <th 
                     key={model.id} 
-                    className={cn(
-                      "p-3 text-center",
-                      model.id === selectedModel.id ? "bg-primary/5" : "bg-card"
-                    )}
-                    style={{ backgroundColor: model.id === selectedModel.id ? 'hsl(var(--primary) / 0.05)' : 'hsl(var(--card))' }}
+                    className="p-3 text-center"
+                    style={{ 
+                      backgroundColor: model.id === selectedModel.id 
+                        ? 'hsl(var(--primary) / 0.05)' 
+                        : 'white' 
+                    }}
                   >
                     {model.image_url ? (
                       <img 
                         src={model.image_url} 
                         alt={model.model_name}
-                        className="h-20 w-full rounded-md object-contain bg-card mx-auto"
+                        className="h-20 w-full rounded-md object-contain mx-auto"
+                        style={{ backgroundColor: 'white' }}
                       />
                     ) : (
                       <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
