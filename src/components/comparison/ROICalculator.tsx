@@ -390,7 +390,7 @@ export function ROICalculator() {
         <div className="border-t border-border pt-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
-            Aastane kasulikkus (artikli metoodika)
+            Aastane kasumlikkus
           </h3>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-green-500/10 p-4">
