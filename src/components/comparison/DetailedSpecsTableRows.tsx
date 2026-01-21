@@ -220,7 +220,12 @@ export function DetailedSpecsTableRows({
               )}
               onClick={() => toggleCategory(categoryKey)}
             >
-              <td className="p-3 text-sm font-semibold text-foreground">
+              <td 
+                className={cn(
+                  "sticky left-0 z-10 p-3 text-sm font-semibold text-foreground whitespace-nowrap",
+                  isExpanded ? "bg-primary/10" : "bg-muted/30"
+                )}
+              >
                 <div className="flex items-center gap-2">
                   {isExpanded ? (
                     <ChevronDown className="h-4 w-4 text-primary" />
@@ -257,7 +262,7 @@ export function DetailedSpecsTableRows({
                     className="border-b border-border/30"
                   >
                     <td 
-                      className="p-3 pl-10 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      className="sticky left-0 z-10 bg-white p-3 pl-10 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors whitespace-nowrap"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <EditableLabelCell

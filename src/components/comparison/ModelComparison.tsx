@@ -217,7 +217,7 @@ export function ModelComparison({
 
     return (
       <tr key={config.key} className="border-b border-border/50">
-        <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground border-r border-border">
+        <td className="sticky left-0 z-10 bg-white p-3 text-sm text-muted-foreground w-fit whitespace-nowrap">
           <EditableLabelCell
             value={label}
             onSave={(newLabel) => handleSaveLabel(config.key, newLabel)}
@@ -274,27 +274,20 @@ export function ModelComparison({
         <div className="min-w-[800px]">
           <table className="w-full" style={{ borderCollapse: 'collapse', borderSpacing: 0 }}>
             {/* Sticky header with fully opaque white background - no gaps */}
-            <thead className="sticky top-0 z-20" style={{ backgroundColor: 'white' }}>
+            <thead className="sticky top-0 z-20">
               {/* Model Names Row */}
-              <tr style={{ backgroundColor: 'white' }}>
+              <tr>
                 <th 
-                  className="sticky left-0 z-30 p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-b border-r border-border"
+                  className="sticky left-0 z-30 p-3 text-left text-sm font-medium text-muted-foreground w-fit whitespace-nowrap bg-white"
                   style={{ backgroundColor: 'white' }}
                 >
                   Näitaja
                 </th>
-                {allModels.map((model, index) => (
+                {allModels.map((model) => (
                   <th 
                     key={model.id} 
-                    className={cn(
-                      "p-3 text-center text-sm font-semibold min-w-[160px] border-b border-border",
-                      index < allModels.length - 1 && "border-r"
-                    )}
-                    style={{ 
-                      backgroundColor: model.id === selectedModel.id 
-                        ? 'hsl(122, 39%, 30%, 0.1)' 
-                        : 'white' 
-                    }}
+                    className="p-3 text-center text-sm font-semibold min-w-[160px] bg-white"
+                    style={{ backgroundColor: 'white' }}
                   >
                     <span className={getBrandTextColor(model.brand?.name || "")}>
                       {model.brand?.name}
@@ -306,30 +299,22 @@ export function ModelComparison({
                 ))}
               </tr>
               {/* Model Images Row */}
-              <tr style={{ backgroundColor: 'white' }}>
+              <tr>
                 <th 
-                  className="sticky left-0 z-30 p-3 text-sm text-muted-foreground border-b border-r border-border"
+                  className="sticky left-0 z-30 p-3 text-sm text-muted-foreground w-fit bg-white"
                   style={{ backgroundColor: 'white' }}
                 ></th>
-                {allModels.map((model, index) => (
+                {allModels.map((model) => (
                   <th 
                     key={model.id} 
-                    className={cn(
-                      "p-3 text-center border-b border-border",
-                      index < allModels.length - 1 && "border-r"
-                    )}
-                    style={{ 
-                      backgroundColor: model.id === selectedModel.id 
-                        ? 'hsl(122, 39%, 30%, 0.05)' 
-                        : 'white' 
-                    }}
+                    className="p-3 text-center bg-white"
+                    style={{ backgroundColor: 'white' }}
                   >
                     {model.image_url ? (
                       <img 
                         src={model.image_url} 
                         alt={model.model_name}
-                        className="h-20 w-full rounded-md object-contain mx-auto"
-                        style={{ backgroundColor: 'white' }}
+                        className="h-20 w-full rounded-md object-contain mx-auto bg-white"
                       />
                     ) : (
                       <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
@@ -339,6 +324,20 @@ export function ModelComparison({
                   </th>
                 ))}
               </tr>
+              {/* Bottom border row to prevent content bleeding */}
+              <tr className="h-px">
+                <th 
+                  className="sticky left-0 z-30 p-0 bg-white border-b border-border"
+                  style={{ backgroundColor: 'white' }}
+                ></th>
+                {allModels.map((model) => (
+                  <th 
+                    key={model.id} 
+                    className="p-0 bg-white border-b border-border"
+                    style={{ backgroundColor: 'white' }}
+                  ></th>
+                ))}
+              </tr>
             </thead>
             <tbody>
               {/* Technical Specs */}
@@ -346,8 +345,10 @@ export function ModelComparison({
 
               {/* Price Section Header */}
               <tr className="bg-muted/50">
-                <td colSpan={allModels.length + 1} className="p-3 text-sm font-semibold text-foreground border-y border-border">
+                <td className="sticky left-0 z-10 bg-muted/50 p-3 text-sm font-semibold text-foreground border-y border-border whitespace-nowrap">
                   HINNAD JA KULUD
+                </td>
+                <td colSpan={allModels.length} className="p-3 text-sm font-semibold text-foreground border-y border-border">
                 </td>
               </tr>
 
@@ -356,7 +357,7 @@ export function ModelComparison({
 
               {/* TCO (calculated, not editable) */}
               <tr className="border-b border-border bg-muted/30">
-                <td className="sticky left-0 z-10 bg-muted/30 p-3 text-sm font-semibold text-foreground border-r border-border">
+                <td className="sticky left-0 z-10 bg-muted/30 p-3 text-sm font-semibold text-foreground whitespace-nowrap">
                   TCO (Kogukulu)
                 </td>
                 {allModels.map((model) => {
@@ -389,7 +390,7 @@ export function ModelComparison({
 
               {/* Savings compared to selected */}
               <tr className="bg-primary/5">
-                <td className="sticky left-0 z-10 bg-primary/5 p-3 text-sm font-medium text-foreground border-r border-border">
+                <td className="sticky left-0 z-10 bg-primary/5 p-3 text-sm font-medium text-foreground whitespace-nowrap">
                   Sääst vs valitud
                 </td>
                 {allModels.map((model) => {
