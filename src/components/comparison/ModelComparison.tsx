@@ -3,7 +3,9 @@ import { Trophy, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DetailedSpecsTableRows } from "./DetailedSpecsTableRows";
 import { EditableCell } from "./EditableCell";
+import { EditableLabelCell } from "./EditableLabelCell";
 import { useUpdateEquipment } from "@/hooks/useEquipmentData";
+import { useSpecLabels, useUpdateSpecLabel } from "@/hooks/useSpecLabels";
 import { toast } from "sonner";
 
 interface ModelComparisonProps {
@@ -53,7 +55,7 @@ function getBrandTextColor(brandName: string): string {
 // Row configuration for dynamic rendering
 interface SpecRowConfig {
   key: keyof Equipment;
-  label: string;
+  defaultLabel: string;
   suffix?: string;
   format?: "number" | "currency" | "decimal";
   showJDAdvantage?: boolean;
@@ -62,32 +64,32 @@ interface SpecRowConfig {
 }
 
 const SPEC_ROWS: SpecRowConfig[] = [
-  { key: "engine_power_hp", label: "Võimsus (hj)", showJDAdvantage: true, isBestFn: "max" },
-  { key: "grain_tank_liters", label: "Viljabunker (l)", showJDAdvantage: true, isBestFn: "max" },
-  { key: "header_width_m", label: "Heedri laius (m)", format: "decimal", showJDAdvantage: true, isBestFn: "max" },
-  { key: "fuel_tank_liters", label: "Kütusepaak (L)", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.fuel_tank_liters) },
-  { key: "cleaning_area_m2", label: "Puhasti pindala (m²)", format: "decimal", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.cleaning_area_m2) },
-  { key: "rotor_diameter_mm", label: "Rootori läbimõõt (mm)", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.rotor_diameter_mm) },
-  { key: "throughput_tons_h", label: "Läbilaskevõime (t/h)", format: "decimal", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.throughput_tons_h) },
-  { key: "engine_cylinders", label: "Silindrid", isBestFn: "max", condition: (m) => m.some(e => e.engine_cylinders) },
-  { key: "max_torque_nm", label: "Max pöördemoment (Nm)", isBestFn: "max", condition: (m) => m.some(e => e.max_torque_nm) },
-  { key: "feeder_width_mm", label: "Etteande laius (mm)", isBestFn: "max", condition: (m) => m.some(e => e.feeder_width_mm) },
-  { key: "rotor_length_mm", label: "Rootori pikkus (mm)", isBestFn: "max", condition: (m) => m.some(e => e.rotor_length_mm) },
-  { key: "threshing_area_m2", label: "Peksu pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.threshing_area_m2) },
-  { key: "separator_area_m2", label: "Eraldaja pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.separator_area_m2) },
-  { key: "sieve_area_m2", label: "Sõela pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.sieve_area_m2) },
-  { key: "straw_walker_area_m2", label: "Kõrreraputite pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.straw_walker_area_m2) },
-  { key: "unloading_rate_ls", label: "Tühjendamiskiirus (l/s)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.unloading_rate_ls) },
-  { key: "auger_reach_m", label: "Tigukruvi ulatus (m)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.auger_reach_m) },
-  { key: "max_slope_percent", label: "Max kalle (%)", suffix: "%", isBestFn: "max", condition: (m) => m.some(e => e.max_slope_percent) },
-  { key: "weight_kg", label: "Kaal (kg)", isBestFn: "min" },
-  { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", format: "decimal", isBestFn: "min" },
+  { key: "engine_power_hp", defaultLabel: "Võimsus (hj)", showJDAdvantage: true, isBestFn: "max" },
+  { key: "grain_tank_liters", defaultLabel: "Viljabunker (l)", showJDAdvantage: true, isBestFn: "max" },
+  { key: "header_width_m", defaultLabel: "Heedri laius (m)", format: "decimal", showJDAdvantage: true, isBestFn: "max" },
+  { key: "fuel_tank_liters", defaultLabel: "Kütusepaak (L)", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.fuel_tank_liters) },
+  { key: "cleaning_area_m2", defaultLabel: "Puhasti pindala (m²)", format: "decimal", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.cleaning_area_m2) },
+  { key: "rotor_diameter_mm", defaultLabel: "Rootori läbimõõt (mm)", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.rotor_diameter_mm) },
+  { key: "throughput_tons_h", defaultLabel: "Läbilaskevõime (t/h)", format: "decimal", showJDAdvantage: true, isBestFn: "max", condition: (m) => m.some(e => e.throughput_tons_h) },
+  { key: "engine_cylinders", defaultLabel: "Silindrid", isBestFn: "max", condition: (m) => m.some(e => e.engine_cylinders) },
+  { key: "max_torque_nm", defaultLabel: "Max pöördemoment (Nm)", isBestFn: "max", condition: (m) => m.some(e => e.max_torque_nm) },
+  { key: "feeder_width_mm", defaultLabel: "Etteande laius (mm)", isBestFn: "max", condition: (m) => m.some(e => e.feeder_width_mm) },
+  { key: "rotor_length_mm", defaultLabel: "Rootori pikkus (mm)", isBestFn: "max", condition: (m) => m.some(e => e.rotor_length_mm) },
+  { key: "threshing_area_m2", defaultLabel: "Peksu pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.threshing_area_m2) },
+  { key: "separator_area_m2", defaultLabel: "Eraldaja pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.separator_area_m2) },
+  { key: "sieve_area_m2", defaultLabel: "Sõela pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.sieve_area_m2) },
+  { key: "straw_walker_area_m2", defaultLabel: "Kõrreraputite pindala (m²)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.straw_walker_area_m2) },
+  { key: "unloading_rate_ls", defaultLabel: "Tühjendamiskiirus (l/s)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.unloading_rate_ls) },
+  { key: "auger_reach_m", defaultLabel: "Tigukruvi ulatus (m)", format: "decimal", isBestFn: "max", condition: (m) => m.some(e => e.auger_reach_m) },
+  { key: "max_slope_percent", defaultLabel: "Max kalle (%)", suffix: "%", isBestFn: "max", condition: (m) => m.some(e => e.max_slope_percent) },
+  { key: "weight_kg", defaultLabel: "Kaal (kg)", isBestFn: "min" },
+  { key: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", format: "decimal", isBestFn: "min" },
 ];
 
 const COST_ROWS: SpecRowConfig[] = [
-  { key: "price_eur", label: "Hind", format: "currency", isBestFn: "min" },
-  { key: "annual_maintenance_eur", label: "Hooldus/aastas", format: "currency", isBestFn: "min" },
-  { key: "expected_lifespan_years", label: "Eeldatav eluiga", suffix: " aastat", isBestFn: "max" },
+  { key: "price_eur", defaultLabel: "Hind", format: "currency", isBestFn: "min" },
+  { key: "annual_maintenance_eur", defaultLabel: "Hooldus/aastas", format: "currency", isBestFn: "min" },
+  { key: "expected_lifespan_years", defaultLabel: "Eeldatav eluiga", suffix: " aastat", isBestFn: "max" },
 ];
 
 export function ModelComparison({
@@ -95,6 +97,26 @@ export function ModelComparison({
   competitors,
 }: ModelComparisonProps) {
   const updateEquipment = useUpdateEquipment();
+  const { data: specLabels = [] } = useSpecLabels();
+  const updateSpecLabel = useUpdateSpecLabel();
+
+  // Get label for a spec key from database or use default
+  const getLabel = (specKey: string, defaultLabel: string): string => {
+    const found = specLabels.find(l => l.spec_key === specKey);
+    return found?.custom_label || defaultLabel;
+  };
+
+  // Handler for saving label changes
+  const handleSaveLabel = async (specKey: string, newLabel: string) => {
+    try {
+      await updateSpecLabel.mutateAsync({ specKey, customLabel: newLabel });
+      toast.success("Nimetus uuendatud");
+    } catch (error) {
+      console.error("Failed to update label:", error);
+      toast.error("Nimetuse uuendamine ebaõnnestus");
+      throw error;
+    }
+  };
 
   if (!selectedModel) {
     return (
@@ -159,11 +181,15 @@ export function ModelComparison({
     if (config.condition && !config.condition(allModels)) return null;
     
     const bestValue = config.isBestFn ? getBestValue(config.key, config.isBestFn) : null;
+    const label = getLabel(config.key, config.defaultLabel);
 
     return (
       <tr key={config.key} className="border-b border-border/50">
         <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground border-r border-border">
-          {config.label}
+          <EditableLabelCell
+            value={label}
+            onSave={(newLabel) => handleSaveLabel(config.key, newLabel)}
+          />
         </td>
         {allModels.map((model) => {
           const isJohnDeere = model.brand?.name === "John Deere";
