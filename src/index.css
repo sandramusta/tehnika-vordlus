@@ -50,9 +50,10 @@
 
     /* Brand-specific colors */
     --john-deere: 122 39% 30%;
-    --claas: 120 60% 35%;
-    --case-ih: 0 80% 45%;
+    --claas: 0 100% 65%;
+    --case-ih: 0 100% 32%;
     --new-holland: 220 80% 45%;
+    --fendt: 0 0% 0%;
 
     /* Sidebar */
     --sidebar-background: 120 15% 97%;

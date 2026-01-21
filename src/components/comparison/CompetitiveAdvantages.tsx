@@ -3,6 +3,13 @@ import { Trophy, ChevronDown, ChevronUp } from "lucide-react";
 import { AdvantageCard } from "./AdvantageCard";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CompetitiveAdvantagesProps {
   selectedModel: Equipment;
@@ -27,6 +34,52 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const TOP_COUNT = 3;
 
+// Helper function to get brand-specific styling
+function getBrandBorderClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "border-claas";
+    case "Case IH":
+      return "border-case-ih";
+    case "New Holland":
+      return "border-new-holland";
+    case "Fendt":
+      return "border-fendt";
+    default:
+      return "border-primary";
+  }
+}
+
+function getBrandBgClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "bg-claas/10";
+    case "Case IH":
+      return "bg-case-ih/10";
+    case "New Holland":
+      return "bg-new-holland/10";
+    case "Fendt":
+      return "bg-fendt/10";
+    default:
+      return "bg-muted";
+  }
+}
+
+function getBrandTextClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "text-claas";
+    case "Case IH":
+      return "text-case-ih";
+    case "New Holland":
+      return "text-new-holland";
+    case "Fendt":
+      return "text-fendt";
+    default:
+      return "text-foreground";
+  }
+}
+
 export function CompetitiveAdvantages({
   selectedModel,
   competitors,
@@ -35,23 +88,32 @@ export function CompetitiveAdvantages({
 }: CompetitiveAdvantagesProps) {
   const isJohnDeere = selectedModel.brand?.name === "John Deere";
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedCompetitorBrandId, setSelectedCompetitorBrandId] = useState<string>("");
   
-  // Get unique competitor brand IDs from the actual competitors in the comparison
-  const competitorBrandIds = useMemo(() => 
-    new Set(competitors.map(c => c.brand_id)), 
-    [competitors]
+  // Get unique competitor brands from the actual competitors in the comparison
+  const availableCompetitorBrands = useMemo(() => {
+    const brandIds = new Set(competitors.map(c => c.brand_id));
+    return brands.filter(b => brandIds.has(b.id));
+  }, [competitors, brands]);
+
+  // Get selected competitor brand
+  const selectedCompetitorBrand = useMemo(() => 
+    brands.find(b => b.id === selectedCompetitorBrandId),
+    [brands, selectedCompetitorBrandId]
   );
   
-  // Filter arguments: only show those matching selected competitor brands
+  // Filter arguments: only show those matching selected competitor brand
   const filteredArguments = useMemo(() => {
+    if (!selectedCompetitorBrandId) return [];
+    
     if (isJohnDeere) {
-      // JD selected: show arguments for each competitor brand in the comparison
-      return args.filter(arg => competitorBrandIds.has(arg.competitor_brand_id));
+      // JD selected: show arguments for the selected competitor brand
+      return args.filter(arg => arg.competitor_brand_id === selectedCompetitorBrandId);
     } else {
       // Competitor selected: show JD arguments against that specific brand
       return args.filter(arg => arg.competitor_brand_id === selectedModel.brand_id);
     }
-  }, [args, isJohnDeere, competitorBrandIds, selectedModel.brand_id]);
+  }, [args, isJohnDeere, selectedCompetitorBrandId, selectedModel.brand_id]);
 
   // Group arguments by category
   const argumentsByCategory = useMemo(() => {
@@ -85,54 +147,104 @@ export function CompetitiveAdvantages({
     });
   };
 
-  if (filteredArguments.length === 0) {
-    return (
-      <div className="rounded-lg border border-border bg-card p-8 text-center">
-        <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
-        <p className="mt-4 text-muted-foreground">
-          Konkurentsieelised pole veel lisatud valitud konkurentide jaoks.
-        </p>
-      </div>
-    );
+  // If no competitors, show message
+  if (availableCompetitorBrands.length === 0) {
+    return null;
   }
 
   const categories = Object.keys(argumentsByCategory).sort();
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with dropdown */}
       <div className="rounded-xl border border-border bg-card p-6">
-        <div className="mb-2">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <Trophy className="h-5 w-5 text-primary" />
-            {isJohnDeere 
-              ? "John Deere konkurentsieelised" 
-              : `Miks valida John Deere ${selectedModel.brand?.name} asemel?`
-            }
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Probleem → Lahendus → Kasu kliendile
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <Trophy className="h-5 w-5 text-primary" />
+              John Deere konkurentsieelised
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Vali bränd, et näha eeliseid
+            </p>
+          </div>
+          
+          {/* Brand filter dropdown */}
+          <Select
+            value={selectedCompetitorBrandId}
+            onValueChange={setSelectedCompetitorBrandId}
+          >
+            <SelectTrigger className="w-full sm:w-[200px] bg-card">
+              <SelectValue placeholder="Vali bränd võrdluseks" />
+            </SelectTrigger>
+            <SelectContent className="bg-card z-50">
+              {availableCompetitorBrands.map((brand) => (
+                <SelectItem 
+                  key={brand.id} 
+                  value={brand.id}
+                  className="cursor-pointer"
+                >
+                  <span className={getBrandTextClass(brand.name)}>
+                    vs {brand.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
+      {/* Show message if no brand selected */}
+      {!selectedCompetitorBrandId && (
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
+          <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <p className="mt-4 text-muted-foreground">
+            Vali rippmenüüst bränd, et näha John Deere konkurentsieeliseid.
+          </p>
+        </div>
+      )}
+
+      {/* Show message if no arguments for selected brand */}
+      {selectedCompetitorBrandId && filteredArguments.length === 0 && (
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
+          <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <p className="mt-4 text-muted-foreground">
+            Konkurentsieelised pole veel lisatud {selectedCompetitorBrand?.name} kohta.
+          </p>
+        </div>
+      )}
+
       {/* Categories with Top 3 logic */}
-      {categories.map(category => {
+      {selectedCompetitorBrandId && categories.map(category => {
         const categoryArgs = argumentsByCategory[category];
         const isExpanded = expandedCategories.has(category);
         const displayedArgs = isExpanded ? categoryArgs : categoryArgs.slice(0, TOP_COUNT);
         const hasMore = categoryArgs.length > TOP_COUNT;
         const remainingCount = categoryArgs.length - TOP_COUNT;
+        
+        // Get brand-specific styling
+        const brandBorderClass = selectedCompetitorBrand ? getBrandBorderClass(selectedCompetitorBrand.name) : "border-border";
+        const brandBgClass = selectedCompetitorBrand ? getBrandBgClass(selectedCompetitorBrand.name) : "bg-muted";
 
         return (
-          <div key={category} className="rounded-xl border border-border bg-card p-6">
-            {/* Category Header */}
-            <h4 className="mb-4 text-base font-semibold text-foreground">
-              {CATEGORY_LABELS[category] || category}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({categoryArgs.length} argumenti)
-              </span>
-            </h4>
+          <div 
+            key={category} 
+            className={`rounded-xl border-2 ${brandBorderClass} bg-card p-6`}
+          >
+            {/* Category Header with brand badge */}
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="text-base font-semibold text-foreground">
+                {CATEGORY_LABELS[category] || category}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({categoryArgs.length} argumenti)
+                </span>
+              </h4>
+              {selectedCompetitorBrand && (
+                <span className={`rounded-full px-3 py-1 text-xs font-medium ${brandBgClass} ${getBrandTextClass(selectedCompetitorBrand.name)}`}>
+                  Eelis vs {selectedCompetitorBrand.name}
+                </span>
+              )}
+            </div>
 
             {/* Advantage Cards Grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

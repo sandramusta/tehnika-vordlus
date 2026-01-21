@@ -23,6 +23,37 @@ function getIconByName(iconName: string | null): LucideIcon {
   return Lightbulb;
 }
 
+// Helper function to get brand-specific text color
+function getBrandTextClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "text-claas";
+    case "Case IH":
+      return "text-case-ih";
+    case "New Holland":
+      return "text-new-holland";
+    case "Fendt":
+      return "text-fendt";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+function getBrandBgClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "bg-claas/10";
+    case "Case IH":
+      return "bg-case-ih/10";
+    case "New Holland":
+      return "bg-new-holland/10";
+    case "Fendt":
+      return "bg-fendt/10";
+    default:
+      return "bg-muted";
+  }
+}
+
 export function AdvantageCard({ argument, competitorBrand, isHighlighted = false }: AdvantageCardProps) {
   const Icon = getIconByName(argument.icon_name);
   
@@ -44,7 +75,11 @@ export function AdvantageCard({ argument, competitorBrand, isHighlighted = false
           <Icon className="h-6 w-6 text-primary" />
         </div>
         {competitorBrand && (
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+          <span className={cn(
+            "rounded-full px-2.5 py-1 text-xs font-medium",
+            getBrandBgClass(competitorBrand.name),
+            getBrandTextClass(competitorBrand.name)
+          )}>
             vs {competitorBrand.name}
           </span>
         )}
