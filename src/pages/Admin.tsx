@@ -116,13 +116,23 @@ export default function Admin() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
+    const problemText = formData.get("problem_text") as string;
+    const solutionText = formData.get("solution_text") as string;
+    const benefitText = formData.get("benefit_text") as string;
+
     const argumentData = {
       competitor_brand_id: formData.get("competitor_brand_id") as string,
       equipment_type_id: combineType?.id || "",
       argument_title: formData.get("argument_title") as string,
-      argument_description: formData.get("argument_description") as string,
+      // Keep argument_description for backwards compatibility
+      argument_description: solutionText || "",
       category: formData.get("category") as string,
       sort_order: editingArgument?.sort_order ?? 0,
+      // New Problem-Solution-Benefit fields
+      problem_text: problemText || null,
+      solution_text: solutionText || null,
+      benefit_text: benefitText || null,
+      icon_name: formData.get("icon_name") as string || "Lightbulb",
     };
 
     try {
@@ -553,64 +563,120 @@ export default function Admin() {
                     </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleArgumentSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Konkurent</Label>
-                      <Select
-                        name="competitor_brand_id"
-                        required
-                        defaultValue={editingArgument?.competitor_brand_id}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Vali konkurent" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {competitorBrands.map((brand) => (
-                            <SelectItem key={brand.id} value={brand.id}>
-                              {brand.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Konkurent</Label>
+                        <Select
+                          name="competitor_brand_id"
+                          required
+                          defaultValue={editingArgument?.competitor_brand_id}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Vali konkurent" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {competitorBrands.map((brand) => (
+                              <SelectItem key={brand.id} value={brand.id}>
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Kategooria</Label>
+                        <Select
+                          name="category"
+                          defaultValue={editingArgument?.category || "technology"}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="technology">Tehnoloogia</SelectItem>
+                            <SelectItem value="performance">Jõudlus</SelectItem>
+                            <SelectItem value="fuel">Kütusesääst</SelectItem>
+                            <SelectItem value="comfort">Mugavus</SelectItem>
+                            <SelectItem value="service">Teenindus</SelectItem>
+                            <SelectItem value="value">Väärtus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Kategooria</Label>
-                      <Select
-                        name="category"
-                        defaultValue={editingArgument?.category || "general"}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="technology">Tehnoloogia</SelectItem>
-                          <SelectItem value="reliability">Töökindlus</SelectItem>
-                          <SelectItem value="service">Teenindus</SelectItem>
-                          <SelectItem value="efficiency">Efektiivsus</SelectItem>
-                          <SelectItem value="value">Väärtus</SelectItem>
-                          <SelectItem value="general">Üldine</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="argument_title">Pealkiri</Label>
+                        <Input
+                          name="argument_title"
+                          required
+                          placeholder="nt. ActiveYield automaatika"
+                          defaultValue={editingArgument?.argument_title}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="icon_name">Ikooni nimi</Label>
+                        <Select
+                          name="icon_name"
+                          defaultValue={editingArgument?.icon_name || "Lightbulb"}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Lightbulb">Lambipirn (Tehnoloogia)</SelectItem>
+                            <SelectItem value="Fuel">Kütus</SelectItem>
+                            <SelectItem value="Zap">Välk (Jõudlus)</SelectItem>
+                            <SelectItem value="Wrench">Mutrivõti (Hooldus)</SelectItem>
+                            <SelectItem value="TrendingUp">Trend üles (Kasum)</SelectItem>
+                            <SelectItem value="Shield">Kilp (Kvaliteet)</SelectItem>
+                            <SelectItem value="Cpu">Protsessor (Tarkvara)</SelectItem>
+                            <SelectItem value="Gauge">Mõõdik (Täpsus)</SelectItem>
+                            <SelectItem value="Timer">Taimer (Aeg)</SelectItem>
+                            <SelectItem value="PiggyBank">Säästupõrsas (Sääst)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
+                    {/* Problem-Solution-Benefit fields */}
                     <div className="space-y-2">
-                      <Label htmlFor="argument_title">Pealkiri</Label>
-                      <Input
-                        name="argument_title"
-                        required
-                        placeholder="nt. Parem kütusesääst"
-                        defaultValue={editingArgument?.argument_title}
+                      <Label htmlFor="problem_text" className="flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive/10 text-xs text-destructive">!</span>
+                        Probleem
+                      </Label>
+                      <Textarea
+                        name="problem_text"
+                        placeholder="Kirjelda kliendi probleem, nt 'Kõrge terakadu koristusel'"
+                        rows={2}
+                        defaultValue={editingArgument?.problem_text || ""}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="argument_description">Kirjeldus</Label>
+                      <Label htmlFor="solution_text" className="flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">✓</span>
+                        John Deere lahendus
+                      </Label>
                       <Textarea
-                        name="argument_description"
+                        name="solution_text"
                         required
-                        placeholder="Selgita, miks John Deere on selles aspektis parem..."
-                        rows={4}
-                        defaultValue={editingArgument?.argument_description}
+                        placeholder="Kirjelda John Deere tehnoloogia lahendust, nt 'ActiveYield automaatika optimeerib...'"
+                        rows={3}
+                        defaultValue={editingArgument?.solution_text || editingArgument?.argument_description || ""}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="benefit_text" className="flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-success/10 text-xs text-success">€</span>
+                        Kasu kliendile
+                      </Label>
+                      <Input
+                        name="benefit_text"
+                        placeholder="nt '+3€/ha sääst' või '15% vähem seisakuid'"
+                        defaultValue={editingArgument?.benefit_text || ""}
                       />
                     </div>
 
@@ -650,13 +716,28 @@ export default function Admin() {
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
-                  <Badge variant="outline" className="mb-2">
-                    vs {arg.competitor_brand?.name}
-                  </Badge>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline">
+                      vs {arg.competitor_brand?.name}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {arg.category}
+                    </Badge>
+                  </div>
                   <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {arg.argument_description}
+                  {arg.problem_text && (
+                    <p className="text-xs text-destructive mb-1">
+                      <span className="font-medium">Probleem:</span> {arg.problem_text}
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <span className="font-medium text-primary">Lahendus:</span> {arg.solution_text || arg.argument_description}
                   </p>
+                  {arg.benefit_text && (
+                    <p className="text-sm font-medium text-success">
+                      <span>Kasu:</span> {arg.benefit_text}
+                    </p>
+                  )}
                 </div>
               ))}
               {args.length === 0 && (
