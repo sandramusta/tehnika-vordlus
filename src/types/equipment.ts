@@ -88,6 +88,11 @@ export interface CompetitiveArgument {
   argument_description: string;
   category: string;
   sort_order: number;
+  // Problem-Solution-Benefit structure
+  problem_text: string | null;
+  solution_text: string | null;
+  benefit_text: string | null;
+  icon_name: string | null;
   created_at: string;
   // Joined data
   competitor_brand?: Brand;

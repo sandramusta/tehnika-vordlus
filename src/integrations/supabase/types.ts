@@ -42,31 +42,43 @@ export type Database = {
         Row: {
           argument_description: string
           argument_title: string
+          benefit_text: string | null
           category: string
           competitor_brand_id: string
           created_at: string
           equipment_type_id: string
+          icon_name: string | null
           id: string
+          problem_text: string | null
+          solution_text: string | null
           sort_order: number | null
         }
         Insert: {
           argument_description: string
           argument_title: string
+          benefit_text?: string | null
           category?: string
           competitor_brand_id: string
           created_at?: string
           equipment_type_id: string
+          icon_name?: string | null
           id?: string
+          problem_text?: string | null
+          solution_text?: string | null
           sort_order?: number | null
         }
         Update: {
           argument_description?: string
           argument_title?: string
+          benefit_text?: string | null
           category?: string
           competitor_brand_id?: string
           created_at?: string
           equipment_type_id?: string
+          icon_name?: string | null
           id?: string
+          problem_text?: string | null
+          solution_text?: string | null
           sort_order?: number | null
         }
         Relationships: [

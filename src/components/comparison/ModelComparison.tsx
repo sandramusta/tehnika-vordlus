@@ -50,19 +50,21 @@ function isMissing(value: unknown): boolean {
   return value === null || value === undefined;
 }
 
-// Cell value component that grays out missing data
+// Cell value component that grays out missing data and shows JD advantage
 function CellValue({ 
   value, 
   format = "number", 
   isBest = false,
   isJohnDeere = false,
-  suffix = ""
+  suffix = "",
+  showJDAdvantage = false
 }: { 
   value: number | null | undefined; 
   format?: "number" | "currency";
   isBest?: boolean;
   isJohnDeere?: boolean;
   suffix?: string;
+  showJDAdvantage?: boolean;
 }) {
   const missing = isMissing(value);
   
@@ -75,9 +77,16 @@ function CellValue({
     : `${formatNumber(value as number)}${suffix}`;
 
   return (
-    <div className="flex items-center justify-center gap-1">
-      <span className={cn(isJohnDeere && "font-semibold")}>{formatted}</span>
-      {isBest && <CheckCircle2 className="h-4 w-4 text-success" />}
+    <div className="flex flex-col items-center justify-center gap-0.5">
+      <div className="flex items-center gap-1">
+        <span className={cn(isJohnDeere && "font-semibold")}>{formatted}</span>
+        {isBest && <CheckCircle2 className="h-4 w-4 text-success" />}
+      </div>
+      {showJDAdvantage && isJohnDeere && isBest && (
+        <span className="text-[10px] font-medium uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+          JD eelis
+        </span>
+      )}
     </div>
   );
 }
@@ -232,6 +241,7 @@ export function ModelComparison({
                         value={model.engine_power_hp} 
                         isBest={isBest && !!model.engine_power_hp}
                         isJohnDeere={isJohnDeere}
+                        showJDAdvantage={true}
                       />
                     </td>
                   );
@@ -256,6 +266,7 @@ export function ModelComparison({
                         value={model.grain_tank_liters} 
                         isBest={isBest && !!model.grain_tank_liters}
                         isJohnDeere={isJohnDeere}
+                        showJDAdvantage={true}
                       />
                     </td>
                   );
@@ -280,6 +291,7 @@ export function ModelComparison({
                         value={model.header_width_m} 
                         isBest={isBest && !!model.header_width_m}
                         isJohnDeere={isJohnDeere}
+                        showJDAdvantage={true}
                       />
                     </td>
                   );
@@ -305,6 +317,7 @@ export function ModelComparison({
                           value={model.fuel_tank_liters} 
                           isBest={isBest && !!model.fuel_tank_liters}
                           isJohnDeere={isJohnDeere}
+                          showJDAdvantage={true}
                         />
                       </td>
                     );
@@ -331,6 +344,7 @@ export function ModelComparison({
                           value={model.cleaning_area_m2} 
                           isBest={isBest && !!model.cleaning_area_m2}
                           isJohnDeere={isJohnDeere}
+                          showJDAdvantage={true}
                         />
                       </td>
                     );
@@ -357,6 +371,7 @@ export function ModelComparison({
                           value={model.rotor_diameter_mm} 
                           isBest={isBest && !!model.rotor_diameter_mm}
                           isJohnDeere={isJohnDeere}
+                          showJDAdvantage={true}
                         />
                       </td>
                     );
