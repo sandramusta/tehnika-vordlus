@@ -283,20 +283,26 @@ export function ModelComparison({
                 >
                   Näitaja
                 </th>
-                {allModels.map((model) => (
-                  <th 
-                    key={model.id} 
-                    className="p-3 text-center text-sm font-semibold min-w-[160px] bg-white"
-                    style={{ backgroundColor: 'white' }}
-                  >
-                    <span className={getBrandTextColor(model.brand?.name || "")}>
-                      {model.brand?.name}
-                    </span>
-                    <div className="text-xs text-muted-foreground font-normal mt-1">
-                      {model.model_name}
-                    </div>
-                  </th>
-                ))}
+                {allModels.map((model) => {
+                  const isSelected = model.id === selectedModel.id;
+                  return (
+                    <th 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center text-sm font-semibold min-w-[160px]",
+                        isSelected ? "bg-green-50" : "bg-white"
+                      )}
+                      style={{ backgroundColor: isSelected ? undefined : 'white' }}
+                    >
+                      <span className={getBrandTextColor(model.brand?.name || "")}>
+                        {model.brand?.name}
+                      </span>
+                      <div className="text-xs text-muted-foreground font-normal mt-1">
+                        {model.model_name}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
               {/* Model Images Row */}
               <tr>
@@ -304,25 +310,34 @@ export function ModelComparison({
                   className="sticky left-0 z-30 p-3 text-sm text-muted-foreground w-fit bg-white"
                   style={{ backgroundColor: 'white' }}
                 ></th>
-                {allModels.map((model) => (
-                  <th 
-                    key={model.id} 
-                    className="p-3 text-center bg-white"
-                    style={{ backgroundColor: 'white' }}
-                  >
-                    {model.image_url ? (
-                      <img 
-                        src={model.image_url} 
-                        alt={model.model_name}
-                        className="h-20 w-full rounded-md object-contain mx-auto bg-white"
-                      />
-                    ) : (
-                      <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
-                        Pilt puudub
-                      </div>
-                    )}
-                  </th>
-                ))}
+                {allModels.map((model) => {
+                  const isSelected = model.id === selectedModel.id;
+                  return (
+                    <th 
+                      key={model.id} 
+                      className={cn(
+                        "p-3 text-center",
+                        isSelected ? "bg-green-50" : "bg-white"
+                      )}
+                      style={{ backgroundColor: isSelected ? undefined : 'white' }}
+                    >
+                      {model.image_url ? (
+                        <img 
+                          src={model.image_url} 
+                          alt={model.model_name}
+                          className={cn(
+                            "h-20 w-full rounded-md object-contain mx-auto",
+                            isSelected ? "bg-green-50" : "bg-white"
+                          )}
+                        />
+                      ) : (
+                        <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
+                          Pilt puudub
+                        </div>
+                      )}
+                    </th>
+                  );
+                })}
               </tr>
               {/* Bottom border row to prevent content bleeding */}
               <tr className="h-px">
@@ -330,13 +345,19 @@ export function ModelComparison({
                   className="sticky left-0 z-30 p-0 bg-white border-b border-border"
                   style={{ backgroundColor: 'white' }}
                 ></th>
-                {allModels.map((model) => (
-                  <th 
-                    key={model.id} 
-                    className="p-0 bg-white border-b border-border"
-                    style={{ backgroundColor: 'white' }}
-                  ></th>
-                ))}
+                {allModels.map((model) => {
+                  const isSelected = model.id === selectedModel.id;
+                  return (
+                    <th 
+                      key={model.id} 
+                      className={cn(
+                        "p-0 border-b border-border",
+                        isSelected ? "bg-green-50" : "bg-white"
+                      )}
+                      style={{ backgroundColor: isSelected ? undefined : 'white' }}
+                    ></th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
