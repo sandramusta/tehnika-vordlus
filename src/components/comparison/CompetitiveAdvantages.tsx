@@ -32,6 +32,25 @@ const CATEGORY_LABELS: Record<string, string> = {
   general: "Üldine",
 };
 
+// Brand colors for dropdown and badges
+function getBrandColorClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "text-claas";
+    case "Case IH":
+      return "text-case-ih";
+    case "Fendt":
+      return "text-fendt";
+    case "New Holland":
+      return "text-new-holland";
+    default:
+      return "text-foreground";
+  }
+}
+
+// All competitor brands that should be in dropdown
+const COMPETITOR_BRANDS = ["Claas", "Case IH", "Fendt", "New Holland"];
+
 const TOP_COUNT = 3;
 
 export function CompetitiveAdvantages({
@@ -44,12 +63,16 @@ export function CompetitiveAdvantages({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCompetitorBrandId, setSelectedCompetitorBrandId] = useState<string>("");
   
-  // Get unique competitor brands from the actual competitors in the comparison
-  // ONLY include competitor brands (exclude John Deere)
+  // Get all competitor brands (Claas, Case IH, Fendt, New Holland) - exclude John Deere
   const availableCompetitorBrands = useMemo(() => {
-    const brandIds = new Set(competitors.map(c => c.brand_id));
-    return brands.filter(b => brandIds.has(b.id) && b.name !== "John Deere");
-  }, [competitors, brands]);
+    return brands.filter(b => COMPETITOR_BRANDS.includes(b.name));
+  }, [brands]);
+
+  // Get the selected brand name for display
+  const selectedBrandName = useMemo(() => {
+    const brand = brands.find(b => b.id === selectedCompetitorBrandId);
+    return brand?.name || "";
+  }, [brands, selectedCompetitorBrandId]);
   
   // Filter arguments: only show those matching selected competitor brand
   const filteredArguments = useMemo(() => {
@@ -96,7 +119,7 @@ export function CompetitiveAdvantages({
     });
   };
 
-  // If no competitors, show message
+  // If no competitor brands available, show nothing
   if (availableCompetitorBrands.length === 0) {
     return null;
   }
@@ -118,12 +141,12 @@ export function CompetitiveAdvantages({
             </p>
           </div>
           
-          {/* Brand filter dropdown */}
+          {/* Brand filter dropdown with brand colors */}
           <Select
             value={selectedCompetitorBrandId}
             onValueChange={setSelectedCompetitorBrandId}
           >
-            <SelectTrigger className="w-full sm:w-[200px] bg-card">
+            <SelectTrigger className="w-full sm:w-[220px] bg-card">
               <SelectValue placeholder="Vali bränd võrdluseks" />
             </SelectTrigger>
             <SelectContent className="bg-card z-50">
@@ -133,7 +156,9 @@ export function CompetitiveAdvantages({
                   value={brand.id}
                   className="cursor-pointer"
                 >
-                  vs {brand.name}
+                  <span className={getBrandColorClass(brand.name)}>
+                    vs {brand.name}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -190,6 +215,7 @@ export function CompetitiveAdvantages({
                 <AdvantageCard
                   key={arg.id}
                   argument={arg}
+                  competitorBrandName={selectedBrandName}
                 />
               ))}
             </div>

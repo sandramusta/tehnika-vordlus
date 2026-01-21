@@ -147,6 +147,23 @@
     color: white;
   }
 
+  /* Text color utilities for brand colors */
+  .text-claas {
+    color: hsl(var(--claas));
+  }
+
+  .text-case-ih {
+    color: hsl(var(--case-ih));
+  }
+
+  .text-new-holland {
+    color: hsl(var(--new-holland));
+  }
+
+  .text-fendt {
+    color: hsl(var(--fendt));
+  }
+
   .comparison-card {
     @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow;
   }
