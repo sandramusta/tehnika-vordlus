@@ -80,6 +80,7 @@ export default function Admin() {
       annual_maintenance_eur: Number(formData.get("annual_maintenance_eur")) || null,
       expected_lifespan_years: Number(formData.get("expected_lifespan_years")) || 10,
       notes: (formData.get("notes") as string) || null,
+      data_source_url: (formData.get("data_source_url") as string) || null,
       image_url: imageUrl || null,
       threshing_system_image_url: threshingImageUrl || null,
       // Technical specs from brochures
@@ -432,6 +433,16 @@ export default function Admin() {
                         currentImageUrl={editingEquipment?.threshing_system_image_url}
                         onImageUploaded={setThreshingImageUrl}
                         folder="threshing"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="data_source_url">Andmete allikas (URL)</Label>
+                      <Input
+                        name="data_source_url"
+                        type="url"
+                        placeholder="https://..."
+                        defaultValue={editingEquipment?.data_source_url ?? ""}
                       />
                     </div>
 

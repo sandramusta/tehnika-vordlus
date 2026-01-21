@@ -1,8 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, TrendingUp, Clock, Fuel, Wrench, Wheat, Cog, PiggyBank } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calculator, TrendingUp, Clock, Fuel, Wrench, Wheat, Cog, PiggyBank, FileDown, DollarSign, Tractor } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface ROIInputs {
   // Purchase & depreciation
@@ -58,6 +62,7 @@ const defaultInputs: ROIInputs = {
 
 export function ROICalculator() {
   const [inputs, setInputs] = useState<ROIInputs>(defaultInputs);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const updateInput = (key: keyof ROIInputs, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -109,8 +114,11 @@ export function ROICalculator() {
     // Alternative payback based on profit
     const profitBasedPayback = annualProfit > 0 ? inputs.purchasePrice / annualProfit : Infinity;
     
-    // Total cost of ownership over lifespan
+    // Total cost of ownership over lifespan (TCO 5 years)
     const totalLifetimeCosts = totalAnnualCosts * inputs.expectedLifespan;
+
+    // TCO for chart (simulated competitor - 15% higher)
+    const competitorTCO = totalLifetimeCosts * 1.15;
 
     return {
       // Benefits
@@ -145,6 +153,7 @@ export function ROICalculator() {
       paybackYears,
       profitBasedPayback,
       totalLifetimeCosts,
+      competitorTCO,
     };
   }, [inputs]);
 
@@ -161,6 +170,117 @@ export function ROICalculator() {
       maximumFractionDigits: decimals,
     }).format(value);
 
+  // TCO Chart data
+  const tcoChartData = [
+    {
+      name: "John Deere",
+      tco: calculations.totalLifetimeCosts,
+      fill: "hsl(122, 39%, 30%)", // Wihuri green
+    },
+    {
+      name: "Konkurent (keskmine)",
+      tco: calculations.competitorTCO,
+      fill: "hsl(220, 10%, 60%)", // Gray
+    },
+  ];
+
+  // Generate PDF Report
+  const generatePDFReport = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Title
+    doc.setFontSize(20);
+    doc.setTextColor(34, 87, 46); // Wihuri green
+    doc.text("ROI Kalkulaatori Raport", pageWidth / 2, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Genereeritud: ${new Date().toLocaleDateString("et-EE")}`, pageWidth / 2, 28, { align: "center" });
+    
+    let yPos = 40;
+    
+    // Input Parameters Section
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.text("Sisendparameetrid", 14, yPos);
+    yPos += 8;
+    
+    autoTable(doc, {
+      startY: yPos,
+      head: [["Parameeter", "Väärtus"]],
+      body: [
+        ["Ostuhind", formatCurrency(inputs.purchasePrice)],
+        ["Analüüsiperiood", `${inputs.expectedLifespan} aastat`],
+        ["Jääkväärtus", `${inputs.residualValuePercent}%`],
+        ["Hektarid aastas", `${inputs.annualHectares} ha`],
+        ["Töötunnid aastas", `${inputs.annualWorkHours} h`],
+        ["Kütusekulu", `${inputs.fuelConsumption} l/h`],
+        ["Kütuse hind", `${inputs.fuelPrice} €/l`],
+        ["Hoolduskulu aastas", formatCurrency(inputs.annualMaintenance)],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [34, 87, 46] },
+    });
+    
+    yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+    
+    // Results Section
+    doc.setFontSize(14);
+    doc.text("Tulemused", 14, yPos);
+    yPos += 8;
+    
+    autoTable(doc, {
+      startY: yPos,
+      head: [["Näitaja", "Väärtus"]],
+      body: [
+        ["ROI", `${formatNumber(calculations.roi, 0)}%`],
+        ["Kogu omamiskulu (TCO)", formatCurrency(calculations.totalLifetimeCosts)],
+        ["Aastane kogusääst", formatCurrency(calculations.totalAnnualBenefits)],
+        ["Terakadude vähenemine", formatCurrency(calculations.grainLossSavings)],
+        ["Kütusesääst", formatCurrency(calculations.fuelSavings)],
+        ["Hoolduse kokkuhoid", formatCurrency(calculations.maintenanceSavings)],
+        ["Kulu hektari kohta", formatCurrency(calculations.costPerHectare)],
+        ["Aastane kasum", formatCurrency(calculations.annualProfit)],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [34, 87, 46] },
+    });
+    
+    yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+    
+    // TCO Comparison
+    doc.setFontSize(14);
+    doc.text("Kogukulu võrdlus (TCO)", 14, yPos);
+    yPos += 8;
+    
+    autoTable(doc, {
+      startY: yPos,
+      head: [["Masin", `TCO (${inputs.expectedLifespan}a)`, "Vahe"]],
+      body: [
+        ["John Deere", formatCurrency(calculations.totalLifetimeCosts), "—"],
+        ["Konkurent (keskmine)", formatCurrency(calculations.competitorTCO), formatCurrency(calculations.competitorTCO - calculations.totalLifetimeCosts)],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [34, 87, 46] },
+    });
+    
+    yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+    
+    // Summary
+    doc.setFontSize(12);
+    doc.setTextColor(34, 87, 46);
+    const savingsVsCompetitor = calculations.competitorTCO - calculations.totalLifetimeCosts;
+    doc.text(`Kokkuvõte: John Deere'iga säästad ${inputs.expectedLifespan} aasta jooksul ${formatCurrency(savingsVsCompetitor)} võrreldes keskmise konkurendiga.`, 14, yPos, { maxWidth: pageWidth - 28 });
+    
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text("Wihuri Agri - Tehnika võrdlus ja ROI analüüs", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    
+    doc.save("roi-raport.pdf");
+  };
+
   return (
     <Card className="border-border">
       <CardHeader>
@@ -170,14 +290,15 @@ export function ROICalculator() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Input Fields */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Purchase & Depreciation */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+        {/* Input Fields - Grouped into sections with 2-column layout on desktop */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Section 1: Soetamine & Jääkväärtus */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-foreground border-b border-border pb-2">
+              <DollarSign className="h-4 w-4 text-primary" />
               Soetamine & Jääkväärtus
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="purchasePrice" className="text-sm">
                   Ostuhind (€)
@@ -217,12 +338,13 @@ export function ROICalculator() {
             </div>
           </div>
 
-          {/* Operating Parameters */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+          {/* Section 2: Töö parameetrid */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-foreground border-b border-border pb-2">
+              <Tractor className="h-4 w-4 text-primary" />
               Töö parameetrid
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="annualHectares" className="text-sm">
                   Hektarid aastas
@@ -259,13 +381,13 @@ export function ROICalculator() {
             </div>
           </div>
 
-          {/* Fuel */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-              <Fuel className="h-4 w-4" />
+          {/* Section 3: Kütus */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-foreground border-b border-border pb-2">
+              <Fuel className="h-4 w-4 text-primary" />
               Kütus
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="fuelConsumption" className="text-sm">
                   Kütusekulu (l/h)
@@ -304,13 +426,13 @@ export function ROICalculator() {
             </div>
           </div>
 
-          {/* Maintenance */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-              <Cog className="h-4 w-4" />
+          {/* Section 4: Hooldus */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-foreground border-b border-border pb-2">
+              <Cog className="h-4 w-4 text-primary" />
               Hooldus
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="annualMaintenance" className="text-sm">
                   Hoolduskulu aastas (€)
@@ -339,13 +461,13 @@ export function ROICalculator() {
             </div>
           </div>
 
-          {/* Harvest Quality */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-              <Wheat className="h-4 w-4" />
+          {/* Section 5: Koristuse kvaliteet */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-foreground border-b border-border pb-2">
+              <Wheat className="h-4 w-4 text-primary" />
               Koristuse kvaliteet
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="grainLossReduction" className="text-sm">
                   Terakadude vähenemine (€/ha)
@@ -364,13 +486,13 @@ export function ROICalculator() {
             </div>
           </div>
 
-          {/* Revenue */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-              <PiggyBank className="h-4 w-4" />
+          {/* Section 6: Tulu */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-foreground border-b border-border pb-2">
+              <PiggyBank className="h-4 w-4 text-primary" />
               Tulu
             </h3>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="revenuePerHectare" className="text-sm">
                   Tulu hektari kohta (€/ha)
@@ -448,8 +570,20 @@ export function ROICalculator() {
         </div>
 
         {/* Main Results */}
-        <div className="border-t border-border pt-6">
-          <h3 className="font-semibold mb-4">Tulemused</h3>
+        <div className="border-t border-border pt-6" ref={resultsRef}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Tulemused</h3>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={generatePDFReport}
+            >
+              <FileDown className="h-4 w-4" />
+              Genereeri PDF-raport
+            </Button>
+          </div>
+          
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* ROI */}
             <div className="rounded-lg bg-primary/10 p-4">
@@ -517,6 +651,38 @@ export function ROICalculator() {
               <div className="text-xs text-muted-foreground mt-1">
                 Tulu - kulud
               </div>
+            </div>
+          </div>
+
+          {/* TCO Bar Chart */}
+          <div className="mt-6 rounded-lg border border-border p-4">
+            <h4 className="font-medium mb-4">Kogu omamiskulu võrdlus ({inputs.expectedLifespan}a)</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={tcoChartData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis 
+                    type="number" 
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k €`}
+                    domain={[0, 'auto']}
+                  />
+                  <YAxis type="category" dataKey="name" width={100} />
+                  <Tooltip 
+                    formatter={(value: number) => formatCurrency(value)}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  />
+                  <Bar dataKey="tco" name="TCO" radius={[0, 4, 4, 0]}>
+                    {tcoChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 p-3 rounded-lg bg-success/10 text-center">
+              <span className="text-success font-medium">
+                John Deere'iga säästad {formatCurrency(calculations.competitorTCO - calculations.totalLifetimeCosts)} võrreldes keskmise konkurendiga
+              </span>
             </div>
           </div>
 
