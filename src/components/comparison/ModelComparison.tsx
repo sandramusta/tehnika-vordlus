@@ -290,9 +290,9 @@ export function ModelComparison({
                       key={model.id} 
                       className={cn(
                         "p-3 text-center text-sm font-semibold min-w-[160px]",
-                        isSelected ? "bg-green-50" : "bg-white"
+                        isSelected ? "bg-primary/5" : "bg-white"
                       )}
-                      style={{ backgroundColor: isSelected ? undefined : 'white' }}
+                      style={{ backgroundColor: isSelected ? 'hsl(var(--primary) / 0.05)' : 'white' }}
                     >
                       <span className={getBrandTextColor(model.brand?.name || "")}>
                         {model.brand?.name}
@@ -317,9 +317,9 @@ export function ModelComparison({
                       key={model.id} 
                       className={cn(
                         "p-3 text-center",
-                        isSelected ? "bg-green-50" : "bg-white"
+                        isSelected ? "bg-primary/5" : "bg-white"
                       )}
-                      style={{ backgroundColor: isSelected ? undefined : 'white' }}
+                      style={{ backgroundColor: isSelected ? 'hsl(var(--primary) / 0.05)' : 'white' }}
                     >
                       {model.image_url ? (
                         <img 
@@ -327,8 +327,9 @@ export function ModelComparison({
                           alt={model.model_name}
                           className={cn(
                             "h-20 w-full rounded-md object-contain mx-auto",
-                            isSelected ? "bg-green-50" : "bg-white"
+                            isSelected ? "bg-primary/5" : "bg-white"
                           )}
+                          style={{ backgroundColor: isSelected ? 'hsl(var(--primary) / 0.05)' : 'white' }}
                         />
                       ) : (
                         <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
@@ -352,9 +353,9 @@ export function ModelComparison({
                       key={model.id} 
                       className={cn(
                         "p-0 border-b border-border",
-                        isSelected ? "bg-green-50" : "bg-white"
+                        isSelected ? "bg-primary/5" : "bg-white"
                       )}
-                      style={{ backgroundColor: isSelected ? undefined : 'white' }}
+                      style={{ backgroundColor: isSelected ? 'hsl(var(--primary) / 0.05)' : 'white' }}
                     ></th>
                   );
                 })}
