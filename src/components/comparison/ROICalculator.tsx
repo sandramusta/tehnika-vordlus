@@ -166,11 +166,8 @@ export function ROICalculator() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calculator className="h-5 w-5 text-primary" />
-          ROI ja TCO kalkulaator
+          ROI kalkulaator
         </CardTitle>
-        <p className="text-sm text-muted-foreground mt-1">
-          Tasuvuse ja kogukulu analüüs artikli metoodika põhjal
-        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Input Fields */}
