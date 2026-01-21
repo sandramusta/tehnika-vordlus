@@ -173,24 +173,27 @@ export function ModelComparison({
       {/* Comparison Table with sticky header and first column */}
       <div className="relative overflow-x-auto overflow-y-auto max-w-full max-h-[70vh] border border-border rounded-lg">
         <div className="min-w-[800px]">
-          <table className="w-full border-collapse">
-            {/* Sticky header with fully opaque white background */}
-            <thead className="sticky top-0 z-20">
-              {/* Model Names Row - Opaque white background */}
-              <tr className="border-b border-border" style={{ backgroundColor: 'white' }}>
+          <table className="w-full" style={{ borderCollapse: 'collapse', borderSpacing: 0 }}>
+            {/* Sticky header with fully opaque white background - no gaps */}
+            <thead className="sticky top-0 z-20" style={{ backgroundColor: 'white' }}>
+              {/* Model Names Row - Opaque white background with no gaps */}
+              <tr style={{ backgroundColor: 'white' }}>
                 <th 
-                  className="sticky left-0 z-30 p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-r border-border"
+                  className="sticky left-0 z-30 p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-b border-r border-border"
                   style={{ backgroundColor: 'white' }}
                 >
                   Näitaja
                 </th>
-                {allModels.map((model) => (
+                {allModels.map((model, index) => (
                   <th 
                     key={model.id} 
-                    className="p-3 text-center text-sm font-semibold min-w-[160px]"
+                    className={cn(
+                      "p-3 text-center text-sm font-semibold min-w-[160px] border-b border-border",
+                      index < allModels.length - 1 && "border-r"
+                    )}
                     style={{ 
                       backgroundColor: model.id === selectedModel.id 
-                        ? 'hsl(var(--primary) / 0.1)' 
+                        ? 'hsl(122, 39%, 30%, 0.1)' 
                         : 'white' 
                     }}
                   >
@@ -203,19 +206,22 @@ export function ModelComparison({
                   </th>
                 ))}
               </tr>
-              {/* Model Images Row - Part of sticky header with opaque white background */}
-              <tr className="border-b border-border" style={{ backgroundColor: 'white' }}>
+              {/* Model Images Row - Part of sticky header with opaque white background - no gaps */}
+              <tr style={{ backgroundColor: 'white' }}>
                 <th 
-                  className="sticky left-0 z-30 p-3 text-sm text-muted-foreground border-r border-border"
+                  className="sticky left-0 z-30 p-3 text-sm text-muted-foreground border-b border-r border-border"
                   style={{ backgroundColor: 'white' }}
                 ></th>
-                {allModels.map((model) => (
+                {allModels.map((model, index) => (
                   <th 
                     key={model.id} 
-                    className="p-3 text-center"
+                    className={cn(
+                      "p-3 text-center border-b border-border",
+                      index < allModels.length - 1 && "border-r"
+                    )}
                     style={{ 
                       backgroundColor: model.id === selectedModel.id 
-                        ? 'hsl(var(--primary) / 0.05)' 
+                        ? 'hsl(122, 39%, 30%, 0.05)' 
                         : 'white' 
                     }}
                   >

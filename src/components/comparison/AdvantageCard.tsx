@@ -5,6 +5,7 @@ import { AlertTriangle, Lightbulb, TrendingUp, LucideIcon } from "lucide-react";
 
 interface AdvantageCardProps {
   argument: CompetitiveArgument;
+  competitorBrandName?: string;
 }
 
 // Get icon by name from lucide-react
@@ -21,7 +22,23 @@ function getIconByName(iconName: string | null): LucideIcon {
   return Lightbulb;
 }
 
-export function AdvantageCard({ argument }: AdvantageCardProps) {
+// Brand colors for the "vs Brand" badge
+function getBrandColorClass(brandName: string): string {
+  switch (brandName) {
+    case "Claas":
+      return "text-claas";
+    case "Case IH":
+      return "text-case-ih";
+    case "Fendt":
+      return "text-fendt";
+    case "New Holland":
+      return "text-new-holland";
+    default:
+      return "text-foreground";
+  }
+}
+
+export function AdvantageCard({ argument, competitorBrandName }: AdvantageCardProps) {
   const Icon = getIconByName(argument.icon_name);
   
   // Fallback: if only argument_description exists, show it as solution
@@ -32,11 +49,23 @@ export function AdvantageCard({ argument }: AdvantageCardProps) {
   return (
     <div 
       className={cn(
-        "rounded-xl border border-border bg-card p-5 transition-all hover:shadow-lg shadow-sm"
+        "relative rounded-xl border border-border bg-card p-5 transition-all hover:shadow-lg shadow-sm"
       )}
     >
+      {/* Brand badge in top-right corner */}
+      {competitorBrandName && (
+        <div className="absolute top-3 right-3">
+          <span className={cn(
+            "text-xs font-medium px-2 py-0.5 rounded bg-muted/50",
+            getBrandColorClass(competitorBrandName)
+          )}>
+            vs {competitorBrandName}
+          </span>
+        </div>
+      )}
+      
       {/* Header with icon */}
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3 pr-16">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
           <Icon className="h-5 w-5 text-primary" />
         </div>
