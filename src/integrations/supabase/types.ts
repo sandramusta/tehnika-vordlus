@@ -94,6 +94,7 @@ export type Database = {
           chopper_width_mm: number | null
           cleaning_area_m2: number | null
           created_at: string
+          data_source_url: string | null
           detailed_specs: Json | null
           engine_cylinders: number | null
           engine_displacement_liters: number | null
@@ -142,6 +143,7 @@ export type Database = {
           chopper_width_mm?: number | null
           cleaning_area_m2?: number | null
           created_at?: string
+          data_source_url?: string | null
           detailed_specs?: Json | null
           engine_cylinders?: number | null
           engine_displacement_liters?: number | null
@@ -190,6 +192,7 @@ export type Database = {
           chopper_width_mm?: number | null
           cleaning_area_m2?: number | null
           created_at?: string
+          data_source_url?: string | null
           detailed_specs?: Json | null
           engine_cylinders?: number | null
           engine_displacement_liters?: number | null

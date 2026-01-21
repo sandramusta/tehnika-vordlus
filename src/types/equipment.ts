@@ -71,6 +71,7 @@ export interface Equipment {
   header_width_min_m: number | null;
   header_width_max_m: number | null;
   detailed_specs: DetailedSpecs | null;
+  data_source_url: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
