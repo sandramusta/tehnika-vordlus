@@ -158,6 +158,38 @@ export function ModelComparison({
     }
   };
 
+  // Handler for saving detailed spec edits (JSONB)
+  const handleSaveDetailedSpec = async (
+    equipmentId: string,
+    categoryKey: string,
+    fieldKey: string,
+    newValue: string | number | boolean | null
+  ) => {
+    const model = allModels.find(m => m.id === equipmentId);
+    if (!model) return;
+
+    const currentSpecs = (model.detailed_specs as Record<string, Record<string, unknown>>) || {};
+    const updatedSpecs = {
+      ...currentSpecs,
+      [categoryKey]: {
+        ...(currentSpecs[categoryKey] || {}),
+        [fieldKey]: newValue,
+      },
+    };
+
+    try {
+      await updateEquipment.mutateAsync({
+        id: equipmentId,
+        detailed_specs: updatedSpecs,
+      });
+      toast.success("Andmed uuendatud");
+    } catch (error) {
+      console.error("Failed to update detailed spec:", error);
+      toast.error("Uuendamine ebaõnnestus");
+      throw error;
+    }
+  };
+
   const selectedTCO = calculateTCO(selectedModel);
 
   if (competitors.length === 0) {
@@ -393,6 +425,9 @@ export function ModelComparison({
               <DetailedSpecsTableRows 
                 allModels={allModels} 
                 selectedModelId={selectedModel.id}
+                onSaveDetailedSpec={handleSaveDetailedSpec}
+                onSaveLabel={handleSaveLabel}
+                getLabel={getLabel}
               />
             </tbody>
           </table>
