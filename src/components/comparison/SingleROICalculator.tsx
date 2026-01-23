@@ -84,7 +84,7 @@ export const defaultInputsExisting: ROIInputs = {
 };
 
 export const defaultInputsNew: ROIInputs = {
-  machineName: "John Deere",
+  machineName: "Uus masin",
   purchasePrice: 500000,
   expectedLifespan: 5,
   residualValuePercent: 52,
