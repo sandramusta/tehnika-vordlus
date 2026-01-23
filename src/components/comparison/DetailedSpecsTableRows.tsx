@@ -2,20 +2,10 @@ import { useState } from "react";
 import { Equipment } from "@/types/equipment";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EditableDetailedCell } from "./EditableDetailedCell";
-import { EditableLabelCell } from "./EditableLabelCell";
 
 interface DetailedSpecsTableRowsProps {
   allModels: Equipment[];
   selectedModelId: string;
-  onSaveDetailedSpec: (
-    equipmentId: string,
-    categoryKey: string,
-    fieldKey: string,
-    newValue: string | number | boolean | null
-  ) => Promise<void>;
-  onSaveLabel: (specKey: string, newLabel: string) => Promise<void>;
-  getLabel: (specKey: string, defaultLabel: string) => string;
 }
 
 // Category display names and order
@@ -125,6 +115,15 @@ const FIELD_NAMES: Record<string, Record<string, string>> = {
   },
 };
 
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "boolean") return value ? "●" : "○";
+  if (typeof value === "number") {
+    return new Intl.NumberFormat("et-EE").format(value);
+  }
+  return String(value);
+}
+
 // Get all unique fields across all models for a category
 function getAllFieldsForCategory(
   allModels: Equipment[],
@@ -174,9 +173,6 @@ function getAvailableCategories(allModels: Equipment[]): string[] {
 export function DetailedSpecsTableRows({
   allModels,
   selectedModelId,
-  onSaveDetailedSpec,
-  onSaveLabel,
-  getLabel,
 }: DetailedSpecsTableRowsProps) {
   // Mootor section is expanded by default
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -220,12 +216,7 @@ export function DetailedSpecsTableRows({
               )}
               onClick={() => toggleCategory(categoryKey)}
             >
-              <td 
-                className={cn(
-                  "sticky left-0 z-10 p-3 text-sm font-semibold text-foreground whitespace-nowrap",
-                  isExpanded ? "bg-primary/10" : "bg-muted/30"
-                )}
-              >
+              <td className="p-3 text-sm font-semibold text-foreground">
                 <div className="flex items-center gap-2">
                   {isExpanded ? (
                     <ChevronDown className="h-4 w-4 text-primary" />
@@ -251,44 +242,37 @@ export function DetailedSpecsTableRows({
             {/* Category Data Rows */}
             {isExpanded &&
               fields.map((fieldKey) => {
-                const defaultFieldName =
+                const fieldName =
                   fieldNames[fieldKey] || fieldKey.replace(/_/g, " ");
-                const specKey = `${categoryKey}_${fieldKey}`;
-                const displayLabel = getLabel(specKey, defaultFieldName);
 
                 return (
                   <tr
                     key={`${categoryKey}-${fieldKey}`}
                     className="border-b border-border/30"
                   >
-                    <td 
-                      className="sticky left-0 z-10 bg-white p-3 pl-10 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors whitespace-nowrap"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <EditableLabelCell
-                        value={displayLabel}
-                        onSave={(newLabel) => onSaveLabel(specKey, newLabel)}
-                      />
+                    <td className="p-3 pl-10 text-sm text-muted-foreground">
+                      {fieldName}
                     </td>
                     {allModels.map((model) => {
-                      const specs = model.detailed_specs as Record<string, Record<string, unknown>> | null;
+                      const specs = model.detailed_specs;
                       const categoryData =
-                        specs && specs[categoryKey]
-                          ? specs[categoryKey]
+                        specs &&
+                        typeof specs === "object" &&
+                        specs[categoryKey]
+                          ? (specs[categoryKey] as Record<string, unknown>)
                           : null;
                       const value = categoryData ? categoryData[fieldKey] : null;
 
                       return (
-                        <EditableDetailedCell
+                        <td
                           key={model.id}
-                          value={value}
-                          equipmentId={model.id}
-                          categoryKey={categoryKey}
-                          fieldKey={fieldKey}
-                          currentSpecs={specs}
-                          onSave={onSaveDetailedSpec}
-                          isSelectedModel={model.id === selectedModelId}
-                        />
+                          className={cn(
+                            "p-3 text-center text-sm font-medium",
+                            model.id === selectedModelId && "bg-primary/5"
+                          )}
+                        >
+                          {formatValue(value)}
+                        </td>
                       );
                     })}
                   </tr>

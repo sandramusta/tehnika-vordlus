@@ -120,11 +120,3 @@ export interface TCOCalculation {
   annualCost: number;
   costPerHour: number;
 }
-
-export interface SpecLabel {
-  id: string;
-  spec_key: string;
-  custom_label: string;
-  created_at: string;
-  updated_at: string;
-}

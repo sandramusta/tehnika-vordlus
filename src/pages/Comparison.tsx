@@ -13,28 +13,28 @@ import {
 } from "@/hooks/useEquipmentData";
 
 export default function Comparison() {
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [selectedBrand, setSelectedBrand] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
+  const [selectedModel, setSelectedModel] = useState<string>("all");
 
   const { data: types } = useEquipmentTypes();
   
-  // Get equipment for the selected type (only when type is selected)
+  // Get equipment for the selected type (or all types for "all")
   const { data: allEquipment = [], isLoading: loadingEquipment } = useEquipment(
-    selectedType && selectedType !== "all" && selectedType !== "" ? selectedType : undefined
+    selectedType !== "all" ? selectedType : undefined
   );
   const { data: brands = [] } = useBrands();
   const { data: competitiveArgs = [] } = useCompetitiveArguments(
-    selectedType && selectedType !== "all" && selectedType !== "" ? selectedType : undefined
+    selectedType !== "all" ? selectedType : undefined
   );
 
-  // Get the selected model (any brand) - only when a specific model is selected
+  // Get the selected model (any brand)
   const selectedEquipmentModel = useMemo(() => {
-    if (!selectedModel || selectedModel === "all" || selectedModel === "") return null;
+    if (selectedModel === "all") return null;
     return allEquipment.find((e) => e.id === selectedModel) || null;
   }, [selectedModel, allEquipment]);
 
-  // Get competitors within 50 HP of the selected model (from other brands)
+  // Get competitors within 100 HP of the selected model (from other brands)
   const competitors = useMemo(() => {
     if (!selectedEquipmentModel || !selectedEquipmentModel.engine_power_hp) return [];
     
@@ -45,23 +45,22 @@ export default function Comparison() {
       if (e.brand_id === selectedEquipmentModel.brand_id) return false;
       // Must have engine power defined
       if (!e.engine_power_hp) return false;
-      // Power difference must be within 50 HP
+      // Power difference must be within 100 HP
       const powerDiff = Math.abs(e.engine_power_hp - selectedPower);
-      if (powerDiff > 50) return false;
+      if (powerDiff > 100) return false;
       return true;
     });
   }, [selectedEquipmentModel, allEquipment]);
 
-  // Reset downstream selections when upstream changes
+  // Reset model when type or brand changes
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
-    setSelectedBrand(""); // Reset brand when type changes
-    setSelectedModel(""); // Reset model when type changes
+    setSelectedModel("all");
   };
 
   const handleBrandChange = (value: string) => {
     setSelectedBrand(value);
-    setSelectedModel(""); // Reset model when brand changes
+    setSelectedModel("all");
   };
 
   return (

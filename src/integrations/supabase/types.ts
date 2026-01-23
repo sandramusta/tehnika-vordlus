@@ -315,30 +315,6 @@ export type Database = {
         }
         Relationships: []
       }
-      spec_labels: {
-        Row: {
-          created_at: string
-          custom_label: string
-          id: string
-          spec_key: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          custom_label: string
-          id?: string
-          spec_key: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          custom_label?: string
-          id?: string
-          spec_key?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       work_documentation: {
         Row: {
           area_hectares: number | null
