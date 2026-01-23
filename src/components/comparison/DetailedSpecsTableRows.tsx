@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Equipment } from "@/types/equipment";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EditableCell, EditableValueCell } from "./EditableCell";
+import { useInlineEdit } from "@/hooks/useInlineEdit";
+import { useSpecLabels } from "@/hooks/useSpecLabels";
+import { toast } from "sonner";
 
 interface DetailedSpecsTableRowsProps {
   allModels: Equipment[];
@@ -174,10 +178,14 @@ export function DetailedSpecsTableRows({
   allModels,
   selectedModelId,
 }: DetailedSpecsTableRowsProps) {
-  // Mootor section is expanded by default
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(["mootor"])
   );
+  const { data: specLabels = {} } = useSpecLabels();
+  const inlineEdit = useInlineEdit({
+    onSuccess: () => toast.success("Salvestatud"),
+    onError: (error) => toast.error(`Viga: ${error.message}`),
+  });
 
   const toggleCategory = (categoryKey: string) => {
     setExpandedCategories((prev) => {
@@ -189,6 +197,27 @@ export function DetailedSpecsTableRows({
       }
       return next;
     });
+  };
+
+  const getLabel = (categoryKey: string, fieldKey: string, defaultLabel: string): string => {
+    // Create a composite key for JSONB fields
+    const compositeKey = `${categoryKey}_${fieldKey}`;
+    return specLabels[compositeKey] || defaultLabel;
+  };
+
+  const handleLabelSave = (categoryKey: string, fieldKey: string) => {
+    const compositeKey = `${categoryKey}_${fieldKey}`;
+    inlineEdit.saveSpecLabel(compositeKey, inlineEdit.editValue);
+  };
+
+  const handleValueSave = (model: Equipment, categoryKey: string, fieldKey: string) => {
+    inlineEdit.saveDetailedSpec(
+      model.id,
+      categoryKey,
+      fieldKey,
+      inlineEdit.editValue,
+      model.detailed_specs as Record<string, unknown> | null
+    );
   };
 
   const availableCategories = getAvailableCategories(allModels);
@@ -206,79 +235,104 @@ export function DetailedSpecsTableRows({
         const fieldNames = FIELD_NAMES[categoryKey] || {};
 
         return (
-          <>
-            {/* Category Header Row */}
-            <tr
-              key={`header-${categoryKey}`}
-              className={cn(
-                "border-b border-border cursor-pointer transition-colors",
-                isExpanded ? "bg-primary/10" : "bg-muted/30 hover:bg-muted/50"
-              )}
-              onClick={() => toggleCategory(categoryKey)}
-            >
-              <td className="p-3 text-sm font-semibold text-foreground">
-                <div className="flex items-center gap-2">
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 text-primary" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  <span className={isExpanded ? "text-primary" : ""}>
-                    {categoryName}
-                  </span>
-                </div>
-              </td>
-              {allModels.map((model) => (
-                <td
-                  key={model.id}
-                  className={cn(
-                    "p-3 text-center",
-                    model.id === selectedModelId && "bg-primary/5"
-                  )}
-                />
-              ))}
-            </tr>
+          <tr key={`category-wrapper-${categoryKey}`} style={{ display: 'contents' }}>
+            <td colSpan={allModels.length + 1} style={{ display: 'contents' }}>
+              {/* Category Header Row */}
+              <tr
+                key={`header-${categoryKey}`}
+                className={cn(
+                  "border-b border-border cursor-pointer transition-colors",
+                  isExpanded ? "bg-primary/10" : "bg-muted/30 hover:bg-muted/50"
+                )}
+                onClick={() => toggleCategory(categoryKey)}
+              >
+                <td className="sticky left-0 z-10 p-3 text-sm font-semibold text-foreground bg-inherit border-r border-border">
+                  <div className="flex items-center gap-2">
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-primary" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className={isExpanded ? "text-primary" : ""}>
+                      {categoryName}
+                    </span>
+                  </div>
+                </td>
+                {allModels.map((model) => (
+                  <td
+                    key={model.id}
+                    className={cn(
+                      "p-3 text-center",
+                      model.id === selectedModelId && "bg-primary/5"
+                    )}
+                  />
+                ))}
+              </tr>
 
-            {/* Category Data Rows */}
-            {isExpanded &&
-              fields.map((fieldKey) => {
-                const fieldName =
-                  fieldNames[fieldKey] || fieldKey.replace(/_/g, " ");
+              {/* Category Data Rows */}
+              {isExpanded &&
+                fields.map((fieldKey) => {
+                  const defaultFieldName = fieldNames[fieldKey] || fieldKey.replace(/_/g, " ");
+                  const fieldLabel = getLabel(categoryKey, fieldKey, defaultFieldName);
+                  const labelCellId = `label-${categoryKey}-${fieldKey}`;
 
-                return (
-                  <tr
-                    key={`${categoryKey}-${fieldKey}`}
-                    className="border-b border-border/30"
-                  >
-                    <td className="p-3 pl-10 text-sm text-muted-foreground">
-                      {fieldName}
-                    </td>
-                    {allModels.map((model) => {
-                      const specs = model.detailed_specs;
-                      const categoryData =
-                        specs &&
-                        typeof specs === "object" &&
-                        specs[categoryKey]
-                          ? (specs[categoryKey] as Record<string, unknown>)
-                          : null;
-                      const value = categoryData ? categoryData[fieldKey] : null;
+                  return (
+                    <tr
+                      key={`${categoryKey}-${fieldKey}`}
+                      className="border-b border-border/30"
+                    >
+                      <td className="sticky left-0 z-10 bg-card p-3 pl-10 text-sm text-muted-foreground border-r border-border">
+                        <EditableCell
+                          value={fieldLabel}
+                          cellId={labelCellId}
+                          editingCell={inlineEdit.editingCell}
+                          editValue={inlineEdit.editValue}
+                          onStartEdit={inlineEdit.startEditing}
+                          onValueChange={inlineEdit.setEditValue}
+                          onSave={() => handleLabelSave(categoryKey, fieldKey)}
+                          onCancel={inlineEdit.cancelEditing}
+                          isLabel
+                        />
+                      </td>
+                      {allModels.map((model) => {
+                        const specs = model.detailed_specs;
+                        const categoryData =
+                          specs &&
+                          typeof specs === "object" &&
+                          specs[categoryKey]
+                            ? (specs[categoryKey] as Record<string, unknown>)
+                            : null;
+                        const value = categoryData ? categoryData[fieldKey] : null;
+                        const displayValue = formatValue(value);
+                        const cellId = `${model.id}-${categoryKey}-${fieldKey}`;
 
-                      return (
-                        <td
-                          key={model.id}
-                          className={cn(
-                            "p-3 text-center text-sm font-medium",
-                            model.id === selectedModelId && "bg-primary/5"
-                          )}
-                        >
-                          {formatValue(value)}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-          </>
+                        return (
+                          <td
+                            key={model.id}
+                            className={cn(
+                              "p-3 text-center text-sm font-medium",
+                              model.id === selectedModelId && "bg-primary/5"
+                            )}
+                          >
+                            <EditableValueCell
+                              displayValue={displayValue}
+                              rawValue={value}
+                              cellId={cellId}
+                              editingCell={inlineEdit.editingCell}
+                              editValue={inlineEdit.editValue}
+                              onStartEdit={inlineEdit.startEditing}
+                              onValueChange={inlineEdit.setEditValue}
+                              onSave={() => handleValueSave(model, categoryKey, fieldKey)}
+                              onCancel={inlineEdit.cancelEditing}
+                            />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+            </td>
+          </tr>
         );
       })}
     </>
