@@ -36,11 +36,14 @@ import {
   useUpdateMyth,
   useDeleteMyth,
 } from "@/hooks/useEquipmentData";
-import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp } from "lucide-react";
+import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import type { Equipment, CompetitiveArgument, Myth } from "@/types/equipment";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { BrochureUpload, type ExtractedData } from "@/components/admin/BrochureUpload";
+import { BrochureDataReview } from "@/components/admin/BrochureDataReview";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 function getBrandTextColor(brandName: string): string {
@@ -77,6 +80,10 @@ export default function Admin() {
   const [editingMyth, setEditingMyth] = useState<Myth | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [threshingImageUrl, setThreshingImageUrl] = useState<string>("");
+  const [brochureDialogOpen, setBrochureDialogOpen] = useState(false);
+  const [brochureEquipment, setBrochureEquipment] = useState<Equipment | null>(null);
+  const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+  const [isSavingBrochureData, setIsSavingBrochureData] = useState(false);
 
   const { data: equipment = [] } = useEquipment();
   const { data: brands = [] } = useBrands();
@@ -221,6 +228,98 @@ export default function Admin() {
   const closeMythDialog = () => {
     setMythDialogOpen(false);
     setEditingMyth(null);
+  };
+
+  const openBrochureDialog = (item: Equipment) => {
+    setBrochureEquipment(item);
+    setExtractedData(null);
+    setBrochureDialogOpen(true);
+  };
+
+  const closeBrochureDialog = () => {
+    setBrochureDialogOpen(false);
+    setBrochureEquipment(null);
+    setExtractedData(null);
+  };
+
+  const handleExtractionComplete = (data: ExtractedData) => {
+    setExtractedData(data);
+  };
+
+  const handleConfirmBrochureData = async (data: ExtractedData) => {
+    if (!brochureEquipment) return;
+
+    setIsSavingBrochureData(true);
+    try {
+      // Prepare equipment column updates
+      const columnUpdates: Record<string, unknown> = {};
+      if (data.equipment_columns) {
+        Object.entries(data.equipment_columns).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== "") {
+            columnUpdates[key] = value;
+          }
+        });
+      }
+
+      // Merge detailed_specs with existing data
+      const existingSpecs = (brochureEquipment.detailed_specs as Record<string, unknown>) || {};
+      const mergedSpecs = { ...existingSpecs };
+      
+      if (data.detailed_specs) {
+        Object.entries(data.detailed_specs).forEach(([category, fields]) => {
+          if (typeof fields === "object" && fields !== null) {
+            const existingCategory = (mergedSpecs[category] as Record<string, unknown>) || {};
+            const updatedCategory = { ...existingCategory };
+            
+            Object.entries(fields as Record<string, unknown>).forEach(([field, value]) => {
+              if (value !== null && value !== undefined && value !== "") {
+                updatedCategory[field] = value;
+              }
+            });
+            
+            mergedSpecs[category] = updatedCategory;
+          }
+        });
+      }
+
+      // Update the equipment record
+      const { error } = await supabase
+        .from("equipment")
+        .update({
+          ...columnUpdates,
+          detailed_specs: mergedSpecs as unknown as Record<string, never>,
+        })
+        .eq("id", brochureEquipment.id);
+
+      if (error) throw error;
+
+      // Mark brochure as applied
+      await supabase
+        .from("equipment_brochures")
+        .update({ applied_at: new Date().toISOString() })
+        .eq("equipment_id", brochureEquipment.id)
+        .eq("extraction_status", "completed")
+        .is("applied_at", null);
+
+      toast({
+        title: "Andmed salvestatud!",
+        description: `${brochureEquipment.model_name} tehnilised andmed on uuendatud.`,
+      });
+
+      closeBrochureDialog();
+      
+      // Refetch equipment data
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to save brochure data:", error);
+      toast({
+        title: "Viga",
+        description: "Andmete salvestamine ebaõnnestus",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingBrochureData(false);
+    }
   };
 
   const handleMythSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -620,13 +719,23 @@ export default function Admin() {
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => openEditEquipment(item)}
+                                      title="Muuda"
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
                                     <Button
                                       variant="ghost"
                                       size="icon"
+                                      onClick={() => openBrochureDialog(item)}
+                                      title="Lae brošüür üles"
+                                    >
+                                      <FileText className="h-4 w-4 text-primary" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
                                       onClick={() => deleteEquipment.mutate(item.id)}
+                                      title="Kustuta"
                                     >
                                       <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
@@ -1033,6 +1142,45 @@ export default function Admin() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Brochure Upload Dialog */}
+        <Dialog open={brochureDialogOpen} onOpenChange={(open) => {
+          if (!open) closeBrochureDialog();
+          else setBrochureDialogOpen(true);
+        }}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Brošüüri andmete import — {brochureEquipment?.model_name}
+              </DialogTitle>
+            </DialogHeader>
+
+            {brochureEquipment && !extractedData && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Lae üles tootja ametlik PDF-brošüür. Süsteem analüüsib dokumenti ja ekstraheerib 
+                  tehnilised andmed vastavalt olemasolevale tabeliskeemile. Enne salvestamist saad 
+                  kõik väärtused üle vaadata ja vajadusel parandada.
+                </p>
+                <BrochureUpload
+                  equipment={brochureEquipment}
+                  onExtractionComplete={handleExtractionComplete}
+                />
+              </div>
+            )}
+
+            {brochureEquipment && extractedData && (
+              <BrochureDataReview
+                equipment={brochureEquipment}
+                extractedData={extractedData}
+                onConfirm={handleConfirmBrochureData}
+                onCancel={closeBrochureDialog}
+                isLoading={isSavingBrochureData}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

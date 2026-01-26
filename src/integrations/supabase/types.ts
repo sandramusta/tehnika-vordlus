@@ -270,6 +270,53 @@ export type Database = {
           },
         ]
       }
+      equipment_brochures: {
+        Row: {
+          applied_at: string | null
+          brochure_url: string
+          created_at: string
+          equipment_id: string
+          extracted_data: Json | null
+          extraction_error: string | null
+          extraction_status: string
+          id: string
+          original_filename: string
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string | null
+          brochure_url: string
+          created_at?: string
+          equipment_id: string
+          extracted_data?: Json | null
+          extraction_error?: string | null
+          extraction_status?: string
+          id?: string
+          original_filename: string
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string | null
+          brochure_url?: string
+          created_at?: string
+          equipment_id?: string
+          extracted_data?: Json | null
+          extraction_error?: string | null
+          extraction_status?: string
+          id?: string
+          original_filename?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_brochures_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_types: {
         Row: {
           created_at: string
