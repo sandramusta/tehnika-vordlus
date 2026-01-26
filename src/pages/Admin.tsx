@@ -545,68 +545,85 @@ export default function Admin() {
               </Dialog>
             </div>
 
-            <div className="rounded-lg border border-border overflow-hidden">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Mudel</th>
-                    <th>Bränd</th>
-                    <th>Tüüp</th>
-                    <th>Võimsus</th>
-                    <th>Hind</th>
-                    <th className="w-28">Tegevused</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {equipment.map((item) => (
-                    <tr key={item.id}>
-                      <td className="font-medium">{item.model_name}</td>
-                      <td>
-                        <Badge variant={item.brand?.is_primary ? "default" : "secondary"}>
-                          {item.brand?.name}
+            {(() => {
+              // Group equipment by brand, John Deere first
+              const johnDeereBrand = brands.find(b => b.name === "John Deere");
+              const otherBrands = brands.filter(b => b.name !== "John Deere");
+              const sortedBrands = johnDeereBrand ? [johnDeereBrand, ...otherBrands] : otherBrands;
+              
+              const equipmentByBrand = sortedBrands.map(brand => ({
+                brand,
+                items: equipment.filter(e => e.brand_id === brand.id),
+              })).filter(group => group.items.length > 0);
+
+              return equipmentByBrand.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8 border border-border rounded-lg">
+                  Tehnikaid pole veel lisatud
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {equipmentByBrand.map(({ brand, items }) => (
+                    <div key={brand.id} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-lg">{brand.name}</h3>
+                        <Badge variant={brand.is_primary ? "default" : "secondary"}>
+                          {items.length} mudelit
                         </Badge>
-                      </td>
-                      <td>{item.equipment_type?.name_et}</td>
-                      <td>{item.engine_power_hp ? `${item.engine_power_hp} hj` : "—"}</td>
-                      <td>
-                        {item.price_eur
-                          ? new Intl.NumberFormat("et-EE", {
-                              style: "currency",
-                              currency: "EUR",
-                              maximumFractionDigits: 0,
-                            }).format(item.price_eur)
-                          : "—"}
-                      </td>
-                      <td>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditEquipment(item)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteEquipment.mutate(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
+                      </div>
+                      <div className="rounded-lg border border-border overflow-hidden">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Mudel</th>
+                              <th>Tüüp</th>
+                              <th>Võimsus</th>
+                              <th>Hind</th>
+                              <th className="w-28">Tegevused</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map((item) => (
+                              <tr key={item.id}>
+                                <td className="font-medium">{item.model_name}</td>
+                                <td>{item.equipment_type?.name_et}</td>
+                                <td>{item.engine_power_hp ? `${item.engine_power_hp} hj` : "—"}</td>
+                                <td>
+                                  {item.price_eur
+                                    ? new Intl.NumberFormat("et-EE", {
+                                        style: "currency",
+                                        currency: "EUR",
+                                        maximumFractionDigits: 0,
+                                      }).format(item.price_eur)
+                                    : "—"}
+                                </td>
+                                <td>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => openEditEquipment(item)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => deleteEquipment.mutate(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   ))}
-                  {equipment.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="text-center text-muted-foreground py-8">
-                        Tehnikaid pole veel lisatud
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="arguments" className="space-y-4">
