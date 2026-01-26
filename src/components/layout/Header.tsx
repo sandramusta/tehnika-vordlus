@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Tractor, BarChart3, Settings } from "lucide-react";
+import { Tractor, BarChart3, MessageSquareWarning, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Võrdlus", icon: BarChart3 },
+  { href: "/myths", label: "Müüdid", icon: MessageSquareWarning },
   { href: "/admin", label: "Haldus", icon: Settings },
 ];
 
