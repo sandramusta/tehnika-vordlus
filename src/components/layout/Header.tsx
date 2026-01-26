@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Tractor, BarChart3, MessageSquareWarning, Settings } from "lucide-react";
+import { BarChart3, MessageSquareWarning, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import wihuriLogo from "@/assets/wihuri-agri-logo.png";
 
 const navItems = [
   { href: "/", label: "Võrdlus", icon: BarChart3 },
@@ -15,17 +16,10 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <Tractor className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-bold leading-none text-foreground">
-              Wihuri Agri
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Tehnika võrdlus
-            </span>
-          </div>
+          <img src={wihuriLogo} alt="Wihuri Agri" className="h-10 w-auto" />
+          <span className="text-lg font-bold text-foreground">
+            Tehnika võrdlus
+          </span>
         </Link>
 
         <nav className="flex items-center gap-1">
