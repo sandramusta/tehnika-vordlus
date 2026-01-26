@@ -41,6 +41,24 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import type { Equipment, CompetitiveArgument, Myth } from "@/types/equipment";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { cn } from "@/lib/utils";
+
+function getBrandTextColor(brandName: string): string {
+  switch (brandName) {
+    case "John Deere":
+      return "text-john-deere";
+    case "Claas":
+      return "text-claas";
+    case "Case IH":
+      return "text-case-ih";
+    case "New Holland":
+      return "text-new-holland";
+    case "Fendt":
+      return "text-fendt";
+    default:
+      return "text-foreground";
+  }
+}
 
 const MYTH_CATEGORIES = [
   { value: "finance", label: "Finantsid ja investeeringud", icon: Wallet },
@@ -565,7 +583,7 @@ export default function Admin() {
                   {equipmentByBrand.map(({ brand, items }) => (
                     <div key={brand.id} className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-lg">{brand.name}</h3>
+                        <h3 className={cn("font-semibold text-lg", getBrandTextColor(brand.name))}>{brand.name}</h3>
                         <Badge variant={brand.is_primary ? "default" : "secondary"}>
                           {items.length} mudelit
                         </Badge>
@@ -790,7 +808,7 @@ export default function Admin() {
                   return (
                     <div key={brand.id} className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-lg">vs {brand.name}</h3>
+                        <h3 className="font-semibold text-lg">vs <span className={getBrandTextColor(brand.name)}>{brand.name}</span></h3>
                         <Badge variant="secondary" className="ml-auto">
                           {brandArgs.length} argumenti
                         </Badge>
