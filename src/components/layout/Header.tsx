@@ -6,7 +6,7 @@ import wihuriLogo from "@/assets/wihuri-agri-logo.png";
 const navItems = [
   { href: "/", label: "Võrdlus", icon: BarChart3 },
   { href: "/myths", label: "Müüdid", icon: MessageSquareWarning },
-  { href: "/admin", label: "Haldus", icon: Settings },
+  { href: "/admin", label: "Admin", icon: Settings },
 ];
 
 export function Header() {
