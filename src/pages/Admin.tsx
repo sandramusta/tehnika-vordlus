@@ -760,58 +760,72 @@ export default function Admin() {
               </Dialog>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {args.map((arg) => (
-                <div
-                  key={arg.id}
-                  className="rounded-lg border border-border bg-card p-4 relative group"
-                >
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditArgument(arg)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteArgument.mutate(arg.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline">
-                      vs {arg.competitor_brand?.name}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {arg.category}
-                    </Badge>
-                  </div>
-                  <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
-                  {arg.problem_text && (
-                    <p className="text-xs text-destructive mb-1">
-                      <span className="font-medium">Probleem:</span> {arg.problem_text}
-                    </p>
-                  )}
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <span className="font-medium text-primary">Lahendus:</span> {arg.solution_text || arg.argument_description}
-                  </p>
-                  {arg.benefit_text && (
-                    <p className="text-sm font-medium text-success">
-                      <span>Kasu:</span> {arg.benefit_text}
-                    </p>
-                  )}
-                </div>
-              ))}
-              {args.length === 0 && (
-                <div className="col-span-full text-center text-muted-foreground py-8">
-                  Argumente pole veel lisatud
-                </div>
-              )}
-            </div>
+            {args.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                Argumente pole veel lisatud
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {competitorBrands.map((brand) => {
+                  const brandArgs = args.filter((arg) => arg.competitor_brand_id === brand.id);
+                  if (brandArgs.length === 0) return null;
+                  
+                  return (
+                    <div key={brand.id} className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-lg">vs {brand.name}</h3>
+                        <Badge variant="secondary" className="ml-auto">
+                          {brandArgs.length} argumenti
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {brandArgs.map((arg) => (
+                          <div
+                            key={arg.id}
+                            className="rounded-lg border border-border bg-card p-4 relative group"
+                          >
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditArgument(arg)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteArgument.mutate(arg.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <Badge variant="secondary" className="text-xs mb-2">
+                              {arg.category}
+                            </Badge>
+                            <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
+                            {arg.problem_text && (
+                              <p className="text-xs text-destructive mb-1">
+                                <span className="font-medium">Probleem:</span> {arg.problem_text}
+                              </p>
+                            )}
+                            <p className="text-sm text-muted-foreground mb-1">
+                              <span className="font-medium text-primary">Lahendus:</span> {arg.solution_text || arg.argument_description}
+                            </p>
+                            {arg.benefit_text && (
+                              <p className="text-sm font-medium text-success">
+                                <span>Kasu:</span> {arg.benefit_text}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="myths" className="space-y-4">
