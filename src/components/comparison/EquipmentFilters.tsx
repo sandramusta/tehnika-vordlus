@@ -24,8 +24,17 @@ export function EquipmentFilters({
   const { data: types } = useEquipmentTypes();
   const { data: brands } = useBrands();
 
-  // Filter to show only combine, sprayer, tractor types
-  const allowedTypes = ["combine", "sprayer", "tractor"];
+  // Filter to show allowed equipment types
+  const allowedTypes = [
+    "combine",
+    "tractor",
+    "forage_harvester",
+    "wheel_loader",
+    "telehandler",
+    "self_propelled_sprayer",
+    "trailed_sprayer",
+    "round_baler"
+  ];
   const filteredTypes = types?.filter((t) => allowedTypes.includes(t.name)) || [];
 
   // Filter models by selected type and brand
