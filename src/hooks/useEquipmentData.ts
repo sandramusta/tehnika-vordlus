@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Equipment, Brand, PowerClass, EquipmentType, CompetitiveArgument, WorkDocumentation } from "@/types/equipment";
+import type { Equipment, Brand, PowerClass, EquipmentType, CompetitiveArgument, WorkDocumentation, Myth } from "@/types/equipment";
 
 export function useEquipmentTypes() {
   return useQuery({
@@ -219,6 +219,75 @@ export function useUpdateArgument() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["competitive-arguments"] });
+    },
+  });
+}
+
+// Myths hooks
+export function useMyths() {
+  return useQuery({
+    queryKey: ["myths"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("myths")
+        .select("*")
+        .order("category")
+        .order("sort_order");
+      if (error) throw error;
+      return data as Myth[];
+    },
+  });
+}
+
+export function useCreateMyth() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (myth: Omit<Myth, "id" | "created_at" | "updated_at">) => {
+      const { data, error } = await supabase
+        .from("myths")
+        .insert(myth)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myths"] });
+    },
+  });
+}
+
+export function useUpdateMyth() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...myth }: Partial<Myth> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("myths")
+        .update(myth)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myths"] });
+    },
+  });
+}
+
+export function useDeleteMyth() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("myths").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myths"] });
     },
   });
 }

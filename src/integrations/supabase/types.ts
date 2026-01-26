@@ -291,6 +291,39 @@ export type Database = {
         }
         Relationships: []
       }
+      myths: {
+        Row: {
+          advantage: string
+          category: string
+          created_at: string
+          id: string
+          myth: string
+          reality: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          advantage: string
+          category: string
+          created_at?: string
+          id?: string
+          myth: string
+          reality: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          advantage?: string
+          category?: string
+          created_at?: string
+          id?: string
+          myth?: string
+          reality?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       power_classes: {
         Row: {
           created_at: string
