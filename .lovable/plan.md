@@ -1,141 +1,71 @@
 
-# Müütide haldamise sektsioon Admin lehel
+# Brändide nimede värvimine Admin lehel
 
 ## Ülevaade
 
-Lisa "Haldus" (Admin) vahelehele uus sektsioon müütide lisamiseks, muutmiseks ja kustutamiseks. Praegu on müüdid otse koodis defineeritud (`Myths.tsx`), kuid nüüd viiakse need andmebaasi, et võimaldada dünaamilist haldamist.
+Lisa brändide nimedele Admin lehel (Haldus) sama värviskeem, mis on kasutusel võrdlustabelis. Iga brändi nimi kuvatakse selle brändi iseloomulikus värvis: John Deere roheline, Claas punane, Case IH tumepunane, New Holland sinine, Fendt must.
 
-## Andmebaasi muudatused
+## Muudatused
 
-### Uus tabel: `myths`
+### Fail: `src/pages/Admin.tsx`
 
-| Veerg | Tüüp | Kirjeldus |
-|-------|------|-----------|
-| `id` | uuid | Primaarvõti |
-| `category` | text | Kategooria võti (finance, tech, weather, market) |
-| `myth` | text | Müüdi tekst |
-| `reality` | text | Tegelikkuse tekst |
-| `advantage` | text | John Deere'i eelise tekst |
-| `sort_order` | integer | Järjestus kategooria sees |
-| `created_at` | timestamp | Loomise aeg |
-| `updated_at` | timestamp | Muutmise aeg |
+**1. Lisa abifunktsioon brändi värvi saamiseks**
 
-### Kategooriad
-
-- `finance` - Finantsid ja investeeringud
-- `tech` - Tehnika ja töökindlus
-- `weather` - Ilm, saagikus ja juhtimine
-- `market` - Turg ja konkurents
-
-## Tehnilised muudatused
-
-### 1. Andmebaasi migratsioon
-
-Loome uue tabeli `myths` koos RLS poliitikatega avalikuks lugemiseks ja täielikuks haldamiseks.
-
-### 2. Tüübid: `src/types/equipment.ts`
-
-Lisa uus tüüp:
+Lisa faili algusesse (pärast importide ja konstantide defineerimist) sama funktsioon, mis on ModelComparison.tsx failis:
 
 ```typescript
-export interface Myth {
-  id: string;
-  category: string;
-  myth: string;
-  reality: string;
-  advantage: string;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
+function getBrandTextColor(brandName: string): string {
+  switch (brandName) {
+    case "John Deere":
+      return "text-john-deere";
+    case "Claas":
+      return "text-claas";
+    case "Case IH":
+      return "text-case-ih";
+    case "New Holland":
+      return "text-new-holland";
+    case "Fendt":
+      return "text-fendt";
+    default:
+      return "text-foreground";
+  }
 }
 ```
 
-### 3. Andmepäringud: `src/hooks/useEquipmentData.ts`
+**2. Tehnika sektsiooni brändide nimed**
 
-Lisa uued hookid:
+Muuda rida ~568:
+```tsx
+// Praegu:
+<h3 className="font-semibold text-lg">{brand.name}</h3>
 
-- `useMyths()` - kõigi müütide päring
-- `useCreateMyth()` - uue müüdi loomine
-- `useUpdateMyth()` - müüdi uuendamine
-- `useDeleteMyth()` - müüdi kustutamine
-
-### 4. Admin leht: `src/pages/Admin.tsx`
-
-Lisa uus tab "Müüdid" olemasolevate tabide kõrvale:
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│  [Tehnika]  [Argumendid]  [Müüdid]   ◄── UUS TAB               │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │ Müütide haldamine                    [+ Lisa müüt]         │ │
-│  └────────────────────────────────────────────────────────────┘ │
-│                                                                 │
-│  FINANTSID JA INVESTEERINGUD                                    │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │ Müüt: Uue masina ost on liiga suur risk...    [✏️] [🗑️]   │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  TEHNIKA JA TÖÖKINDLUS                                          │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │ Müüt: Vana masin on odavam...                 [✏️] [🗑️]   │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+// Uuendatud:
+<h3 className={cn("font-semibold text-lg", getBrandTextColor(brand.name))}>
+  {brand.name}
+</h3>
 ```
 
-### 5. Müütide leht: `src/pages/Myths.tsx`
+**3. Argumentide sektsiooni brändide nimed**
 
-Uuenda Myths.tsx kasutama andmebaasist pärinevaid andmeid staatiliste andmete asemel:
+Muuda rida ~793:
+```tsx
+// Praegu:
+<h3 className="font-semibold text-lg">vs {brand.name}</h3>
 
-- Asenda hardcoded massiivid `useMyths()` hookiga
-- Grupeeri müüdid kategooriate kaupa
-- Kui andmebaas on tühi, kuva sobiv teade
-
-## Dialoogivorm müütide lisamiseks/muutmiseks
-
-```text
-┌─────────────────────────────────────────────────────┐
-│         Lisa uus müüt / Muuda müüti                 │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  Kategooria:  [▼ Finantsid ja investeeringud     ] │
-│                                                     │
-│  Müüt:                                              │
-│  ┌─────────────────────────────────────────────┐   │
-│  │ Kirjelda levinud väärarusaama...            │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                     │
-│  Tegelikkus:                                        │
-│  ┌─────────────────────────────────────────────┐   │
-│  │ Selgita tegelikku olukorda...               │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                     │
-│  John Deere'i Eelis:                                │
-│  ┌─────────────────────────────────────────────┐   │
-│  │ Too välja John Deere eelis...               │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                     │
-│  Järjestus: [0]                                     │
-│                                                     │
-│           [         Salvesta         ]              │
-└─────────────────────────────────────────────────────┘
+// Uuendatud:
+<h3 className="font-semibold text-lg">
+  vs <span className={getBrandTextColor(brand.name)}>{brand.name}</span>
+</h3>
 ```
 
-## Andmete migreerimine
+## Tulemus
 
-Olemasolevad hardcoded müüdid sisestatakse andmebaasi migratsiooni käigus:
+| Bränd | Värv |
+|-------|------|
+| John Deere | Roheline |
+| Claas | Punane |
+| Case IH | Tumepunane |
+| New Holland | Sinine |
+| Fendt | Must |
 
-- 2 müüti: Finantsid (finance)
-- 3 müüti: Tehnika (tech)
-- 3 müüti: Ilm ja juhtimine (weather)
-- 2 müüti: Turg (market)
-
-## Muudetavad failid
-
-| Fail | Muudatus |
-|------|----------|
-| `supabase/migrations/` | **UUS** - Loob `myths` tabeli ja sisestab algandmed |
-| `src/types/equipment.ts` | Lisa `Myth` interface |
-| `src/hooks/useEquipmentData.ts` | Lisa `useMyths`, `useCreateMyth`, `useUpdateMyth`, `useDeleteMyth` hookid |
-| `src/pages/Admin.tsx` | Lisa uus "Müüdid" tab koos CRUD funktsioonidega |
-| `src/pages/Myths.tsx` | Muuda kasutama andmebaasi päringuid |
+Mõlemad sektsioonid (Tehnika ja Argumendid) kuvavad nüüd brändide nimesid nende eristuvates värvides, luues visuaalse seose võrdlustabeliga.
