@@ -31,19 +31,32 @@ import {
   useCreateArgument,
   useUpdateArgument,
   useDeleteArgument,
+  useMyths,
+  useCreateMyth,
+  useUpdateMyth,
+  useDeleteMyth,
 } from "@/hooks/useEquipmentData";
-import { Plus, Trash2, Tractor, MessageSquare, Pencil } from "lucide-react";
+import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import type { Equipment, CompetitiveArgument } from "@/types/equipment";
+import type { Equipment, CompetitiveArgument, Myth } from "@/types/equipment";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+
+const MYTH_CATEGORIES = [
+  { value: "finance", label: "Finantsid ja investeeringud", icon: Wallet },
+  { value: "tech", label: "Tehnika ja töökindlus", icon: Wrench },
+  { value: "weather", label: "Ilm, saagikus ja juhtimine", icon: CloudSun },
+  { value: "market", label: "Turg ja konkurents", icon: TrendingUp },
+];
 
 export default function Admin() {
   const { toast } = useToast();
   const [equipmentDialogOpen, setEquipmentDialogOpen] = useState(false);
   const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
+  const [mythDialogOpen, setMythDialogOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
   const [editingArgument, setEditingArgument] = useState<CompetitiveArgument | null>(null);
+  const [editingMyth, setEditingMyth] = useState<Myth | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [threshingImageUrl, setThreshingImageUrl] = useState<string>("");
 
@@ -52,6 +65,7 @@ export default function Admin() {
   const { data: powerClasses = [] } = usePowerClasses();
   const { data: types = [] } = useEquipmentTypes();
   const { data: args = [] } = useCompetitiveArguments();
+  const { data: myths = [] } = useMyths();
 
   const createEquipment = useCreateEquipment();
   const updateEquipment = useUpdateEquipment();
@@ -59,6 +73,9 @@ export default function Admin() {
   const createArgument = useCreateArgument();
   const updateArgument = useUpdateArgument();
   const deleteArgument = useDeleteArgument();
+  const createMyth = useCreateMyth();
+  const updateMyth = useUpdateMyth();
+  const deleteMyth = useDeleteMyth();
 
   const combineType = types.find((t) => t.name === "combine");
 
@@ -166,6 +183,11 @@ export default function Admin() {
     setArgumentDialogOpen(true);
   };
 
+  const openEditMyth = (myth: Myth) => {
+    setEditingMyth(myth);
+    setMythDialogOpen(true);
+  };
+
   const closeEquipmentDialog = () => {
     setEquipmentDialogOpen(false);
     setEditingEquipment(null);
@@ -177,6 +199,46 @@ export default function Admin() {
     setArgumentDialogOpen(false);
     setEditingArgument(null);
   };
+
+  const closeMythDialog = () => {
+    setMythDialogOpen(false);
+    setEditingMyth(null);
+  };
+
+  const handleMythSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const mythData = {
+      category: formData.get("category") as string,
+      myth: formData.get("myth") as string,
+      reality: formData.get("reality") as string,
+      advantage: formData.get("advantage") as string,
+      sort_order: Number(formData.get("sort_order")) || 0,
+    };
+
+    try {
+      if (editingMyth) {
+        await updateMyth.mutateAsync({ id: editingMyth.id, ...mythData });
+        toast({ title: "Müüt uuendatud!" });
+      } else {
+        await createMyth.mutateAsync(mythData);
+        toast({ title: "Müüt lisatud!" });
+      }
+      closeMythDialog();
+    } catch (error) {
+      toast({
+        title: "Viga",
+        description: editingMyth ? "Müüdi uuendamine ebaõnnestus" : "Müüdi lisamine ebaõnnestus",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const mythsByCategory = MYTH_CATEGORIES.map(cat => ({
+    ...cat,
+    myths: myths.filter(m => m.category === cat.value),
+  }));
 
   const competitorBrands = brands.filter((b) => !b.is_primary);
 
@@ -199,6 +261,10 @@ export default function Admin() {
             <TabsTrigger value="arguments" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Argumendid
+            </TabsTrigger>
+            <TabsTrigger value="myths" className="gap-2">
+              <MessageSquareWarning className="h-4 w-4" />
+              Müüdid
             </TabsTrigger>
           </TabsList>
 
@@ -746,6 +812,176 @@ export default function Admin() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="myths" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Müütide haldamine</h2>
+              <Dialog open={mythDialogOpen} onOpenChange={(open) => {
+                if (!open) closeMythDialog();
+                else setMythDialogOpen(true);
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2" onClick={() => setEditingMyth(null)}>
+                    <Plus className="h-4 w-4" />
+                    Lisa müüt
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingMyth ? "Muuda müüti" : "Lisa uus müüt"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleMythSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Kategooria</Label>
+                        <Select
+                          name="category"
+                          required
+                          defaultValue={editingMyth?.category || "finance"}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Vali kategooria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MYTH_CATEGORIES.map((cat) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                {cat.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sort_order">Järjestus</Label>
+                        <Input
+                          name="sort_order"
+                          type="number"
+                          defaultValue={editingMyth?.sort_order ?? 0}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="myth" className="flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive/10 text-xs text-destructive">!</span>
+                        Müüt
+                      </Label>
+                      <Textarea
+                        name="myth"
+                        required
+                        placeholder="Kirjelda levinud väärarusaama..."
+                        rows={2}
+                        defaultValue={editingMyth?.myth || ""}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="reality" className="flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-warning/10 text-xs text-warning">?</span>
+                        Tegelikkus
+                      </Label>
+                      <Textarea
+                        name="reality"
+                        required
+                        placeholder="Selgita tegelikku olukorda..."
+                        rows={3}
+                        defaultValue={editingMyth?.reality || ""}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="advantage" className="flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">✓</span>
+                        John Deere'i Eelis
+                      </Label>
+                      <Textarea
+                        name="advantage"
+                        required
+                        placeholder="Too välja John Deere eelis..."
+                        rows={3}
+                        defaultValue={editingMyth?.advantage || ""}
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={createMyth.isPending || updateMyth.isPending}
+                    >
+                      {createMyth.isPending || updateMyth.isPending
+                        ? "Salvestan..."
+                        : "Salvesta"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {mythsByCategory.map((category) => {
+              const CategoryIcon = category.icon;
+              return (
+                <div key={category.value} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CategoryIcon className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-lg">{category.label}</h3>
+                    <Badge variant="secondary" className="ml-auto">
+                      {category.myths.length} müüti
+                    </Badge>
+                  </div>
+                  
+                  {category.myths.length === 0 ? (
+                    <p className="text-sm text-muted-foreground pl-7">
+                      Selles kategoorias pole veel müüte
+                    </p>
+                  ) : (
+                    <div className="space-y-2 pl-7">
+                      {category.myths.map((myth) => (
+                        <div
+                          key={myth.id}
+                          className="rounded-lg border border-border bg-card p-4 relative group"
+                        >
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditMyth(myth)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteMyth.mutate(myth.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                          
+                          <p className="text-sm font-medium text-destructive mb-2">
+                            <span className="font-semibold">Müüt:</span> {myth.myth}
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            <span className="font-semibold">Tegelikkus:</span> {myth.reality}
+                          </p>
+                          <p className="text-sm text-primary">
+                            <span className="font-semibold">JD Eelis:</span> {myth.advantage}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {myths.length === 0 && (
+              <div className="text-center text-muted-foreground py-8">
+                Müüte pole veel lisatud
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

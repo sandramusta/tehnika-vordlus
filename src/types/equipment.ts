@@ -112,6 +112,17 @@ export interface WorkDocumentation {
   equipment?: Equipment;
 }
 
+export interface Myth {
+  id: string;
+  category: string;
+  myth: string;
+  reality: string;
+  advantage: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TCOCalculation {
   equipment: Equipment;
   purchasePrice: number;
