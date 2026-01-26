@@ -1,125 +1,141 @@
 
-# Kaks ROI Kalkulaatorit Kõrvuti Võrdluseks
+# Müütide haldamise sektsioon Admin lehel
 
 ## Ülevaade
 
-Loome uue komponendi, mis kuvab kaks ROI kalkulaatorit kõrvuti:
-- **Vasak pool**: "Olemasolev masin" - praeguse masina parameetrid
-- **Parem pool**: "Uus masin" - huvi pakkuva masina parameetrid
+Lisa "Haldus" (Admin) vahelehele uus sektsioon müütide lisamiseks, muutmiseks ja kustutamiseks. Praegu on müüdid otse koodis defineeritud (`Myths.tsx`), kuid nüüd viiakse need andmebaasi, et võimaldada dünaamilist haldamist.
 
-Mõlemad kalkulaatorid on üksteisest sõltumatud ja kasutaja saab sisestada erinevad väärtused. Lisaks genereeritakse võrdlusraport PDF-failina, mis sisaldab mõlema masina andmeid ja kokkuvõtvat võrdlust.
+## Andmebaasi muudatused
 
-## Visuaalne paigutus
+### Uus tabel: `myths`
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                     ROI Võrdluskalkulaator                          │
-├────────────────────────────┬────────────────────────────────────────┤
-│                            │                                        │
-│   OLEMASOLEV MASIN         │          UUS MASIN                     │
-│   (Punane/hall värv)       │       (John Deere roheline)            │
-│                            │                                        │
-│   [Sisendväljad...]        │       [Sisendväljad...]                │
-│   [Tulemused...]           │       [Tulemused...]                   │
-│                            │                                        │
-├────────────────────────────┴────────────────────────────────────────┤
-│                       VÕRDLUSKOKKUVÕTE                              │
-│   • TCO võrdlus tulpdiagramm (mõlemad masinad)                      │
-│   • Sääst uue masina kasuks (€ ja %)                                │
-│   • Tasuvusaeg                                                      │
-├─────────────────────────────────────────────────────────────────────┤
-│            [Genereeri võrdlus PDF-raport] nupp                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| Veerg | Tüüp | Kirjeldus |
+|-------|------|-----------|
+| `id` | uuid | Primaarvõti |
+| `category` | text | Kategooria võti (finance, tech, weather, market) |
+| `myth` | text | Müüdi tekst |
+| `reality` | text | Tegelikkuse tekst |
+| `advantage` | text | John Deere'i eelise tekst |
+| `sort_order` | integer | Järjestus kategooria sees |
+| `created_at` | timestamp | Loomise aeg |
+| `updated_at` | timestamp | Muutmise aeg |
+
+### Kategooriad
+
+- `finance` - Finantsid ja investeeringud
+- `tech` - Tehnika ja töökindlus
+- `weather` - Ilm, saagikus ja juhtimine
+- `market` - Turg ja konkurents
 
 ## Tehnilised muudatused
 
-### 1. Uus komponent: `ROIComparisonCalculator.tsx`
+### 1. Andmebaasi migratsioon
 
-Loome uue komponendi, mis sisaldab:
+Loome uue tabeli `myths` koos RLS poliitikatega avalikuks lugemiseks ja täielikuks haldamiseks.
 
-- **Kaks sõltumatut olekut** (`ROIInputs` tüübiga):
-  - `existingMachineInputs` - olemasoleva masina sisendid
-  - `newMachineInputs` - uue masina sisendid
-  
-- **Kaks sisendpaneeli kõrvuti** (2-column grid layout):
-  - Vasak paneel: "Olemasolev masin" (hall/punane aktsent)
-  - Parem paneel: "Uus masin (John Deere)" (roheline aktsent)
-  
-- **Ühine võrdluskokkuvõte** all:
-  - TCO võrdlus tulpdiagrammiga (Recharts)
-  - Kokkuvõtlikud numbrid: kogusääst, tasuvusaeg, ROI erinevus
+### 2. Tüübid: `src/types/equipment.ts`
 
-- **PDF võrdlusraporti genereerimine**:
-  - Sisaldab mõlema masina parameetreid ja tulemusi
-  - Võrdlustabel kõrvuti
-  - Kokkuvõte säästu kohta
+Lisa uus tüüp:
 
-### 2. Sisendväljade organiseerimine
-
-Kuna kaks täielikku kalkulaatorit kõrvuti võtab palju ruumi, optimeerime kuvamist:
-
-- **Kompaktne sisendvorm** - väiksemad sisendväljad
-- **Kokkukäivad sektsioonid** (`Collapsible` komponent) - kasutaja saab avada/sulgeda sisendgruppe
-- **Tab-vaade alternatiiv mobiilil** - väiksel ekraanil kuvatakse kalkulaatorid üksteise all või tab-vaatena
-
-### 3. PDF-raporti struktuur
-
-```text
-┌───────────────────────────────────────────────────┐
-│            ROI VÕRDLUSRAPORT                      │
-│            Genereeritud: [kuupäev]                │
-├───────────────────────────────────────────────────┤
-│                                                   │
-│  SISENDPARAMEETRID                                │
-│  ┌───────────────┬───────────────┬───────────────┐│
-│  │ Parameeter    │ Olemasolev    │ Uus masin     ││
-│  ├───────────────┼───────────────┼───────────────┤│
-│  │ Ostuhind      │ 350 000 €     │ 500 000 €     ││
-│  │ Hektarid/a    │ 800 ha        │ 800 ha        ││
-│  │ ...           │ ...           │ ...           ││
-│  └───────────────┴───────────────┴───────────────┘│
-│                                                   │
-│  TULEMUSED                                        │
-│  ┌───────────────┬───────────────┬───────────────┐│
-│  │ Näitaja       │ Olemasolev    │ Uus masin     ││
-│  ├───────────────┼───────────────┼───────────────┤│
-│  │ TCO (5a)      │ 450 000 €     │ 380 000 €     ││
-│  │ ROI           │ 15%           │ 35%           ││
-│  │ Kulu/ha       │ 112 €         │ 95 €          ││
-│  │ ...           │ ...           │ ...           ││
-│  └───────────────┴───────────────┴───────────────┘│
-│                                                   │
-│  KOKKUVÕTE                                        │
-│  • Uue masinaga säästaksid 5 aasta jooksul:       │
-│    70 000 € (15.5% madalam TCO)                   │
-│  • Uue masina tasuvusaeg vs olemasolev: 3.2 aastat│
-│                                                   │
-└───────────────────────────────────────────────────┘
+```typescript
+export interface Myth {
+  id: string;
+  category: string;
+  myth: string;
+  reality: string;
+  advantage: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
 ```
 
-### 4. Comparison.tsx uuendamine
+### 3. Andmepäringud: `src/hooks/useEquipmentData.ts`
 
-Asendame praeguse `<ROICalculator />` komponendi uue `<ROIComparisonCalculator />` komponendiga.
+Lisa uued hookid:
+
+- `useMyths()` - kõigi müütide päring
+- `useCreateMyth()` - uue müüdi loomine
+- `useUpdateMyth()` - müüdi uuendamine
+- `useDeleteMyth()` - müüdi kustutamine
+
+### 4. Admin leht: `src/pages/Admin.tsx`
+
+Lisa uus tab "Müüdid" olemasolevate tabide kõrvale:
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  [Tehnika]  [Argumendid]  [Müüdid]   ◄── UUS TAB               │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Müütide haldamine                    [+ Lisa müüt]         │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│  FINANTSID JA INVESTEERINGUD                                    │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ Müüt: Uue masina ost on liiga suur risk...    [✏️] [🗑️]   │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  TEHNIKA JA TÖÖKINDLUS                                          │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ Müüt: Vana masin on odavam...                 [✏️] [🗑️]   │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 5. Müütide leht: `src/pages/Myths.tsx`
+
+Uuenda Myths.tsx kasutama andmebaasist pärinevaid andmeid staatiliste andmete asemel:
+
+- Asenda hardcoded massiivid `useMyths()` hookiga
+- Grupeeri müüdid kategooriate kaupa
+- Kui andmebaas on tühi, kuva sobiv teade
+
+## Dialoogivorm müütide lisamiseks/muutmiseks
+
+```text
+┌─────────────────────────────────────────────────────┐
+│         Lisa uus müüt / Muuda müüti                 │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Kategooria:  [▼ Finantsid ja investeeringud     ] │
+│                                                     │
+│  Müüt:                                              │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ Kirjelda levinud väärarusaama...            │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                     │
+│  Tegelikkus:                                        │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ Selgita tegelikku olukorda...               │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                     │
+│  John Deere'i Eelis:                                │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ Too välja John Deere eelis...               │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                     │
+│  Järjestus: [0]                                     │
+│                                                     │
+│           [         Salvesta         ]              │
+└─────────────────────────────────────────────────────┘
+```
+
+## Andmete migreerimine
+
+Olemasolevad hardcoded müüdid sisestatakse andmebaasi migratsiooni käigus:
+
+- 2 müüti: Finantsid (finance)
+- 3 müüti: Tehnika (tech)
+- 3 müüti: Ilm ja juhtimine (weather)
+- 2 müüti: Turg (market)
 
 ## Muudetavad failid
 
 | Fail | Muudatus |
 |------|----------|
-| `src/components/comparison/ROIComparisonCalculator.tsx` | **UUS** - Võrdluskalkulaatori põhikomponent |
-| `src/components/comparison/SingleROICalculator.tsx` | **UUS** - Ühe masina sisendvorm (korduvkasutatav) |
-| `src/pages/Comparison.tsx` | Asendame `ROICalculator` uue `ROIComparisonCalculator` komponendiga |
-
-## Kasutajakogemus
-
-1. Kasutaja avab lehe ja näeb kahte kalkulaatorit kõrvuti
-2. Vasakusse sisestab olemasoleva masina andmed
-3. Paremale sisestab huvi pakkuva (uue) masina andmed
-4. All kuvatakse automaatselt võrdluskokkuvõte
-5. Nupu "Genereeri võrdlus PDF" vajutamisel salvestatakse fail, mille saab kliendile saata
-
-## Alternatiivne mobiilivaade
-
-Kuna kaks kalkulaatorit kõrvuti ei mahu väiksele ekraanile:
-- **Desktop (>1024px)**: Kaks tulpa kõrvuti
-- **Tahvel/mobiil (<1024px)**: Kalkulaatorid üksteise all või Tabs-vaade ("Olemasolev" | "Uus masin")
+| `supabase/migrations/` | **UUS** - Loob `myths` tabeli ja sisestab algandmed |
+| `src/types/equipment.ts` | Lisa `Myth` interface |
+| `src/hooks/useEquipmentData.ts` | Lisa `useMyths`, `useCreateMyth`, `useUpdateMyth`, `useDeleteMyth` hookid |
+| `src/pages/Admin.tsx` | Lisa uus "Müüdid" tab koos CRUD funktsioonidega |
+| `src/pages/Myths.tsx` | Muuda kasutama andmebaasi päringuid |
