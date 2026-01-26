@@ -44,6 +44,9 @@ export function EquipmentFilters({
     return true;
   });
 
+  const isTypeSelected = selectedType !== "all";
+  const isBrandSelected = selectedBrand !== "all";
+
   return (
     <div className="flex flex-wrap gap-4">
       <div className="flex flex-col gap-1.5">
@@ -52,8 +55,8 @@ export function EquipmentFilters({
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Vali tüüp" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Kõik tüübid</SelectItem>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">Vali tüüp...</SelectItem>
             {filteredTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name_et}
@@ -65,12 +68,16 @@ export function EquipmentFilters({
 
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-muted-foreground">Bränd</label>
-        <Select value={selectedBrand} onValueChange={onBrandChange}>
+        <Select 
+          value={selectedBrand} 
+          onValueChange={onBrandChange}
+          disabled={!isTypeSelected}
+        >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Vali bränd" />
+            <SelectValue placeholder={isTypeSelected ? "Vali bränd" : "Vali esmalt tüüp"} />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Kõik brändid</SelectItem>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">Vali bränd...</SelectItem>
             {brands?.map((brand) => (
               <SelectItem key={brand.id} value={brand.id}>
                 {brand.name}
@@ -82,11 +89,15 @@ export function EquipmentFilters({
 
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-muted-foreground">Mudel</label>
-        <Select value={selectedModel} onValueChange={onModelChange}>
+        <Select 
+          value={selectedModel} 
+          onValueChange={onModelChange}
+          disabled={!isBrandSelected}
+        >
           <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Vali mudel" />
+            <SelectValue placeholder={isBrandSelected ? "Vali mudel" : "Vali esmalt bränd"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover">
             <SelectItem value="all">Vali mudel...</SelectItem>
             {filteredModels.map((model) => (
               <SelectItem key={model.id} value={model.id}>
