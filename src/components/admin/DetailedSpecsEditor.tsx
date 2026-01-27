@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Equipment } from "@/types/equipment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CATEGORY_ORDER,
@@ -47,25 +47,47 @@ export function DetailedSpecsEditor({
   initialSpecs = {},
   onChange 
 }: DetailedSpecsEditorProps) {
+  // Track if this is the initial mount to avoid overwriting user edits
+  const isInitialMount = useRef(true);
+  const equipmentIdRef = useRef<string | null>(equipment?.id || null);
+  
+  // All categories expanded by default for Admin view
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(["mootor"])
+    new Set(CATEGORY_ORDER)
   );
 
-  // Use internal state to handle both new and existing equipment
-  const [specs, setSpecs] = useState<Record<string, Record<string, unknown>>>(
-    (equipment?.detailed_specs as Record<string, Record<string, unknown>>) || 
-    (initialSpecs as Record<string, Record<string, unknown>>) || 
-    {}
-  );
-
-  // Sync with external equipment changes
-  useEffect(() => {
-    if (equipment?.detailed_specs) {
-      setSpecs(equipment.detailed_specs as Record<string, Record<string, unknown>>);
-    } else if (Object.keys(initialSpecs).length > 0) {
-      setSpecs(initialSpecs as Record<string, Record<string, unknown>>);
+  // Initialize specs from equipment or initialSpecs
+  const getInitialSpecs = (): Record<string, Record<string, unknown>> => {
+    if (equipment?.detailed_specs && typeof equipment.detailed_specs === 'object') {
+      return equipment.detailed_specs as Record<string, Record<string, unknown>>;
     }
-  }, [equipment?.detailed_specs, initialSpecs]);
+    if (initialSpecs && typeof initialSpecs === 'object' && Object.keys(initialSpecs).length > 0) {
+      return initialSpecs as Record<string, Record<string, unknown>>;
+    }
+    return {};
+  };
+
+  const [specs, setSpecs] = useState<Record<string, Record<string, unknown>>>(getInitialSpecs);
+
+  // Only sync with external data when equipment ID changes (switching to different equipment)
+  useEffect(() => {
+    const currentEquipmentId = equipment?.id || null;
+    
+    // If switching to a different equipment item, reset the specs
+    if (currentEquipmentId !== equipmentIdRef.current) {
+      equipmentIdRef.current = currentEquipmentId;
+      
+      if (equipment?.detailed_specs && typeof equipment.detailed_specs === 'object') {
+        setSpecs(equipment.detailed_specs as Record<string, Record<string, unknown>>);
+      } else if (initialSpecs && typeof initialSpecs === 'object' && Object.keys(initialSpecs).length > 0) {
+        setSpecs(initialSpecs as Record<string, Record<string, unknown>>);
+      } else {
+        setSpecs({});
+      }
+    }
+    
+    isInitialMount.current = false;
+  }, [equipment?.id, equipment?.detailed_specs, initialSpecs]);
 
   const toggleCategory = (categoryKey: string) => {
     setExpandedCategories((prev) => {
@@ -79,6 +101,15 @@ export function DetailedSpecsEditor({
     });
   };
 
+  const expandAll = () => {
+    setExpandedCategories(new Set(CATEGORY_ORDER));
+  };
+
+  const collapseAll = () => {
+    setExpandedCategories(new Set());
+  };
+
+  // Handle field changes - always allowed, no restrictions
   const handleFieldChange = useCallback(
     (categoryKey: string, fieldKey: string, value: string) => {
       const parsedValue = parseInputValue(value);
@@ -92,6 +123,7 @@ export function DetailedSpecsEditor({
             [fieldKey]: parsedValue,
           },
         };
+        // Notify parent of changes
         onChange(updatedSpecs);
         return updatedSpecs;
       });
@@ -108,9 +140,31 @@ export function DetailedSpecsEditor({
 
   return (
     <div className="space-y-2">
-      <Label className="text-base font-semibold">Detailsed spetsifikatsioonid</Label>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Unlock className="h-4 w-4 text-primary" />
+          <Label className="text-base font-semibold">Detailsed spetsifikatsioonid</Label>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={expandAll}
+            className="text-xs text-primary hover:underline"
+          >
+            Ava kõik
+          </button>
+          <span className="text-muted-foreground">|</span>
+          <button
+            type="button"
+            onClick={collapseAll}
+            className="text-xs text-muted-foreground hover:underline"
+          >
+            Sulge kõik
+          </button>
+        </div>
+      </div>
       <p className="text-xs text-muted-foreground mb-3">
-        Need väljad kuvatakse võrdlustabelis kategooriate kaupa.
+        Admin: Kõik väljad on alati muudetavad. Muudatused salvestatakse vormi esitamisel.
       </p>
       
       <div className="border border-border rounded-lg overflow-hidden">
@@ -119,6 +173,12 @@ export function DetailedSpecsEditor({
           const categoryName = CATEGORY_NAMES[categoryKey] || categoryKey;
           const fieldNames = FIELD_NAMES[categoryKey] || {};
           const fields = Object.entries(fieldNames);
+          
+          // Count filled fields for this category
+          const filledCount = fields.filter(([fieldKey]) => {
+            const val = specs[categoryKey]?.[fieldKey];
+            return val !== null && val !== undefined && val !== "";
+          }).length;
 
           return (
             <div key={categoryKey} className="border-b border-border last:border-b-0">
@@ -140,28 +200,43 @@ export function DetailedSpecsEditor({
                   {categoryName}
                 </span>
                 <span className="ml-auto text-xs text-muted-foreground">
-                  {fields.length} välja
+                  {filledCount}/{fields.length} täidetud
                 </span>
               </button>
 
-              {/* Category Fields */}
+              {/* Category Fields - All fields are always editable */}
               {isExpanded && (
                 <div className="p-4 bg-card space-y-3">
                   <div className="grid grid-cols-2 gap-4">
-                    {fields.map(([fieldKey, fieldLabel]) => (
-                      <div key={fieldKey} className="space-y-1">
-                        <Label htmlFor={`${categoryKey}-${fieldKey}`} className="text-xs">
-                          {fieldLabel}
-                        </Label>
-                        <Input
-                          id={`${categoryKey}-${fieldKey}`}
-                          value={getFieldValue(categoryKey, fieldKey)}
-                          onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value)}
-                          placeholder="—"
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                    ))}
+                    {fields.map(([fieldKey, fieldLabel]) => {
+                      const fieldValue = getFieldValue(categoryKey, fieldKey);
+                      const hasValue = fieldValue !== "";
+                      
+                      return (
+                        <div key={fieldKey} className="space-y-1">
+                          <Label 
+                            htmlFor={`${categoryKey}-${fieldKey}`} 
+                            className={cn(
+                              "text-xs",
+                              hasValue ? "text-foreground" : "text-muted-foreground"
+                            )}
+                          >
+                            {fieldLabel}
+                          </Label>
+                          <Input
+                            id={`${categoryKey}-${fieldKey}`}
+                            value={fieldValue}
+                            onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value)}
+                            placeholder="—"
+                            className={cn(
+                              "h-8 text-sm",
+                              hasValue && "border-primary/30 bg-primary/5"
+                            )}
+                            // No disabled, readOnly, or any other restrictions
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
