@@ -36,8 +36,5 @@ export function getCompetitorSummary(
 ): string | null {
   if (!selectedModel?.engine_power_hp || competitors.length === 0) return null;
   
-  const minHp = selectedModel.engine_power_hp - HP_RANGE;
-  const maxHp = selectedModel.engine_power_hp + HP_RANGE;
-  
-  return `Leitud ${competitors.length} konkurenti vahemikus ${minHp}–${maxHp} hj`;
+  return `Leitud ${competitors.length} konkurenti ±${HP_RANGE} hj vahemikus (valitud: ${selectedModel.engine_power_hp} hj)`;
 }
