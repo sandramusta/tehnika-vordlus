@@ -43,6 +43,8 @@ import type { Equipment, CompetitiveArgument, Myth } from "@/types/equipment";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { BrochureUpload, type ExtractedData } from "@/components/admin/BrochureUpload";
 import { BrochureDataReview } from "@/components/admin/BrochureDataReview";
+import { DetailedSpecsEditor } from "@/components/admin/DetailedSpecsEditor";
+import { EquipmentBrochuresList } from "@/components/admin/EquipmentBrochuresList";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +82,7 @@ export default function Admin() {
   const [editingMyth, setEditingMyth] = useState<Myth | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [threshingImageUrl, setThreshingImageUrl] = useState<string>("");
+  const [detailedSpecs, setDetailedSpecs] = useState<Record<string, unknown>>({});
   const [brochureDialogOpen, setBrochureDialogOpen] = useState(false);
   const [brochureEquipment, setBrochureEquipment] = useState<Equipment | null>(null);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
@@ -131,6 +134,8 @@ export default function Admin() {
       rotor_diameter_mm: Number(formData.get("rotor_diameter_mm")) || null,
       throughput_tons_h: Number(formData.get("throughput_tons_h")) || null,
       engine_displacement_liters: Number(formData.get("engine_displacement_liters")) || null,
+      // Detailed specs JSONB
+      detailed_specs: Object.keys(detailedSpecs).length > 0 ? detailedSpecs : (editingEquipment?.detailed_specs || {}),
     };
 
     try {
@@ -145,6 +150,7 @@ export default function Admin() {
       setEditingEquipment(null);
       setImageUrl("");
       setThreshingImageUrl("");
+      setDetailedSpecs({});
     } catch (error) {
       toast({
         title: "Viga",
@@ -200,6 +206,7 @@ export default function Admin() {
     setEditingEquipment(item);
     setImageUrl(item.image_url || "");
     setThreshingImageUrl(item.threshing_system_image_url || "");
+    setDetailedSpecs((item.detailed_specs as Record<string, unknown>) || {});
     setEquipmentDialogOpen(true);
   };
 
@@ -218,6 +225,7 @@ export default function Admin() {
     setEditingEquipment(null);
     setImageUrl("");
     setThreshingImageUrl("");
+    setDetailedSpecs({});
   };
 
   const closeArgumentDialog = () => {
@@ -647,6 +655,19 @@ export default function Admin() {
                         defaultValue={editingEquipment?.notes ?? ""}
                       />
                     </div>
+
+                    {/* Uploaded brochures display */}
+                    {editingEquipment && (
+                      <EquipmentBrochuresList equipment={editingEquipment} />
+                    )}
+
+                    {/* Detailed specs editor */}
+                    {editingEquipment && (
+                      <DetailedSpecsEditor
+                        equipment={editingEquipment}
+                        onChange={setDetailedSpecs}
+                      />
+                    )}
 
                     <Button
                       type="submit"
