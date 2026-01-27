@@ -111,29 +111,59 @@ export default function Admin() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
+    // Helper to parse number or return null
+    const parseNum = (key: string) => {
+      const val = formData.get(key);
+      if (!val || val === "") return null;
+      const num = Number(val);
+      return isNaN(num) ? null : num;
+    };
+
     const equipmentData = {
       equipment_type_id: formData.get("equipment_type_id") as string,
       brand_id: formData.get("brand_id") as string,
       power_class_id: (formData.get("power_class_id") as string) || null,
       model_name: formData.get("model_name") as string,
-      engine_power_hp: Number(formData.get("engine_power_hp")) || null,
-      grain_tank_liters: Number(formData.get("grain_tank_liters")) || null,
-      header_width_m: Number(formData.get("header_width_m")) || null,
-      weight_kg: Number(formData.get("weight_kg")) || null,
-      fuel_consumption_lh: Number(formData.get("fuel_consumption_lh")) || null,
-      price_eur: Number(formData.get("price_eur")) || null,
-      annual_maintenance_eur: Number(formData.get("annual_maintenance_eur")) || null,
-      expected_lifespan_years: Number(formData.get("expected_lifespan_years")) || 10,
+      engine_power_hp: parseNum("engine_power_hp"),
+      grain_tank_liters: parseNum("grain_tank_liters"),
+      header_width_m: parseNum("header_width_m"),
+      weight_kg: parseNum("weight_kg"),
+      fuel_consumption_lh: parseNum("fuel_consumption_lh"),
+      price_eur: parseNum("price_eur"),
+      annual_maintenance_eur: parseNum("annual_maintenance_eur"),
+      expected_lifespan_years: parseNum("expected_lifespan_years") || 10,
       notes: (formData.get("notes") as string) || null,
       data_source_url: (formData.get("data_source_url") as string) || null,
       image_url: imageUrl || null,
       threshing_system_image_url: threshingImageUrl || null,
       // Technical specs from brochures
-      fuel_tank_liters: Number(formData.get("fuel_tank_liters")) || null,
-      cleaning_area_m2: Number(formData.get("cleaning_area_m2")) || null,
-      rotor_diameter_mm: Number(formData.get("rotor_diameter_mm")) || null,
-      throughput_tons_h: Number(formData.get("throughput_tons_h")) || null,
-      engine_displacement_liters: Number(formData.get("engine_displacement_liters")) || null,
+      fuel_tank_liters: parseNum("fuel_tank_liters"),
+      cleaning_area_m2: parseNum("cleaning_area_m2"),
+      rotor_diameter_mm: parseNum("rotor_diameter_mm"),
+      throughput_tons_h: parseNum("throughput_tons_h"),
+      engine_displacement_liters: parseNum("engine_displacement_liters"),
+      // Additional technical specs
+      engine_cylinders: parseNum("engine_cylinders"),
+      max_torque_nm: parseNum("max_torque_nm"),
+      feeder_width_mm: parseNum("feeder_width_mm"),
+      rasp_bar_count: parseNum("rasp_bar_count"),
+      threshing_drum_diameter_mm: parseNum("threshing_drum_diameter_mm"),
+      threshing_drum_width_mm: parseNum("threshing_drum_width_mm"),
+      threshing_area_m2: parseNum("threshing_area_m2"),
+      rotor_length_mm: parseNum("rotor_length_mm"),
+      separator_area_m2: parseNum("separator_area_m2"),
+      straw_walker_count: parseNum("straw_walker_count"),
+      straw_walker_area_m2: parseNum("straw_walker_area_m2"),
+      sieve_area_m2: parseNum("sieve_area_m2"),
+      unloading_rate_ls: parseNum("unloading_rate_ls"),
+      auger_reach_m: parseNum("auger_reach_m"),
+      chopper_width_mm: parseNum("chopper_width_mm"),
+      max_slope_percent: parseNum("max_slope_percent"),
+      transport_width_mm: parseNum("transport_width_mm"),
+      transport_height_mm: parseNum("transport_height_mm"),
+      transport_length_mm: parseNum("transport_length_mm"),
+      header_width_min_m: parseNum("header_width_min_m"),
+      header_width_max_m: parseNum("header_width_max_m"),
       // Detailed specs JSONB
       detailed_specs: Object.keys(detailedSpecs).length > 0 ? detailedSpecs : (editingEquipment?.detailed_specs || {}),
     };
@@ -616,6 +646,234 @@ export default function Admin() {
                           step="0.1"
                           placeholder="13.6"
                           defaultValue={editingEquipment?.engine_displacement_liters ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Additional engine specs */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="engine_cylinders">Silindrite arv</Label>
+                        <Input
+                          name="engine_cylinders"
+                          type="number"
+                          placeholder="6"
+                          defaultValue={editingEquipment?.engine_cylinders ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="max_torque_nm">Max pöördemoment (Nm)</Label>
+                        <Input
+                          name="max_torque_nm"
+                          type="number"
+                          placeholder="2057"
+                          defaultValue={editingEquipment?.max_torque_nm ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Feeder/threshing specs */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="feeder_width_mm">Etteande laius (mm)</Label>
+                        <Input
+                          name="feeder_width_mm"
+                          type="number"
+                          placeholder="1550"
+                          defaultValue={editingEquipment?.feeder_width_mm ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="rasp_bar_count">Raspi latid</Label>
+                        <Input
+                          name="rasp_bar_count"
+                          type="number"
+                          placeholder="10"
+                          defaultValue={editingEquipment?.rasp_bar_count ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="rotor_length_mm">Rootori pikkus (mm)</Label>
+                        <Input
+                          name="rotor_length_mm"
+                          type="number"
+                          placeholder="4270"
+                          defaultValue={editingEquipment?.rotor_length_mm ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Threshing drum specs */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="threshing_drum_diameter_mm">Trumli läbimõõt (mm)</Label>
+                        <Input
+                          name="threshing_drum_diameter_mm"
+                          type="number"
+                          placeholder="760"
+                          defaultValue={editingEquipment?.threshing_drum_diameter_mm ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="threshing_drum_width_mm">Trumli laius (mm)</Label>
+                        <Input
+                          name="threshing_drum_width_mm"
+                          type="number"
+                          placeholder="1600"
+                          defaultValue={editingEquipment?.threshing_drum_width_mm ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="threshing_area_m2">Peksupindala (m²)</Label>
+                        <Input
+                          name="threshing_area_m2"
+                          type="number"
+                          step="0.1"
+                          placeholder="2.5"
+                          defaultValue={editingEquipment?.threshing_area_m2 ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Separation specs */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="separator_area_m2">Separeerimispind (m²)</Label>
+                        <Input
+                          name="separator_area_m2"
+                          type="number"
+                          step="0.1"
+                          placeholder="4.0"
+                          defaultValue={editingEquipment?.separator_area_m2 ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="straw_walker_count">Õlekõndijaid</Label>
+                        <Input
+                          name="straw_walker_count"
+                          type="number"
+                          placeholder="6"
+                          defaultValue={editingEquipment?.straw_walker_count ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="straw_walker_area_m2">Õlekõndija pind (m²)</Label>
+                        <Input
+                          name="straw_walker_area_m2"
+                          type="number"
+                          step="0.1"
+                          placeholder="5.5"
+                          defaultValue={editingEquipment?.straw_walker_area_m2 ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cleaning/sieve specs */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="sieve_area_m2">Sõelapind (m²)</Label>
+                        <Input
+                          name="sieve_area_m2"
+                          type="number"
+                          step="0.1"
+                          placeholder="6.7"
+                          defaultValue={editingEquipment?.sieve_area_m2 ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="unloading_rate_ls">Tühjenduskiirus (l/s)</Label>
+                        <Input
+                          name="unloading_rate_ls"
+                          type="number"
+                          placeholder="150"
+                          defaultValue={editingEquipment?.unloading_rate_ls ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Auger/chopper specs */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="auger_reach_m">Tigu ulatus (m)</Label>
+                        <Input
+                          name="auger_reach_m"
+                          type="number"
+                          step="0.1"
+                          placeholder="7.5"
+                          defaultValue={editingEquipment?.auger_reach_m ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="chopper_width_mm">Hekseldi laius (mm)</Label>
+                        <Input
+                          name="chopper_width_mm"
+                          type="number"
+                          placeholder="850"
+                          defaultValue={editingEquipment?.chopper_width_mm ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Slope/transport specs */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="max_slope_percent">Max kalle (%)</Label>
+                        <Input
+                          name="max_slope_percent"
+                          type="number"
+                          placeholder="20"
+                          defaultValue={editingEquipment?.max_slope_percent ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="transport_width_mm">Transpordi laius (mm)</Label>
+                        <Input
+                          name="transport_width_mm"
+                          type="number"
+                          placeholder="3500"
+                          defaultValue={editingEquipment?.transport_width_mm ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="transport_height_mm">Transpordi kõrgus (mm)</Label>
+                        <Input
+                          name="transport_height_mm"
+                          type="number"
+                          placeholder="3990"
+                          defaultValue={editingEquipment?.transport_height_mm ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Transport length and header range */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="transport_length_mm">Transpordi pikkus (mm)</Label>
+                        <Input
+                          name="transport_length_mm"
+                          type="number"
+                          placeholder="9500"
+                          defaultValue={editingEquipment?.transport_length_mm ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="header_width_min_m">Heedri laius min (m)</Label>
+                        <Input
+                          name="header_width_min_m"
+                          type="number"
+                          step="0.1"
+                          placeholder="6.1"
+                          defaultValue={editingEquipment?.header_width_min_m ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="header_width_max_m">Heedri laius max (m)</Label>
+                        <Input
+                          name="header_width_max_m"
+                          type="number"
+                          step="0.1"
+                          placeholder="12.2"
+                          defaultValue={editingEquipment?.header_width_max_m ?? ""}
                         />
                       </div>
                     </div>
