@@ -148,7 +148,7 @@ export function AutoModeFilters({
       {/* Selection guidance */}
       {!isModelSelected && isTypeSelected && (
         <div className="text-sm text-muted-foreground">
-          Vali bränd ja mudel, et näha automaatselt sobitatud konkurente
+          Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest.
         </div>
       )}
     </div>
