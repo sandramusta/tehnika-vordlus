@@ -656,18 +656,17 @@ export default function Admin() {
                       />
                     </div>
 
-                    {/* Uploaded brochures display */}
+                    {/* Uploaded brochures display - only for existing equipment */}
                     {editingEquipment && (
                       <EquipmentBrochuresList equipment={editingEquipment} />
                     )}
 
-                    {/* Detailed specs editor */}
-                    {editingEquipment && (
-                      <DetailedSpecsEditor
-                        equipment={editingEquipment}
-                        onChange={setDetailedSpecs}
-                      />
-                    )}
+                    {/* Detailed specs editor - always visible */}
+                    <DetailedSpecsEditor
+                      equipment={editingEquipment}
+                      initialSpecs={detailedSpecs}
+                      onChange={setDetailedSpecs}
+                    />
 
                     <Button
                       type="submit"

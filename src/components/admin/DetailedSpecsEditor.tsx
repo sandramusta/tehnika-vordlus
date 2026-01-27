@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Equipment } from "@/types/equipment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,8 @@ import {
 } from "@/lib/pdfSpecsHelpers";
 
 interface DetailedSpecsEditorProps {
-  equipment: Equipment;
+  equipment?: Equipment | null;
+  initialSpecs?: Record<string, unknown>;
   onChange: (updatedSpecs: Record<string, unknown>) => void;
 }
 
@@ -41,12 +42,30 @@ function parseInputValue(value: string): unknown {
   return value;
 }
 
-export function DetailedSpecsEditor({ equipment, onChange }: DetailedSpecsEditorProps) {
+export function DetailedSpecsEditor({ 
+  equipment, 
+  initialSpecs = {},
+  onChange 
+}: DetailedSpecsEditorProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(["mootor"])
   );
 
-  const specs = (equipment.detailed_specs as Record<string, Record<string, unknown>>) || {};
+  // Use internal state to handle both new and existing equipment
+  const [specs, setSpecs] = useState<Record<string, Record<string, unknown>>>(
+    (equipment?.detailed_specs as Record<string, Record<string, unknown>>) || 
+    (initialSpecs as Record<string, Record<string, unknown>>) || 
+    {}
+  );
+
+  // Sync with external equipment changes
+  useEffect(() => {
+    if (equipment?.detailed_specs) {
+      setSpecs(equipment.detailed_specs as Record<string, Record<string, unknown>>);
+    } else if (Object.keys(initialSpecs).length > 0) {
+      setSpecs(initialSpecs as Record<string, Record<string, unknown>>);
+    }
+  }, [equipment?.detailed_specs, initialSpecs]);
 
   const toggleCategory = (categoryKey: string) => {
     setExpandedCategories((prev) => {
@@ -63,19 +82,21 @@ export function DetailedSpecsEditor({ equipment, onChange }: DetailedSpecsEditor
   const handleFieldChange = useCallback(
     (categoryKey: string, fieldKey: string, value: string) => {
       const parsedValue = parseInputValue(value);
-      const existingCategory = specs[categoryKey] || {};
       
-      const updatedSpecs = {
-        ...specs,
-        [categoryKey]: {
-          ...existingCategory,
-          [fieldKey]: parsedValue,
-        },
-      };
-      
-      onChange(updatedSpecs);
+      setSpecs((prevSpecs) => {
+        const existingCategory = prevSpecs[categoryKey] || {};
+        const updatedSpecs = {
+          ...prevSpecs,
+          [categoryKey]: {
+            ...existingCategory,
+            [fieldKey]: parsedValue,
+          },
+        };
+        onChange(updatedSpecs);
+        return updatedSpecs;
+      });
     },
-    [specs, onChange]
+    [onChange]
   );
 
   const getFieldValue = (categoryKey: string, fieldKey: string): string => {
