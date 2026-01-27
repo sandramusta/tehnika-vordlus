@@ -119,7 +119,7 @@ export default function Comparison() {
         <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
           <h1 className="text-3xl font-bold">Tehnika võrdlus</h1>
           <p className="mt-2 text-primary-foreground/80">
-            Vali tehnika tüüp ja võrdle kuni 3 mudelit omavahel kõrvuti.
+            Vali tehnika tüüp ja kasuta automaatset konkurentide võrdlust või vali ise kuni 3 mudelit.
           </p>
         </div>
 
