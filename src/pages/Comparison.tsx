@@ -188,7 +188,7 @@ export default function Comparison() {
         ) : (
           <div className="space-y-8">
             {/* Multi-Model Comparison Table */}
-            <MultiModelComparison selectedModels={displayModels} />
+            <MultiModelComparison selectedModels={displayModels} equipmentTypeName={currentEquipmentType?.name} />
 
             {/* Show TCO and Advantages sections when multiple models are selected */}
             {primaryModel && otherModels.length > 0 && (
