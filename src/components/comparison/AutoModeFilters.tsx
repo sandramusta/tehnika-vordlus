@@ -1,0 +1,156 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useBrands, useEquipmentTypes } from "@/hooks/useEquipmentData";
+import { Equipment } from "@/types/equipment";
+import { Info } from "lucide-react";
+
+interface AutoModeFiltersProps {
+  selectedType: string;
+  selectedBrand: string;
+  selectedModelId: string;
+  onTypeChange: (value: string) => void;
+  onBrandChange: (value: string) => void;
+  onModelChange: (value: string) => void;
+  equipment: Equipment[];
+  competitorCount: number;
+  competitorSummary: string | null;
+}
+
+const allowedTypes = [
+  "combine",
+  "tractor",
+  "forage_harvester",
+  "wheel_loader",
+  "telehandler",
+  "self_propelled_sprayer",
+  "trailed_sprayer",
+  "round_baler"
+];
+
+export function AutoModeFilters({
+  selectedType,
+  selectedBrand,
+  selectedModelId,
+  onTypeChange,
+  onBrandChange,
+  onModelChange,
+  equipment,
+  competitorCount,
+  competitorSummary,
+}: AutoModeFiltersProps) {
+  const { data: types } = useEquipmentTypes();
+  const { data: brands } = useBrands();
+
+  const filteredTypes = types?.filter((t) => allowedTypes.includes(t.name)) || [];
+
+  // Filter brands that have equipment in the selected type
+  const availableBrands = brands?.filter((brand) =>
+    equipment.some((eq) => eq.brand_id === brand.id)
+  ) || [];
+
+  // Filter models by selected type and brand
+  const filteredModels = equipment.filter((model) => {
+    if (selectedType !== "all" && model.equipment_type_id !== selectedType) return false;
+    if (selectedBrand !== "all" && model.brand_id !== selectedBrand) return false;
+    return true;
+  });
+
+  const isTypeSelected = selectedType !== "all";
+  const isBrandSelected = selectedBrand !== "all";
+  const isModelSelected = selectedModelId !== "all";
+
+  const selectedModel = equipment.find((m) => m.id === selectedModelId);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-4">
+        {/* Type Selector */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
+          <Select value={selectedType} onValueChange={onTypeChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Vali tüüp" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Vali tüüp...</SelectItem>
+              {filteredTypes.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.name_et}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Brand Selector */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-muted-foreground">Bränd</label>
+          <Select 
+            value={selectedBrand} 
+            onValueChange={onBrandChange}
+            disabled={!isTypeSelected}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={isTypeSelected ? "Vali bränd" : "Vali esmalt tüüp"} />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Vali bränd...</SelectItem>
+              {availableBrands.map((brand) => (
+                <SelectItem key={brand.id} value={brand.id}>
+                  {brand.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Model Selector */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-muted-foreground">Mudel</label>
+          <Select 
+            value={selectedModelId} 
+            onValueChange={onModelChange}
+            disabled={!isBrandSelected}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder={isBrandSelected ? "Vali mudel" : "Vali esmalt bränd"} />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Vali mudel...</SelectItem>
+              {filteredModels.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.model_name}
+                  {model.engine_power_hp && ` (${model.engine_power_hp} hj)`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Competitor Summary */}
+      {isModelSelected && selectedModel && (
+        <div className="flex items-center gap-3">
+          {competitorCount > 0 ? (
+            <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5">
+              <Info className="h-3.5 w-3.5" />
+              {competitorSummary}
+            </Badge>
+          ) : (
+            <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Info className="h-3.5 w-3.5" />
+              Konkurente vahemikus ±50 hj ei leitud
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Selection guidance */}
+      {!isModelSelected && isTypeSelected && (
+        <div className="text-sm text-muted-foreground">
+          Vali bränd ja mudel, et näha automaatselt sobitatud konkurente
+        </div>
+      )}
+    </div>
+  );
+}
