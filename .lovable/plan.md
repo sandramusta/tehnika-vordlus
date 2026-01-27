@@ -1,70 +1,117 @@
 
-# Võrdlustabeli kirjelduste uuendamine
+# Ühtne näitajate kuvamine kõikidele kombainidele
 
-## Ülevaade
+## Probleem
 
-Uuendan kõik kirjeldused ja juhendtekstid, et need kajastaksid kahte võrdlusrežiimi korrektselt.
+Praegu kuvatakse detailseid spetsifikatsioone (`MOOTOR`, `PEKSUSÜSTEEM`, `INTEGREERITUD TEHNOLOOGIA` jne) ainult siis, kui vähemalt ühel valitud masinal on selles kategoorias andmed. See tähendab, et:
 
-## Muudatused
+- Kui valida ainult Case IH või Claas mudelid (millel puuduvad `detailed_specs` andmed), siis detailseid sektsioone ei kuvata üldse
+- Kui valida John Deere mudel koos konkurendiga, siis kõik John Deere kategooriad kuvatakse
 
-### 1. Hero sektsiooni kirjeldus (Comparison.tsx)
+## Lahendus
 
-**Praegune tekst:**
-```
-Vali tehnika tüüp ja võrdle kuni 3 mudelit omavahel kõrvuti.
-```
+Muudame loogika nii, et **kombainide puhul kuvatakse alati kõik standardsed kategooriad** - "Võimsus" kuni "Integreeritud tehnoloogia". Puuduvad väärtused kuvatakse kui "—".
 
-**Uus tekst:**
-```
-Vali tehnika tüüp ja kasuta automaatset konkurentide võrdlust või vali ise kuni 3 mudelit.
-```
+## Tehniline teostus
 
-### 2. Filtreerimise pealkirjad (Comparison.tsx)
+### Faili muudatused: `src/components/comparison/DetailedSpecsTableRows.tsx`
 
-Praegused pealkirjad jäävad samaks, sest need on juba korrektsed:
-- Auto režiim: "Automaatne konkurentide võrdlus"
-- Manual režiim: "Vali mudelid võrdluseks"
+**1. Lisa kontrollmehhanism tehnika tüübi jaoks:**
 
-### 3. Automaatse režiimi juhised (AutoModeFilters.tsx)
+Lisame `DetailedSpecsTableRowsProps` interface'ile uue `equipmentTypeName` prop:
 
-**Praegune tekst:**
-```
-Vali bränd ja mudel, et näha automaatselt sobitatud konkurente
+```typescript
+interface DetailedSpecsTableRowsProps {
+  allModels: Equipment[];
+  selectedModelId: string;
+  equipmentTypeName?: string;  // Uus prop
+}
 ```
 
-**Uus tekst:**
-```
-Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest.
+**2. Muuda `getAvailableCategories` funktsiooni:**
+
+```typescript
+function getAvailableCategories(allModels: Equipment[], forceAll: boolean = false): string[] {
+  // Kombainide puhul näita alati kõik kategooriad
+  if (forceAll) {
+    return CATEGORY_ORDER.slice();
+  }
+  
+  // Muu tehnika puhul - praegune loogika
+  const availableCategories = new Set<string>();
+  allModels.forEach((model) => {
+    const specs = model.detailed_specs;
+    if (specs && typeof specs === "object") {
+      Object.keys(specs).forEach((key) => {
+        if (CATEGORY_ORDER.includes(key)) {
+          availableCategories.add(key);
+        }
+      });
+    }
+  });
+  return CATEGORY_ORDER.filter((cat) => availableCategories.has(cat));
+}
 ```
 
-### 4. Käsitsi valiku juhised (ModelMultiSelect.tsx)
+**3. Komponendi kutsumisel kontrolli tehnika tüüpi:**
 
-Praegune tekst on korrektne ja jääb samaks:
+```typescript
+export function DetailedSpecsTableRows({
+  allModels,
+  selectedModelId,
+  equipmentTypeName,
+}: DetailedSpecsTableRowsProps) {
+  // Kombainide puhul näita alati kõik kategooriad
+  const isCombine = equipmentTypeName === "combine";
+  const availableCategories = getAvailableCategories(allModels, isCombine);
+  // ...
+}
 ```
-Vali vähemalt 1 mudel, et näha võrdlustabelit
+
+### Faili muudatused: `src/components/comparison/MultiModelComparison.tsx`
+
+**1. Lisa tehnika tüübi nimi props'idesse:**
+
+```typescript
+interface MultiModelComparisonProps {
+  selectedModels: Equipment[];
+  equipmentTypeName?: string;  // Uus prop
+}
 ```
+
+**2. Edasta tehnika tüüp DetailedSpecsTableRows komponendile:**
+
+```typescript
+<DetailedSpecsTableRows 
+  allModels={selectedModels} 
+  selectedModelId={selectedModels[0]?.id || ""}
+  equipmentTypeName={equipmentTypeName}
+/>
+```
+
+### Faili muudatused: `src/pages/Comparison.tsx`
+
+**1. Edasta tehnika tüübi nimi võrdlustabelile:**
+
+```typescript
+<MultiModelComparison 
+  selectedModels={displayModels} 
+  equipmentTypeName={currentEquipmentType?.name}
+/>
+```
+
+## Tulemus
+
+| Enne | Pärast |
+|------|--------|
+| Case IH mudelitel puuduvad detailsed sektsioonid | Kõik sektsioonid kuvatakse, puuduvad väärtused = "—" |
+| Erinevad read olenevalt valitud mudelitest | Ühtsed read kõikide kombainide võrdlustes |
+| Automaatne ja käsitsi režiim võivad kuvada erinevaid ridu | Mõlemad režiimid näitavad alati samu ridu |
 
 ## Muudetavad failid
 
 | Fail | Muudatus |
 |------|----------|
-| `src/pages/Comparison.tsx` | Hero sektsiooni kirjelduse uuendus |
-| `src/components/comparison/AutoModeFilters.tsx` | Juhendteksti uuendus |
-
-## Tehniline teostus
-
-### Comparison.tsx (read 121-123)
-```typescript
-<p className="mt-2 text-primary-foreground/80">
-  Vali tehnika tüüp ja kasuta automaatset konkurentide võrdlust või vali ise kuni 3 mudelit.
-</p>
-```
-
-### AutoModeFilters.tsx (read 149-152)
-```typescript
-{!isModelSelected && isTypeSelected && (
-  <div className="text-sm text-muted-foreground">
-    Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest.
-  </div>
-)}
-```
+| `src/components/comparison/DetailedSpecsTableRows.tsx` | Lisa `equipmentTypeName` prop ja `forceAll` loogika |
+| `src/components/comparison/MultiModelComparison.tsx` | Lisa `equipmentTypeName` prop ja edasta see edasi |
+| `src/pages/Comparison.tsx` | Edasta `equipmentTypeName` MultiModelComparison komponendile |
