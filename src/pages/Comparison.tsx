@@ -135,7 +135,7 @@ export default function Comparison() {
             <div className="flex-1">
               <h2 className="mb-4 text-lg font-semibold">
                 {comparisonMode === "auto" 
-                  ? "Automaatne konkurendisobitamine" 
+                  ? "Automaatne konkurentide võrdlus" 
                   : "Vali mudelid võrdluseks"}
               </h2>
               

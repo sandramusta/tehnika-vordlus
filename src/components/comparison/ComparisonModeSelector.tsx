@@ -25,7 +25,7 @@ export function ComparisonModeSelector({
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="auto" className="flex items-center gap-2">
             <Crosshair className="h-4 w-4" />
-            <span>Automaatne konkureerimine</span>
+            <span>Automaatne konkurentide võrdlus</span>
           </TabsTrigger>
           <TabsTrigger value="manual" className="flex items-center gap-2">
             <Hand className="h-4 w-4" />
