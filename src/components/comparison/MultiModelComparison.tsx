@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 interface MultiModelComparisonProps {
   selectedModels: Equipment[];
+  equipmentTypeName?: string;
 }
 
 function formatNumber(num: number | null): string {
@@ -93,7 +94,7 @@ const COST_ROWS: SpecRowConfig[] = [
   { key: "expected_lifespan_years", labelKey: "expected_lifespan_years", defaultLabel: "Eeldatav eluiga", suffix: " aastat", bestType: "max" },
 ];
 
-export function MultiModelComparison({ selectedModels }: MultiModelComparisonProps) {
+export function MultiModelComparison({ selectedModels, equipmentTypeName }: MultiModelComparisonProps) {
   const { data: specLabels = {} } = useSpecLabels();
   const inlineEdit = useInlineEdit({
     onSuccess: () => toast.success("Salvestatud"),
@@ -329,6 +330,7 @@ export function MultiModelComparison({ selectedModels }: MultiModelComparisonPro
               <DetailedSpecsTableRows 
                 allModels={selectedModels} 
                 selectedModelId={selectedModels[0]?.id || ""}
+                equipmentTypeName={equipmentTypeName}
               />
             </tbody>
           </table>

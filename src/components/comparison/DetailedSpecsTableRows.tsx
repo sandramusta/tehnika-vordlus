@@ -10,6 +10,7 @@ import { toast } from "sonner";
 interface DetailedSpecsTableRowsProps {
   allModels: Equipment[];
   selectedModelId: string;
+  equipmentTypeName?: string;
 }
 
 // Category display names and order
@@ -157,7 +158,12 @@ function getAllFieldsForCategory(
 }
 
 // Get all available categories from the models
-function getAvailableCategories(allModels: Equipment[]): string[] {
+function getAvailableCategories(allModels: Equipment[], forceAll: boolean = false): string[] {
+  // For combines, always show all categories
+  if (forceAll) {
+    return CATEGORY_ORDER.slice();
+  }
+
   const availableCategories = new Set<string>();
 
   allModels.forEach((model) => {
@@ -177,7 +183,10 @@ function getAvailableCategories(allModels: Equipment[]): string[] {
 export function DetailedSpecsTableRows({
   allModels,
   selectedModelId,
+  equipmentTypeName,
 }: DetailedSpecsTableRowsProps) {
+  // For combines, always show all categories
+  const isCombine = equipmentTypeName === "combine";
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(["mootor"])
   );
@@ -220,7 +229,7 @@ export function DetailedSpecsTableRows({
     );
   };
 
-  const availableCategories = getAvailableCategories(allModels);
+  const availableCategories = getAvailableCategories(allModels, isCombine);
 
   if (availableCategories.length === 0) {
     return null;
