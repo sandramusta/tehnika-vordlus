@@ -11,6 +11,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -19,23 +26,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, User } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Mail, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   useAllStaffUsers,
-  useCreateStaffUser,
+  useInviteStaffUser,
   useUpdateStaffUser,
   useDeleteStaffUser,
   type StaffUser,
 } from "@/hooks/useStaffUsers";
+import type { AppRole } from "@/hooks/useAuth";
+
+const roleLabels: Record<AppRole, string> = {
+  user: "Kasutaja",
+  product_manager: "Tootejuht",
+  admin: "Administraator",
+};
 
 export function StaffUsersManagement() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<StaffUser | null>(null);
+  const [selectedRole, setSelectedRole] = useState<AppRole>("user");
 
   const { data: staffUsers = [], isLoading } = useAllStaffUsers();
-  const createUser = useCreateStaffUser();
+  const inviteUser = useInviteStaffUser();
   const updateUser = useUpdateStaffUser();
   const deleteUser = useDeleteStaffUser();
 
@@ -51,19 +66,24 @@ export function StaffUsersManagement() {
     try {
       if (editingUser) {
         await updateUser.mutateAsync({ id: editingUser.id, ...userData });
-        toast({ title: "Kasutaja uuendatud!" });
+        toast({ title: "Kasutaja andmed uuendatud!" });
       } else {
-        await createUser.mutateAsync(userData);
-        toast({ title: "Kasutaja lisatud!" });
+        await inviteUser.mutateAsync({ ...userData, role: selectedRole });
+        toast({ 
+          title: "Kasutaja kutsutud!", 
+          description: `Kutse saadetud aadressile ${userData.email}` 
+        });
       }
       setDialogOpen(false);
       setEditingUser(null);
-    } catch (error) {
+      setSelectedRole("user");
+    } catch (error: any) {
+      console.error("Error:", error);
       toast({
         title: "Viga",
-        description: editingUser
+        description: error.message || (editingUser
           ? "Kasutaja uuendamine ebaõnnestus"
-          : "Kasutaja lisamine ebaõnnestus",
+          : "Kasutaja kutsumine ebaõnnestus"),
         variant: "destructive",
       });
     }
@@ -110,11 +130,14 @@ export function StaffUsersManagement() {
   const closeDialog = () => {
     setDialogOpen(false);
     setEditingUser(null);
+    setSelectedRole("user");
   };
 
   if (isLoading) {
     return <div className="text-muted-foreground">Laadin kasutajaid...</div>;
   }
+
+  const isSubmitting = inviteUser.isPending || updateUser.isPending;
 
   return (
     <div className="space-y-4">
@@ -133,7 +156,7 @@ export function StaffUsersManagement() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingUser ? "Muuda kasutajat" : "Lisa uus kasutaja"}
+                {editingUser ? "Muuda kasutajat" : "Kutsu uus kasutaja"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -145,6 +168,7 @@ export function StaffUsersManagement() {
                   placeholder="Mart Tamm"
                   defaultValue={editingUser?.full_name || ""}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -156,14 +180,52 @@ export function StaffUsersManagement() {
                   placeholder="mart.tamm@wihuri.ee"
                   defaultValue={editingUser?.email || ""}
                   required
+                  disabled={isSubmitting || !!editingUser}
                 />
+                {!editingUser && (
+                  <p className="text-sm text-muted-foreground">
+                    Sellele aadressile saadetakse kutse parooliga sisselogimiseks
+                  </p>
+                )}
               </div>
+              
+              {!editingUser && (
+                <div className="space-y-2">
+                  <Label htmlFor="role">Roll</Label>
+                  <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as AppRole)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Vali roll" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">Kasutaja</SelectItem>
+                      <SelectItem value="product_manager">Tootejuht</SelectItem>
+                      <SelectItem value="admin">Administraator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedRole === "admin" && "Täielik ligipääs, sh kasutajate haldus"}
+                    {selectedRole === "product_manager" && "Tehnika ja müügiandmete muutmine"}
+                    {selectedRole === "user" && "Põhiligipääs ja PDF-ide allalaadimine"}
+                  </p>
+                </div>
+              )}
+              
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={closeDialog}>
+                <Button type="button" variant="outline" onClick={closeDialog} disabled={isSubmitting}>
                   Tühista
                 </Button>
-                <Button type="submit">
-                  {editingUser ? "Salvesta" : "Lisa"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingUser ? "Salvestab..." : "Saadab kutset..."}
+                    </>
+                  ) : (
+                    <>
+                      {!editingUser && <Mail className="mr-2 h-4 w-4" />}
+                      {editingUser ? "Salvesta" : "Saada kutse"}
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
@@ -175,6 +237,9 @@ export function StaffUsersManagement() {
         <div className="rounded-lg border border-dashed p-8 text-center">
           <User className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <h3 className="mt-4 text-lg font-semibold">Kasutajaid pole lisatud</h3>
+          <p className="mt-2 text-muted-foreground">
+            Lisa esimene kasutaja, kes saab e-mailiga kutse
+          </p>
         </div>
       ) : (
         <div className="rounded-lg border">
