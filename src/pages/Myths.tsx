@@ -1,13 +1,15 @@
 import { Layout } from "@/components/layout/Layout";
 import { MythCategory } from "@/components/myths/MythCategory";
-import { Wallet, Wrench, CloudSun, TrendingUp, Loader2 } from "lucide-react";
+import { Clock, Wallet, Wrench, TrendingDown, CloudSun, HelpCircle, Loader2 } from "lucide-react";
 import { useMyths } from "@/hooks/useEquipmentData";
 
 const CATEGORIES = [
-  { key: "finance", title: "Finantsid ja investeeringud", icon: Wallet },
-  { key: "tech", title: "Tehnika ja töökindlus", icon: Wrench },
-  { key: "weather", title: "Ilm, saagikus ja juhtimine", icon: CloudSun },
-  { key: "market", title: "Turg ja konkurents", icon: TrendingUp },
+  { key: "uncertainty", title: "Ebakindlus ja ajastus", icon: Clock },
+  { key: "finance", title: "Finantsid ja rahastus", icon: Wallet },
+  { key: "machines", title: "Masinad ja konkurents", icon: Wrench },
+  { key: "costs", title: "Turuhinnad ja sisendkulud", icon: TrendingDown },
+  { key: "weather", title: "Ilm ja saagitingimused", icon: CloudSun },
+  { key: "other", title: "Muud argumendid", icon: HelpCircle },
 ];
 
 export default function Myths() {
