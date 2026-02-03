@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Comparison from "./pages/Comparison";
@@ -14,6 +13,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// TODO: Taasta ProtectedRoute kui sisu on valmis
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -23,38 +23,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/comparison"
-              element={
-                <ProtectedRoute>
-                  <Comparison />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/myths"
-              element={
-                <ProtectedRoute>
-                  <Myths />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<Index />} />
+            <Route path="/comparison" element={<Comparison />} />
+            <Route path="/myths" element={<Myths />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
