@@ -2,3 +2,9 @@ project_id = "qfxstzlqlfbivqnvccwd"
 
 [functions.extract-brochure-specs]
 verify_jwt = false
+
+[functions.invite-user]
+verify_jwt = false
+
+[functions.create-first-admin]
+verify_jwt = false
