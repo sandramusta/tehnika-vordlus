@@ -1,24 +1,9 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calculator, FileDown, TrendingUp, ArrowRight, Scale, User } from "lucide-react";
+import { Calculator, FileDown, TrendingUp, ArrowRight, Scale } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
@@ -28,9 +13,8 @@ import {
   defaultInputsExisting, 
   defaultInputsNew 
 } from "./SingleROICalculator";
-import { addPDFHeader, addPDFFooter, getStaffUserInfo } from "@/lib/pdfHelpers";
-import { useStaffUsers, type StaffUser } from "@/hooks/useStaffUsers";
-
+import { addPDFHeader, addPDFFooter } from "@/lib/pdfHelpers";
+import { useAuth } from "@/hooks/useAuth";
 export function ROIComparisonCalculator() {
   const [existingInputs, setExistingInputs] = useState<ROIInputs>(defaultInputsExisting);
   const [newInputs, setNewInputs] = useState<ROIInputs>(defaultInputsNew);
@@ -111,17 +95,19 @@ export function ROIComparisonCalculator() {
     },
   ];
 
+  // Get current user from auth
+  const { profile } = useAuth();
+
   // Generate PDF Report
-  const generatePDFReport = (staffUser: StaffUser | null) => {
+  const generatePDFReport = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    const userInfo = getStaffUserInfo(staffUser);
     
-    // Add header with logo and user info
+    // Add header with logo and logged-in user info
     let yPos = addPDFHeader(doc, pageWidth, {
       title: "ROI Võrdlusraport",
-      generatorName: userInfo.name,
-      generatorEmail: userInfo.email,
+      generatorName: profile?.full_name || "",
+      generatorEmail: profile?.email || "",
     });
 
     doc.setFontSize(16);
@@ -242,21 +228,6 @@ export function ROIComparisonCalculator() {
     addPDFFooter(doc, pageWidth, 1, 1);
     
     doc.save("roi-vordlusraport.pdf");
-  };
-
-  // Staff user selection state
-  const [userDialogOpen, setUserDialogOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const { data: staffUsers = [], isLoading: isLoadingUsers } = useStaffUsers();
-
-  const handlePDFButtonClick = () => {
-    setUserDialogOpen(true);
-  };
-
-  const handleGeneratePDF = () => {
-    const selectedUser = staffUsers.find((u) => u.id === selectedUserId) || null;
-    generatePDFReport(selectedUser);
-    setUserDialogOpen(false);
   };
 
   return (
@@ -419,7 +390,7 @@ export function ROIComparisonCalculator() {
             <Button 
               size="lg" 
               className="gap-2"
-              onClick={handlePDFButtonClick}
+              onClick={generatePDFReport}
             >
               <FileDown className="h-5 w-5" />
               Genereeri võrdlus PDF-raport
@@ -428,62 +399,6 @@ export function ROIComparisonCalculator() {
         </div>
       </CardContent>
 
-      {/* User Selection Dialog */}
-      <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
-              Vali dokumendi koostaja
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              Vali oma nimi, et see kuvataks PDF-dokumendi päises koostaja infona.
-            </p>
-            
-            <div className="space-y-2">
-              <Label htmlFor="staff-user-roi">Koostaja</Label>
-              {isLoadingUsers ? (
-                <div className="text-sm text-muted-foreground">Laadin...</div>
-              ) : staffUsers.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-4 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Kasutajaid pole lisatud. Lisa kasutajad Admin → Kasutajad vaates.
-                  </p>
-                </div>
-              ) : (
-                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Vali oma nimi" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {staffUsers.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        <div>
-                          <div className="font-medium">{user.full_name}</div>
-                          <div className="text-xs text-muted-foreground">{user.email}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setUserDialogOpen(false)}>
-              Tühista
-            </Button>
-            <Button onClick={handleGeneratePDF}>
-              <FileDown className="h-4 w-4 mr-2" />
-              Genereeri PDF
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
