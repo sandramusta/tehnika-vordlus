@@ -409,24 +409,31 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="equipment" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="equipment" className="gap-2">
-              <Tractor className="h-4 w-4" />
-              Tehnika
-            </TabsTrigger>
-            <TabsTrigger value="arguments" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Argumendid
-            </TabsTrigger>
-            <TabsTrigger value="myths" className="gap-2">
-              <MessageSquareWarning className="h-4 w-4" />
-              Müüdid
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="h-4 w-4" />
-              Kasutajad
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex justify-between items-center">
+            <TabsList>
+              <TabsTrigger value="equipment" className="gap-2">
+                <Tractor className="h-4 w-4" />
+                Tehnika
+              </TabsTrigger>
+              <TabsTrigger value="arguments" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Argumendid
+              </TabsTrigger>
+              <TabsTrigger value="myths" className="gap-2">
+                <MessageSquareWarning className="h-4 w-4" />
+                Müüdid
+              </TabsTrigger>
+            </TabsList>
+            <TabsList className="bg-primary/10">
+              <TabsTrigger 
+                value="users" 
+                className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <Users className="h-4 w-4" />
+                Kasutajad
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="equipment" className="space-y-4">
             <div className="flex justify-between items-center">
