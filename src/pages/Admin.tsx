@@ -48,6 +48,7 @@ import { DetailedSpecsEditor } from "@/components/admin/DetailedSpecsEditor";
 import { EquipmentBrochuresList } from "@/components/admin/EquipmentBrochuresList";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 function getBrandTextColor(brandName: string): string {
   switch (brandName) {
@@ -75,6 +76,7 @@ const MYTH_CATEGORIES = [
 
 export default function Admin() {
   const { toast } = useToast();
+  const { canManageUsers } = useAuthContext();
   const [equipmentDialogOpen, setEquipmentDialogOpen] = useState(false);
   const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
   const [mythDialogOpen, setMythDialogOpen] = useState(false);
@@ -424,15 +426,17 @@ export default function Admin() {
                 Müüdid
               </TabsTrigger>
             </TabsList>
-            <TabsList className="bg-primary/10">
-              <TabsTrigger 
-                value="users" 
-                className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <Users className="h-4 w-4" />
-                Kasutajad
-              </TabsTrigger>
-            </TabsList>
+            {canManageUsers && (
+              <TabsList className="bg-primary/10">
+                <TabsTrigger 
+                  value="users" 
+                  className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Users className="h-4 w-4" />
+                  Kasutajad
+                </TabsTrigger>
+              </TabsList>
+            )}
           </div>
 
           <TabsContent value="equipment" className="space-y-4">
@@ -1432,9 +1436,11 @@ export default function Admin() {
             )}
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-4">
-            <StaffUsersManagement />
-          </TabsContent>
+          {canManageUsers && (
+            <TabsContent value="users" className="space-y-4">
+              <StaffUsersManagement />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Brochure Upload Dialog */}
