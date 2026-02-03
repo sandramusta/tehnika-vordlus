@@ -1,106 +1,225 @@
 
 
-# Müütide vahelehe uuendamine PDF-failide põhjal
+# PDF-failidele logo, ettevõtte nimi ja genereerija info lisamine
 
 ## Ülevaade
 
-Uuendan müütide tabeli andmebaasis PDF-failidest saadud info põhjal. Failid sisaldavad:
-- **6 uut kategooriat** (vs praegused 4)
-- **Uued müüdid** koos vastuargumentidega
-- **Struktureeritud "Tegelikkus" ja "John Deere'i eelis"** tekstid
+Uuendan kõiki PDF-ekspordi funktsioone, et lisada:
+- **Ettevõtte logo** (Wihuri Agri)
+- **Ettevõtte nimi**
+- **Genereerija täisnimi ja e-mail**
+
+Kuna sisselogimist veel pole, siis kõigepealt loon kasutajate tabeli ja lihtsa kasutajainfo valimise võimaluse.
 
 ---
 
-## Uued kategooriad
+## Tehniline arhitektuur
 
-| Võti | Kategooria nimi (ET) | Ikoon |
-|------|---------------------|-------|
-| `uncertainty` | Ebakindlus ja ajastus | `Clock` |
-| `finance` | Finantsid ja rahastus | `Wallet` |
-| `machines` | Masinad ja konkurents | `Tractor` |
-| `costs` | Turuhinnad ja sisendkulud | `TrendingDown` |
-| `weather` | Ilm ja saagitingimused | `CloudSun` |
-| `other` | Muud argumendid | `HelpCircle` |
+### 1. Uus andmebaasi tabel: `staff_users`
 
----
+Loon uue tabeli ettevõtte töötajate jaoks:
 
-## Uued müüdid PDF-failide põhjal
+| Veerg | Tüüp | Kirjeldus |
+|-------|------|-----------|
+| `id` | uuid | Primaarvõti |
+| `full_name` | text | Täisnimi (nt "Mart Tamm") |
+| `email` | text | E-posti aadress |
+| `is_active` | boolean | Kas kasutaja on aktiivne |
+| `created_at` | timestamp | Loomise aeg |
 
-### 1. Ebakindlus ja ajastus
-| Müüt | Tegelikkus | John Deere'i eelis |
-|------|-----------|-------------------|
-| "Ootan paremaid aegu, ei tea mis saak tuleb" | Põllumajanduses puudub täielik kindlus – otsuseid tehakse keskmiste näitajate põhjal. Investeeringu edasilükkamine tõstab omahinda ja suurendab riski. | John Deere Operations Center võimaldab koguda andmeid ja teha otsuseid faktide, mitte emotsioonide põhjal. Statistika näitab, et saagikõikumised on tegelikult väiksemad kui emotsioonid lubavad. |
-| "Masina ost on emotsiooniost" | Masina ost on strateegiline investeering 5–10 aastaks. Iga edasi lükatud vajalik otsus vähendab võimalust tulevikus rohkem teenida. | John Deere'i masinatel on kõrge järelturu väärtus ja madal TCO, mis teeb neist pikaajalise ja turvalise investeeringu. |
+### 2. Admin-vaade: kasutajate haldamine
 
-### 2. Finantsid ja rahastus
-| Müüt | Tegelikkus | John Deere'i eelis |
-|------|-----------|-------------------|
-| "Uue masina ost on liiga suur risk ja kulukoormus" | Uue masina kuumakse võib olla väiksem kui vana masina remondivajadus. Vana masina rike hooajal võib maksta rohkem kui liising. | Wihuri Agri pakub paindlikke finantseerimisvõimalusi: rentimine, komisjonimüük, ringtehingud. Strateegiline investeering tagab jätkusuutlikkuse. |
-| "Suur võlakoormus ei luba uut masinat osta" | Laenuportfelli ülevaatamine ja refinantseerimine võib vähendada kulusid ja vabastada rahavoogu. | Wihuri finantseerimispartnerid aitavad leida optimaalse lahenduse. Süveneme kliendi finantsinfos ja pakume personaalset nõu. |
-| "Olen juba üle investeerinud" | Üleinvesteerimine tekitab võlakoormuse, kuid otsuse edasilükkamine võib tõsta tulevast liisingukoormust veelgi. | Wihuri pakub ringtehinguid ja komisjonimüüki, mis aitavad vana tehnika realiseerida ja rahavoogu vabastada. |
+Lisa Admin lehele uus sektsioon "Kasutajad", kus saab:
+- Lisada uue töötaja (nimi + e-mail)
+- Muuta olemasolevat
+- Kustutada kasutaja
 
-### 3. Masinad ja konkurents
-| Müüt | Tegelikkus | John Deere'i eelis |
-|------|-----------|-------------------|
-| "Vana masin veel töötab" | Küsimus pole *kas* see töötab, vaid *kui kaua*. Purunemise risk suureneb iga aastaga. Enamik vana masina kulusid pole omanikule teada. | Uus John Deere maandab riske tänu garantiile ja ennetavale hooldusele (Expert Alerts). Wihuri teeninduse kiirus on reaalne konkurentsieelis. |
-| "Konkurendi masin on parem/odavam" | Odav ostuhind ei ole võrdne madala hektarihinnaga. Vaata hoolduskulusid, mitte ainult ostuhinda. | TCO võrdlus, järelteeninduse kõrge tase ja AMS eelised tõestavad John Deere'i väärtust. |
-| "Kiire masin on efektiivsem" | Päris põllutöös pole vaja kihutada. 60 km/h suurendab rehvi- ja kütusekulusid ning õnnetuste arvu. | John Deere AutoTrac tagab optimaalse töökiiruse ja -kvaliteedi. Tööturvalisus on prioriteet. |
+### 3. Kasutaja valimine PDF genereerimisel
 
-### 4. Turuhinnad ja sisendkulud
-| Müüt | Tegelikkus | John Deere'i eelis |
-|------|-----------|-------------------|
-| "Sisendite hinnad on liiga kõrged" | Vilja hinda ja ilma ei saa kontrollida, kuid sisendkulude kontroll on võimalik. Kõik, mida saab mõõta, tuleb mõõta. | Operations Center võimaldab mõõta kütusekulu, töövõtteid ja tööaega. Täppisviljelus säästab 10–15% sisendeid. |
-| "Vilja hind on liiga madal" | Viljahinna lukkulöömine aasta alguses võimaldab hooaega paremini planeerida. | Täppisviljeluse andmed annavad täpsema prognoosi saagikusest, mis aitab teha paremaid otsuseid vilja müügi osas. |
+Enne PDF allalaadimist kuvatakse dialoog, kus kasutaja valib oma nime rippmenüüst. Valitud info salvestatakse ja kasutatakse PDF genereerimise ajal.
 
-### 5. Ilm ja saagitingimused
-| Müüt | Tegelikkus | John Deere'i eelis |
-|------|-----------|-------------------|
-| "Eks näis mis lume alt välja tuleb" | Talvitumise stsenaariume on vaid kolm – kuid tegevus jätkub sõltumata tulemusest. Tee põldude statistikat ja lähtu keskmisest saagikusest. | John Deere andmekogumise tööriistad võimaldavad haara kontroll enda kätte – tee otsuseid andmete, mitte emotsioonide põhjal. |
-| "Kas saad saagi kätte 2 nädalaga?" | Efektiivne tehnika aitab kehval aastal olemasolevast maksimumi võtta ja koristusriske maandada. | John Deere kombainide kõrge läbilaskevõime ja töökindlus tagavad, et saad saagi kiiresti ja kvaliteetselt kätte. |
+### 4. PDF päise uuendamine
 
-### 6. Muud argumendid
-| Müüt | Tegelikkus | John Deere'i eelis |
-|------|-----------|-------------------|
-| "Kõike ei pea omama – aga rent tundub riskantne" | Noorem põlvkond eelistab teenuseid omamisele. Rent vähendab riske ja ei nõua suurt sissemakset. | Wihuri Agri rendivõimalused on paindlikud – masin ei pea kuuluma sulle, et see sinu heaks töötaks. |
-| "Tulevik on ebakindel, seega ei tasu investeerida" | Tulevik on alati ebakindel: küsimus on riskide juhtimises. Iga ärajäetud investeering vähendab potentsiaalset kasumlikkust. | Investeerimine John Deere'i tehnikasse on riskide maandamine, mis toob otsest rahalist kasu tänu madalamale TCO-le ja kõrgemale usaldusväärsusele. |
+Kõik 4 PDF-funktsiooni saavad uue päise struktuuri:
 
----
-
-## Tehniline teostus
-
-### 1. Andmebaasi uuendamine
-- Kustutan olemasolevad müüdid `myths` tabelist
-- Sisestan uued müüdid PDF-failide põhjal (kokku ~14 müüti)
-
-### 2. Kategooriate uuendamine koodis
-Muudan `src/pages/Myths.tsx` failis `CATEGORIES` massiivi:
-
-```typescript
-const CATEGORIES = [
-  { key: "uncertainty", title: "Ebakindlus ja ajastus", icon: Clock },
-  { key: "finance", title: "Finantsid ja rahastus", icon: Wallet },
-  { key: "machines", title: "Masinad ja konkurents", icon: Wrench },
-  { key: "costs", title: "Turuhinnad ja sisendkulud", icon: TrendingDown },
-  { key: "weather", title: "Ilm ja saagitingimused", icon: CloudSun },
-  { key: "other", title: "Muud argumendid", icon: HelpCircle },
-];
+```text
++------------------------------------------+
+| [LOGO]  WIHURI AGRI                      |
+|         Tehnika võrdlusraport            |
+|                                          |
+| Kuupäev: 03.02.2026                      |
+| Kategooria: Kombainid                    |
+| Mudelid: John Deere S7-800, ...          |
+|                                          |
+| Koostaja: Mart Tamm                      |
+| E-post: mart.tamm@wihuri.ee              |
++------------------------------------------+
 ```
 
 ---
 
-## Muudetavad failid ja andmed
+## Muudetavad failid
 
-| Komponent | Muudatus |
-|-----------|----------|
-| `myths` tabel (andmebaas) | Kustuta vanad, sisesta ~14 uut müüti |
-| `src/pages/Myths.tsx` | Uuenda CATEGORIES massiiv 6 kategooriaga |
+| Fail | Muudatus |
+|------|----------|
+| **Andmebaas** | Uus tabel `staff_users` |
+| `src/hooks/useEquipmentData.ts` | Lisa `useStaffUsers` hook |
+| `src/pages/Admin.tsx` | Lisa kasutajate haldamise sektsioon |
+| `src/components/comparison/ComparisonPDFExport.tsx` | Lisa kasutaja valik + uuenda PDF päist |
+| `src/lib/pdfHelpers.ts` (uus fail) | Logo base64 string ja päise funktsioon |
+
+---
+
+## Detailne teostus
+
+### Samm 1: Andmebaasi migratsioon
+
+```sql
+CREATE TABLE public.staff_users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  full_name text NOT NULL,
+  email text NOT NULL UNIQUE,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Avalik ligipääs (RLS pole vajalik, kuna sisselogimist pole)
+ALTER TABLE public.staff_users ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all operations on staff_users"
+  ON public.staff_users
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+```
+
+### Samm 2: Kasutajate hook (`useEquipmentData.ts`)
+
+```typescript
+export function useStaffUsers() {
+  return useQuery({
+    queryKey: ["staff-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("staff_users")
+        .select("*")
+        .eq("is_active", true)
+        .order("full_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCreateStaffUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (user: { full_name: string; email: string }) => {
+      const { data, error } = await supabase
+        .from("staff_users")
+        .insert(user)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff-users"] });
+    },
+  });
+}
+```
+
+### Samm 3: PDF ekspordi uuendamine
+
+Loon uue abifunktsiooni `addPDFHeader`:
+
+```typescript
+function addPDFHeader(
+  doc: jsPDF,
+  pageWidth: number,
+  options: {
+    title: string;
+    selectedModels?: Equipment[];
+    equipmentType?: EquipmentType | null;
+    generatorName: string;
+    generatorEmail: string;
+  }
+) {
+  // Lisa logo (base64 kujul)
+  const logoBase64 = "..."; // Teisendatakse pildifailist
+  doc.addImage(logoBase64, "PNG", 14, 8, 25, 25);
+  
+  // Ettevõtte nimi
+  doc.setFontSize(16);
+  doc.setTextColor(34, 87, 46);
+  doc.text("WIHURI AGRI", 45, 16);
+  
+  // Dokumendi pealkiri
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(options.title, 45, 24);
+  
+  // Kuupäev
+  const date = new Date().toLocaleDateString("et-EE");
+  doc.text(`Kuupäev: ${date}`, 14, 42);
+  
+  // Kategooria ja mudelid (kui on)
+  if (options.equipmentType) {
+    doc.text(`Kategooria: ${options.equipmentType.name_et}`, 14, 48);
+  }
+  
+  // Genereerija info
+  doc.setFontSize(9);
+  doc.text(`Koostaja: ${options.generatorName}`, pageWidth - 14, 42, { align: "right" });
+  doc.text(`E-post: ${options.generatorEmail}`, pageWidth - 14, 48, { align: "right" });
+}
+```
+
+### Samm 4: Kasutaja valiku dialoog
+
+Enne PDF allalaadimist avaneb dialoog:
+
+```tsx
+<Dialog>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Vali dokumendi koostaja</DialogTitle>
+    </DialogHeader>
+    <Select value={selectedUser} onValueChange={setSelectedUser}>
+      <SelectTrigger>
+        <SelectValue placeholder="Vali oma nimi" />
+      </SelectTrigger>
+      <SelectContent>
+        {staffUsers.map((user) => (
+          <SelectItem key={user.id} value={user.id}>
+            {user.full_name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+    <DialogFooter>
+      <Button onClick={handleGeneratePDF}>Genereeri PDF</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+---
+
+## Kasutaja kogemus
+
+1. **Admin lisab kasutajad**: Admin -> Kasutajad -> Lisa uus (nimi + e-mail)
+2. **PDF genereerimine**: Kliki "Laadi alla PDF" -> Vali kasutaja -> Genereeri
+3. **PDF tulemus**: Päises on logo, ettevõtte nimi, koostaja nimi ja e-mail
 
 ---
 
 ## Tulemus
 
-- **6 kategooriat** müütide paremaks struktureerimiseks
-- **~14 müüti** PDF-failide vastuargumentide põhjal
-- Selge struktuur: Müüt → Tegelikkus → John Deere'i eelis
-- Kõik andmed hallatavad Admin vaate kaudu
+| Enne | Pärast |
+|------|--------|
+| Lihtne päis ainult kuupäevaga | Professionaalne päis logo, ettevõtte nime ja koostaja infoga |
+| Pole teada, kes dokumendi koostas | Selge jälgitavus: nimi + e-mail igal PDF-il |
+| Ettevõtte identiteet puudub | Wihuri Agri bränd igal dokumendil |
 
