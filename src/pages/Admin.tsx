@@ -36,7 +36,8 @@ import {
   useUpdateMyth,
   useDeleteMyth,
 } from "@/hooks/useEquipmentData";
-import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp, FileText } from "lucide-react";
+import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp, FileText, Users } from "lucide-react";
+import { StaffUsersManagement } from "@/components/admin/StaffUsersManagement";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import type { Equipment, CompetitiveArgument, Myth } from "@/types/equipment";
@@ -420,6 +421,10 @@ export default function Admin() {
             <TabsTrigger value="myths" className="gap-2">
               <MessageSquareWarning className="h-4 w-4" />
               Müüdid
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
+              Kasutajad
             </TabsTrigger>
           </TabsList>
 
@@ -1418,6 +1423,10 @@ export default function Admin() {
                 Müüte pole veel lisatud
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-4">
+            <StaffUsersManagement />
           </TabsContent>
         </Tabs>
 

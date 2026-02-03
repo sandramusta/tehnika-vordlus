@@ -1,9 +1,24 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calculator, FileDown, TrendingUp, ArrowRight, Scale } from "lucide-react";
+import { Calculator, FileDown, TrendingUp, ArrowRight, Scale, User } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
@@ -13,6 +28,8 @@ import {
   defaultInputsExisting, 
   defaultInputsNew 
 } from "./SingleROICalculator";
+import { addPDFHeader, addPDFFooter, getStaffUserInfo } from "@/lib/pdfHelpers";
+import { useStaffUsers, type StaffUser } from "@/hooks/useStaffUsers";
 
 export function ROIComparisonCalculator() {
   const [existingInputs, setExistingInputs] = useState<ROIInputs>(defaultInputsExisting);
@@ -95,26 +112,29 @@ export function ROIComparisonCalculator() {
   ];
 
   // Generate PDF Report
-  const generatePDFReport = () => {
+  const generatePDFReport = (staffUser: StaffUser | null) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const userInfo = getStaffUserInfo(staffUser);
     
-    // Title
-    doc.setFontSize(20);
+    // Add header with logo and user info
+    let yPos = addPDFHeader(doc, pageWidth, {
+      title: "ROI Võrdlusraport",
+      generatorName: userInfo.name,
+      generatorEmail: userInfo.email,
+    });
+
+    doc.setFontSize(16);
     doc.setTextColor(34, 87, 46);
-    doc.text("ROI Võrdlusraport", pageWidth / 2, 20, { align: "center" });
+    doc.text("ROI Võrdlusraport", pageWidth / 2, yPos, { align: "center" });
     
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Genereeritud: ${new Date().toLocaleDateString("et-EE")}`, pageWidth / 2, 28, { align: "center" });
-    
-    let yPos = 40;
+    yPos += 12;
     
     // Input Parameters Comparison
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setTextColor(0);
     doc.text("Sisendparameetrid", 14, yPos);
-    yPos += 8;
+    yPos += 6;
     
     autoTable(doc, {
       startY: yPos,
@@ -138,9 +158,9 @@ export function ROIComparisonCalculator() {
     yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
     
     // Results Comparison
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.text("Tulemused", 14, yPos);
-    yPos += 8;
+    yPos += 6;
     
     autoTable(doc, {
       startY: yPos,
@@ -184,7 +204,7 @@ export function ROIComparisonCalculator() {
     yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
     
     // Summary
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setTextColor(34, 87, 46);
     doc.text("Kokkuvõte", 14, yPos);
     yPos += 8;
@@ -219,11 +239,24 @@ export function ROIComparisonCalculator() {
     );
     
     // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text("Wihuri Agri - Tehnika võrdlus ja ROI analüüs", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    addPDFFooter(doc, pageWidth, 1, 1);
     
     doc.save("roi-vordlusraport.pdf");
+  };
+
+  // Staff user selection state
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const { data: staffUsers = [], isLoading: isLoadingUsers } = useStaffUsers();
+
+  const handlePDFButtonClick = () => {
+    setUserDialogOpen(true);
+  };
+
+  const handleGeneratePDF = () => {
+    const selectedUser = staffUsers.find((u) => u.id === selectedUserId) || null;
+    generatePDFReport(selectedUser);
+    setUserDialogOpen(false);
   };
 
   return (
@@ -386,7 +419,7 @@ export function ROIComparisonCalculator() {
             <Button 
               size="lg" 
               className="gap-2"
-              onClick={generatePDFReport}
+              onClick={handlePDFButtonClick}
             >
               <FileDown className="h-5 w-5" />
               Genereeri võrdlus PDF-raport
@@ -394,6 +427,63 @@ export function ROIComparisonCalculator() {
           </div>
         </div>
       </CardContent>
+
+      {/* User Selection Dialog */}
+      <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              Vali dokumendi koostaja
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Vali oma nimi, et see kuvataks PDF-dokumendi päises koostaja infona.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="staff-user-roi">Koostaja</Label>
+              {isLoadingUsers ? (
+                <div className="text-sm text-muted-foreground">Laadin...</div>
+              ) : staffUsers.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Kasutajaid pole lisatud. Lisa kasutajad Admin → Kasutajad vaates.
+                  </p>
+                </div>
+              ) : (
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Vali oma nimi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        <div>
+                          <div className="font-medium">{user.full_name}</div>
+                          <div className="text-xs text-muted-foreground">{user.email}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setUserDialogOpen(false)}>
+              Tühista
+            </Button>
+            <Button onClick={handleGeneratePDF}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Genereeri PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

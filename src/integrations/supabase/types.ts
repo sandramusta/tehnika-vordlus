@@ -419,6 +419,30 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: []
+      }
       work_documentation: {
         Row: {
           area_hectares: number | null
