@@ -171,17 +171,10 @@ export function StaffUsersManagement() {
         </Dialog>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Halda ettevõtte töötajaid, kes saavad PDF-dokumente genereerida. Kasutaja nimi ja e-post kuvatakse PDF-i päises.
-      </p>
-
       {staffUsers.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <User className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <h3 className="mt-4 text-lg font-semibold">Kasutajaid pole lisatud</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Lisa esimene kasutaja, et alustada PDF-dokumentide genereerimist koos koostaja infoga.
-          </p>
         </div>
       ) : (
         <div className="rounded-lg border">
