@@ -183,7 +183,10 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
           return (
             <td
               key={model.id}
-              className="p-3 text-center text-sm font-medium"
+              className={cn(
+                "p-3 text-center text-sm font-medium",
+                selectedModels.indexOf(model) === 0 && "bg-primary/5"
+              )}
             >
               <EditableValueCell
                 displayValue={displayValue}
@@ -241,9 +244,10 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
                     key={model.id} 
                     className={cn(
                       "p-3 text-center text-sm font-semibold min-w-[160px] border-b border-border",
-                      index < selectedModels.length - 1 && "border-r"
+                      index < selectedModels.length - 1 && "border-r",
+                      index === 0 && "bg-primary/5"
                     )}
-                    style={{ backgroundColor: 'white' }}
+                    style={{ backgroundColor: index === 0 ? undefined : 'white' }}
                   >
                     <span className={getBrandTextColor(model.brand?.name || "")}>
                       {model.brand?.name}
@@ -265,16 +269,17 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
                     key={model.id} 
                     className={cn(
                       "p-3 text-center border-b border-border",
-                      index < selectedModels.length - 1 && "border-r"
+                      index < selectedModels.length - 1 && "border-r",
+                      index === 0 && "bg-primary/5"
                     )}
-                    style={{ backgroundColor: 'white' }}
+                    style={{ backgroundColor: index === 0 ? undefined : 'white' }}
                   >
                     {model.image_url ? (
                       <img 
                         src={model.image_url} 
                         alt={model.model_name}
                         className="h-20 w-full rounded-md object-contain mx-auto"
-                        style={{ backgroundColor: 'white' }}
+                        style={{ backgroundColor: index === 0 ? 'transparent' : 'white' }}
                       />
                     ) : (
                       <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
@@ -304,14 +309,17 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
                 <td className="sticky left-0 z-10 bg-muted/30 p-3 text-sm font-semibold text-foreground border-r border-border">
                   TCO (Kogukulu)
                 </td>
-                {selectedModels.map((model) => {
+                {selectedModels.map((model, index) => {
                   const isJohnDeere = model.brand?.name === "John Deere";
                   const tco = calculateTCO(model);
                   const isBest = tco === bestTCO && tco !== null;
-                  return (
+                    return (
                     <td 
                       key={model.id} 
-                      className="p-3 text-center text-sm font-semibold"
+                      className={cn(
+                        "p-3 text-center text-sm font-semibold",
+                        index === 0 && "bg-primary/5"
+                      )}
                     >
                       <div className="flex flex-col items-center justify-center gap-0.5">
                         <div className="flex items-center gap-1">
