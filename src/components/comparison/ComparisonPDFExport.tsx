@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,22 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { FileDown, Table, Calculator, FileText, Download, User } from "lucide-react";
+import { FileDown, Table, Calculator, FileText, Download } from "lucide-react";
 import { Equipment, EquipmentType } from "@/types/equipment";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -31,8 +15,8 @@ import {
   CATEGORY_NAMES,
   buildDetailedSpecRows,
 } from "@/lib/pdfSpecsHelpers";
-import { addPDFHeader, addPDFFooter, getStaffUserInfo } from "@/lib/pdfHelpers";
-import { useStaffUsers, type StaffUser } from "@/hooks/useStaffUsers";
+import { addPDFHeader, addPDFFooter } from "@/lib/pdfHelpers";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ComparisonPDFExportProps {
   selectedModels: Equipment[];
@@ -104,12 +88,11 @@ function buildFullSpecBody(
 function generateComparisonTablePDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
-  staffUser: StaffUser | null
+  userInfo: { name: string; email: string }
 ): void {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
-  const userInfo = getStaffUserInfo(staffUser);
 
   const yPos = addPDFHeader(doc, pageWidth, {
     title: "Tehnika võrdlustabel",
@@ -186,12 +169,11 @@ function generateComparisonTablePDF(
 function generateComparisonWithTCOPDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
-  staffUser: StaffUser | null
+  userInfo: { name: string; email: string }
 ): void {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
-  const userInfo = getStaffUserInfo(staffUser);
 
   // Page 1: Comparison Table with all specs
   let yPos = addPDFHeader(doc, pageWidth, {
@@ -340,11 +322,10 @@ function generateComparisonWithTCOPDF(
 function generateROIPDF(
   existingInputs: ROIInputs,
   newInputs: ROIInputs,
-  staffUser: StaffUser | null
+  userInfo: { name: string; email: string }
 ): void {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const userInfo = getStaffUserInfo(staffUser);
 
   const existingCalc = calculateROI(existingInputs);
   const newCalc = calculateROI(newInputs);
@@ -468,12 +449,11 @@ function generateFullReportPDF(
   equipmentType: EquipmentType | null,
   existingInputs: ROIInputs,
   newInputs: ROIInputs,
-  staffUser: StaffUser | null
+  userInfo: { name: string; email: string }
 ): void {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
-  const userInfo = getStaffUserInfo(staffUser);
 
   // ========== PAGE 1+: Comparison Table ==========
   let yPos = addPDFHeader(doc, pageWidth, {
@@ -711,33 +691,27 @@ export function ComparisonPDFExport({
   existingInputs,
   newInputs,
 }: ComparisonPDFExportProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [pendingPDFType, setPendingPDFType] = useState<PDFType | null>(null);
-
-  const { data: staffUsers = [], isLoading } = useStaffUsers();
+  const { profile } = useAuth();
   
   const hasModels = selectedModels.length > 0;
   const hasROIInputs = existingInputs && newInputs;
 
-  const openUserSelection = (pdfType: PDFType) => {
-    setPendingPDFType(pdfType);
-    setDialogOpen(true);
+  const userInfo = {
+    name: profile?.full_name || "",
+    email: profile?.email || "",
   };
 
-  const handleGeneratePDF = () => {
-    const selectedUser = staffUsers.find((u) => u.id === selectedUserId) || null;
-
-    switch (pendingPDFType) {
+  const handleGeneratePDF = (pdfType: PDFType) => {
+    switch (pdfType) {
       case "comparison":
-        generateComparisonTablePDF(selectedModels, equipmentType, selectedUser);
+        generateComparisonTablePDF(selectedModels, equipmentType, userInfo);
         break;
       case "comparison-tco":
-        generateComparisonWithTCOPDF(selectedModels, equipmentType, selectedUser);
+        generateComparisonWithTCOPDF(selectedModels, equipmentType, userInfo);
         break;
       case "roi":
         if (existingInputs && newInputs) {
-          generateROIPDF(existingInputs, newInputs, selectedUser);
+          generateROIPDF(existingInputs, newInputs, userInfo);
         }
         break;
       case "full":
@@ -747,151 +721,89 @@ export function ComparisonPDFExport({
             equipmentType,
             existingInputs,
             newInputs,
-            selectedUser
+            userInfo
           );
         }
         break;
     }
-
-    setDialogOpen(false);
-    setPendingPDFType(null);
   };
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2" disabled={!hasModels}>
-            <Download className="h-4 w-4" />
-            Laadi alla PDF
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-popover w-[280px]">
-          {!hasModels ? (
-            <div className="p-3 text-sm text-muted-foreground text-center">
-              Vali vähemalt 1 mudel
-            </div>
-          ) : (
-            <>
-              <DropdownMenuItem
-                className="gap-2 cursor-pointer"
-                onClick={() => openUserSelection("comparison")}
-              >
-                <Table className="h-4 w-4" />
-                <div>
-                  <div className="font-medium">Võrdlustabel</div>
-                  <div className="text-xs text-muted-foreground">
-                    Tehniline võrdlus (kõik näitajad)
-                  </div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className="gap-2 cursor-pointer"
-                onClick={() => openUserSelection("comparison-tco")}
-              >
-                <Calculator className="h-4 w-4" />
-                <div>
-                  <div className="font-medium">Võrdlustabel + TCO</div>
-                  <div className="text-xs text-muted-foreground">
-                    Tehniline + omamiskulu
-                  </div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              {hasROIInputs && (
-                <>
-                  <DropdownMenuItem
-                    className="gap-2 cursor-pointer"
-                    onClick={() => openUserSelection("roi")}
-                  >
-                    <FileText className="h-4 w-4" />
-                    <div>
-                      <div className="font-medium">ROI raport</div>
-                      <div className="text-xs text-muted-foreground">
-                        Tasuvusanalüüs
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    className="gap-2 cursor-pointer"
-                    onClick={() => openUserSelection("full")}
-                  >
-                    <FileDown className="h-4 w-4" />
-                    <div>
-                      <div className="font-medium">Kõik (täisraport)</div>
-                      <div className="text-xs text-muted-foreground">
-                        Võrdlus + TCO + ROI
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* User Selection Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
-              Vali dokumendi koostaja
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              Vali oma nimi, et see kuvataks PDF-dokumendi päises koostaja infona.
-            </p>
-            
-            <div className="space-y-2">
-              <Label htmlFor="staff-user">Koostaja</Label>
-              {isLoading ? (
-                <div className="text-sm text-muted-foreground">Laadin...</div>
-              ) : staffUsers.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-4 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Kasutajaid pole lisatud. Lisa kasutajad Admin → Kasutajad vaates.
-                  </p>
-                </div>
-              ) : (
-                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Vali oma nimi" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {staffUsers.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        <div>
-                          <div className="font-medium">{user.full_name}</div>
-                          <div className="text-xs text-muted-foreground">{user.email}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="gap-2" disabled={!hasModels}>
+          <Download className="h-4 w-4" />
+          Laadi alla PDF
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-popover w-[280px]">
+        {!hasModels ? (
+          <div className="p-3 text-sm text-muted-foreground text-center">
+            Vali vähemalt 1 mudel
           </div>
+        ) : (
+          <>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={() => handleGeneratePDF("comparison")}
+            >
+              <Table className="h-4 w-4" />
+              <div>
+                <div className="font-medium">Võrdlustabel</div>
+                <div className="text-xs text-muted-foreground">
+                  Tehniline võrdlus (kõik näitajad)
+                </div>
+              </div>
+            </DropdownMenuItem>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Tühista
-            </Button>
-            <Button onClick={handleGeneratePDF}>
-              <Download className="h-4 w-4 mr-2" />
-              Genereeri PDF
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={() => handleGeneratePDF("comparison-tco")}
+            >
+              <Calculator className="h-4 w-4" />
+              <div>
+                <div className="font-medium">Võrdlustabel + TCO</div>
+                <div className="text-xs text-muted-foreground">
+                  Tehniline + omamiskulu
+                </div>
+              </div>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            {hasROIInputs && (
+              <>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() => handleGeneratePDF("roi")}
+                >
+                  <FileText className="h-4 w-4" />
+                  <div>
+                    <div className="font-medium">ROI raport</div>
+                    <div className="text-xs text-muted-foreground">
+                      Tasuvusanalüüs
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() => handleGeneratePDF("full")}
+                >
+                  <FileDown className="h-4 w-4" />
+                  <div>
+                    <div className="font-medium">Kõik (täisraport)</div>
+                    <div className="text-xs text-muted-foreground">
+                      Võrdlus + TCO + ROI
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              </>
+            )}
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
