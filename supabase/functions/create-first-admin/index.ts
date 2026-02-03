@@ -130,7 +130,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: emailError } = await resend.emails.send({
       from: "Wihuri Agri <noreply@resend.dev>",
       to: [email],
-      subject: "Kutse Wihuri Agri müügiabisse - Administraator",
+      subject: "Kutse Wihuri Agri rakendusse",
       html: `
         <!DOCTYPE html>
         <html>
@@ -140,13 +140,13 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Wihuri Agri Müügiabi</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">Wihuri Agri rakendus</h1>
           </div>
           
           <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
             <h2 style="color: #367C2B; margin-top: 0;">Tere, ${full_name}!</h2>
             
-            <p>Oled kutsutud kasutama Wihuri Agri müügiabi rakendust.</p>
+            <p>Oled kutsutud kasutama Wihuri Agri rakendust, kuhu on koondatud tehnika võrdlus, ROI kalkulaator, müüdid ja konkurentsieelised.</p>
             
             <p><strong>Sinu roll:</strong> Administraator</p>
             
