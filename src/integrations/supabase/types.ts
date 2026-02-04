@@ -121,8 +121,12 @@ export type Database = {
           header_width_m: number | null
           header_width_max_m: number | null
           header_width_min_m: number | null
+          hydraulic_pump_lpm: number | null
           id: string
           image_url: string | null
+          lift_height_m: number | null
+          lift_reach_m: number | null
+          max_lift_capacity_kg: number | null
           max_slope_percent: number | null
           max_torque_nm: number | null
           model_name: string
@@ -170,8 +174,12 @@ export type Database = {
           header_width_m?: number | null
           header_width_max_m?: number | null
           header_width_min_m?: number | null
+          hydraulic_pump_lpm?: number | null
           id?: string
           image_url?: string | null
+          lift_height_m?: number | null
+          lift_reach_m?: number | null
+          max_lift_capacity_kg?: number | null
           max_slope_percent?: number | null
           max_torque_nm?: number | null
           model_name: string
@@ -219,8 +227,12 @@ export type Database = {
           header_width_m?: number | null
           header_width_max_m?: number | null
           header_width_min_m?: number | null
+          hydraulic_pump_lpm?: number | null
           id?: string
           image_url?: string | null
+          lift_height_m?: number | null
+          lift_reach_m?: number | null
+          max_lift_capacity_kg?: number | null
           max_slope_percent?: number | null
           max_torque_nm?: number | null
           model_name?: string
