@@ -70,6 +70,11 @@ export interface Equipment {
   transport_length_mm: number | null;
   header_width_min_m: number | null;
   header_width_max_m: number | null;
+  // Telehandler-specific specs
+  lift_height_m: number | null;
+  lift_reach_m: number | null;
+  max_lift_capacity_kg: number | null;
+  hydraulic_pump_lpm: number | null;
   detailed_specs: DetailedSpecs | null;
   data_source_url: string | null;
   created_at: string;

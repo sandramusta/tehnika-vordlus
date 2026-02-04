@@ -65,7 +65,8 @@ interface SpecRowConfig {
   conditional?: boolean;
 }
 
-const SPEC_ROWS: SpecRowConfig[] = [
+// Combine-specific specs
+const COMBINE_SPEC_ROWS: SpecRowConfig[] = [
   { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true },
   { key: "grain_tank_liters", labelKey: "grain_tank_liters", defaultLabel: "Viljabunker (l)", bestType: "max", showJDAdvantage: true },
   { key: "header_width_m", labelKey: "header_width_m", defaultLabel: "Heedri laius (m)", bestType: "max", showJDAdvantage: true },
@@ -87,6 +88,36 @@ const SPEC_ROWS: SpecRowConfig[] = [
   { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
   { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min" },
 ];
+
+// Telehandler-specific specs
+const TELEHANDLER_SPEC_ROWS: SpecRowConfig[] = [
+  { key: "lift_height_m", labelKey: "lift_height_m", defaultLabel: "Tõstekõrgus (m)", bestType: "max", showJDAdvantage: true },
+  { key: "lift_reach_m", labelKey: "lift_reach_m", defaultLabel: "Tõste kaugus (m)", bestType: "max", showJDAdvantage: true, conditional: true },
+  { key: "max_lift_capacity_kg", labelKey: "max_lift_capacity_kg", defaultLabel: "Max tõstevõime (kg)", bestType: "max", showJDAdvantage: true },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Masina mass (kg)", bestType: "min" },
+  { key: "transport_width_mm", labelKey: "transport_width_mm", defaultLabel: "Laius (mm)", bestType: "min", conditional: true },
+  { key: "transport_height_mm", labelKey: "transport_height_mm", defaultLabel: "Kõrgus (mm)", bestType: "min", conditional: true },
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Mootori võimsus (hj)", bestType: "max" },
+  { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", bestType: "max", conditional: true },
+];
+
+// Generic specs for other equipment types
+const GENERIC_SPEC_ROWS: SpecRowConfig[] = [
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
+  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min", conditional: true },
+];
+
+function getSpecRowsForEquipmentType(typeName?: string): SpecRowConfig[] {
+  switch (typeName) {
+    case "telehandler":
+      return TELEHANDLER_SPEC_ROWS;
+    case "combine":
+      return COMBINE_SPEC_ROWS;
+    default:
+      return GENERIC_SPEC_ROWS;
+  }
+}
 
 const COST_ROWS: SpecRowConfig[] = [
   { key: "price_eur", labelKey: "price_eur", defaultLabel: "Hind", format: "currency", bestType: "min" },
@@ -291,8 +322,8 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
               </tr>
             </thead>
             <tbody>
-              {/* Technical Spec Rows */}
-              {SPEC_ROWS.map((config) => renderSpecRow(config))}
+              {/* Technical Spec Rows - based on equipment type */}
+              {getSpecRowsForEquipmentType(equipmentTypeName).map((config) => renderSpecRow(config))}
 
               {/* Price Section Header */}
               <tr className="bg-muted/50">
