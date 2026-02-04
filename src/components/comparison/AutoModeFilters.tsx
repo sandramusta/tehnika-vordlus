@@ -14,6 +14,7 @@ interface AutoModeFiltersProps {
   equipment: Equipment[];
   competitorCount: number;
   competitorSummary: string | null;
+  equipmentTypeName?: string;
 }
 
 const allowedTypes = [
@@ -37,6 +38,7 @@ export function AutoModeFilters({
   equipment,
   competitorCount,
   competitorSummary,
+  equipmentTypeName,
 }: AutoModeFiltersProps) {
   const { data: types } = useEquipmentTypes();
   const { data: brands } = useBrands();
@@ -60,6 +62,7 @@ export function AutoModeFilters({
   const isModelSelected = selectedModelId !== "all";
 
   const selectedModel = equipment.find((m) => m.id === selectedModelId);
+  const isTelehandler = equipmentTypeName === "telehandler";
 
   return (
     <div className="space-y-4">
@@ -120,7 +123,10 @@ export function AutoModeFilters({
               {filteredModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {model.model_name}
-                  {model.engine_power_hp && ` (${model.engine_power_hp} hj)`}
+                  {isTelehandler 
+                    ? (model.lift_height_m && ` (${model.lift_height_m}m)`)
+                    : (model.engine_power_hp && ` (${model.engine_power_hp} hj)`)
+                  }
                 </SelectItem>
               ))}
             </SelectContent>
@@ -139,7 +145,10 @@ export function AutoModeFilters({
           ) : (
             <div className="text-sm text-muted-foreground flex items-center gap-1.5">
               <Info className="h-3.5 w-3.5" />
-              Konkurente vahemikus ±50 hj ei leitud
+              {isTelehandler 
+                ? "Konkurente sarnase tõstekõrguse ja kandevõime vahemikus ei leitud"
+                : "Konkurente vahemikus ±50 hj ei leitud"
+              }
             </div>
           )}
         </div>
@@ -148,7 +157,10 @@ export function AutoModeFilters({
       {/* Selection guidance */}
       {!isModelSelected && isTypeSelected && (
         <div className="text-sm text-muted-foreground">
-          Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest.
+          {isTelehandler 
+            ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±1.5m) ja kandevõime (±1000kg) vahemikus."
+            : "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest."
+          }
         </div>
       )}
     </div>

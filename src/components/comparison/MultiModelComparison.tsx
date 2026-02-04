@@ -89,16 +89,16 @@ const COMBINE_SPEC_ROWS: SpecRowConfig[] = [
   { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min" },
 ];
 
-// Telehandler-specific specs
+// Telehandler-specific specs - all 8 required indicators
 const TELEHANDLER_SPEC_ROWS: SpecRowConfig[] = [
   { key: "lift_height_m", labelKey: "lift_height_m", defaultLabel: "Tõstekõrgus (m)", bestType: "max", showJDAdvantage: true },
-  { key: "lift_reach_m", labelKey: "lift_reach_m", defaultLabel: "Tõste kaugus (m)", bestType: "max", showJDAdvantage: true, conditional: true },
+  { key: "lift_reach_m", labelKey: "lift_reach_m", defaultLabel: "Tõste kaugus (m)", bestType: "max", showJDAdvantage: true },
   { key: "max_lift_capacity_kg", labelKey: "max_lift_capacity_kg", defaultLabel: "Max tõstevõime (kg)", bestType: "max", showJDAdvantage: true },
   { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Masina mass (kg)", bestType: "min" },
-  { key: "transport_width_mm", labelKey: "transport_width_mm", defaultLabel: "Laius (mm)", bestType: "min", conditional: true },
-  { key: "transport_height_mm", labelKey: "transport_height_mm", defaultLabel: "Kõrgus (mm)", bestType: "min", conditional: true },
+  { key: "transport_width_mm", labelKey: "transport_width_mm", defaultLabel: "Laius (mm)", bestType: "min" },
+  { key: "transport_height_mm", labelKey: "transport_height_mm", defaultLabel: "Kõrgus (mm)", bestType: "min" },
   { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Mootori võimsus (hj)", bestType: "max" },
-  { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", bestType: "max", conditional: true },
+  { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", bestType: "max" },
 ];
 
 // Generic specs for other equipment types

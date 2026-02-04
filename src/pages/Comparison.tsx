@@ -151,6 +151,7 @@ export default function Comparison() {
                   equipment={allEquipment}
                   competitorCount={competitors.length}
                   competitorSummary={competitorSummary}
+                  equipmentTypeName={currentEquipmentType?.name}
                 />
               )}
 
