@@ -1,8 +1,10 @@
 // PDF export helpers - shared constants and utility functions for detailed specs
 import { Equipment } from "@/types/equipment";
 
-// Category display names and order (mirrored from DetailedSpecsTableRows)
-export const CATEGORY_ORDER = [
+// ============================================================================
+// COMBINE (Kombain) - Original 12 categories
+// ============================================================================
+export const COMBINE_CATEGORY_ORDER = [
   "mootor",
   "kaldtransportöör_etteanne",
   "peksusüsteem",
@@ -17,7 +19,7 @@ export const CATEGORY_ORDER = [
   "tehnoloogia",
 ] as const;
 
-export const CATEGORY_NAMES: Record<string, string> = {
+export const COMBINE_CATEGORY_NAMES: Record<string, string> = {
   mootor: "MOOTOR",
   kaldtransportöör_etteanne: "KALDTRANSPORTÖÖR / ETTEANNE",
   peksusüsteem: "PEKS JA SEPAREERIMINE",
@@ -32,8 +34,7 @@ export const CATEGORY_NAMES: Record<string, string> = {
   tehnoloogia: "INTEGREERITUD TEHNOLOOGIA",
 };
 
-// Field display names for each category
-export const FIELD_NAMES: Record<string, Record<string, string>> = {
+export const COMBINE_FIELD_NAMES: Record<string, Record<string, string>> = {
   mootor: {
     mark_ja_mudel: "Mark ja mudel",
     heitgaasinorm: "Heitgaasinorm",
@@ -107,6 +108,382 @@ export const FIELD_NAMES: Record<string, Record<string, string>> = {
     harvest_doc: "Harvest Doc",
   },
 };
+
+// ============================================================================
+// TELEHANDLER (Teleskooplaadur) - 4 categories
+// ============================================================================
+export const TELEHANDLER_CATEGORY_ORDER = [
+  "tõsteomadused",
+  "hüdraulika",
+  "mõõtmed",
+  "mootor",
+] as const;
+
+export const TELEHANDLER_CATEGORY_NAMES: Record<string, string> = {
+  tõsteomadused: "TÕSTEOMADUSED",
+  hüdraulika: "HÜDRAULIKA",
+  mõõtmed: "MÕÕTMED",
+  mootor: "MOOTOR",
+};
+
+export const TELEHANDLER_FIELD_NAMES: Record<string, Record<string, string>> = {
+  tõsteomadused: {
+    tõstekõrgus_m: "Tõstekõrgus (m)",
+    tõste_kaugus_m: "Tõste kaugus (m)",
+    max_tõstevõime_kg: "Max tõstevõime (kg)",
+  },
+  hüdraulika: {
+    hüdraulikapumba_võimsus_lpm: "Hüdraulikapumba võimsus (l/min)",
+  },
+  mõõtmed: {
+    laius_mm: "Laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+    kaal_kg: "Kaal (kg)",
+  },
+  mootor: {
+    võimsus_hj: "Võimsus (hj)",
+    kütusekulu_lh: "Kütusekulu (l/h)",
+    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
+  },
+};
+
+// ============================================================================
+// TRACTOR (Traktor) - 3 categories
+// ============================================================================
+export const TRACTOR_CATEGORY_ORDER = [
+  "mootor",
+  "hüdraulika",
+  "mõõtmed",
+] as const;
+
+export const TRACTOR_CATEGORY_NAMES: Record<string, string> = {
+  mootor: "MOOTOR",
+  hüdraulika: "HÜDRAULIKA",
+  mõõtmed: "MÕÕTMED",
+};
+
+export const TRACTOR_FIELD_NAMES: Record<string, Record<string, string>> = {
+  mootor: {
+    võimsus_hj: "Võimsus (hj)",
+    töömaht_l: "Töömaht (l)",
+    silindrid: "Silindrid",
+    max_pöördemoment_Nm: "Max pöördemoment (Nm)",
+    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
+  },
+  hüdraulika: {
+    hüdraulikapumba_võimsus_lpm: "Hüdraulikapumba võimsus (l/min)",
+    tõstevõime_kg: "Tõstevõime (kg)",
+  },
+  mõõtmed: {
+    kaal_kg: "Kaal (kg)",
+    laius_mm: "Laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+  },
+};
+
+// ============================================================================
+// FORAGE HARVESTER (Hekseldi) - 4 categories
+// ============================================================================
+export const FORAGE_HARVESTER_CATEGORY_ORDER = [
+  "mootor",
+  "lõikur",
+  "tõstuk",
+  "mõõtmed",
+] as const;
+
+export const FORAGE_HARVESTER_CATEGORY_NAMES: Record<string, string> = {
+  mootor: "MOOTOR",
+  lõikur: "LÕIKUR",
+  tõstuk: "TÕSTUK",
+  mõõtmed: "MÕÕTMED",
+};
+
+export const FORAGE_HARVESTER_FIELD_NAMES: Record<string, Record<string, string>> = {
+  mootor: {
+    võimsus_hj: "Võimsus (hj)",
+    töömaht_l: "Töömaht (l)",
+    silindrid: "Silindrid",
+    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
+  },
+  lõikur: {
+    lõikelaius_m: "Lõikelaius (m)",
+    nugade_arv: "Nugade arv",
+    lõikekiirus_min: "Lõikekiirus (1/min)",
+  },
+  tõstuk: {
+    väljutuskõrgus_m: "Väljutuskõrgus (m)",
+    väljutuskaugus_m: "Väljutuskaugus (m)",
+  },
+  mõõtmed: {
+    kaal_kg: "Kaal (kg)",
+    laius_mm: "Laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+  },
+};
+
+// ============================================================================
+// WHEEL LOADER (Rataslaadur) - 3 categories
+// ============================================================================
+export const WHEEL_LOADER_CATEGORY_ORDER = [
+  "tõsteomadused",
+  "mootor",
+  "mõõtmed",
+] as const;
+
+export const WHEEL_LOADER_CATEGORY_NAMES: Record<string, string> = {
+  tõsteomadused: "TÕSTEOMADUSED",
+  mootor: "MOOTOR",
+  mõõtmed: "MÕÕTMED",
+};
+
+export const WHEEL_LOADER_FIELD_NAMES: Record<string, Record<string, string>> = {
+  tõsteomadused: {
+    tõstekõrgus_m: "Tõstekõrgus (m)",
+    max_tõstevõime_kg: "Max tõstevõime (kg)",
+    kopalaius_mm: "Kopa laius (mm)",
+    kopamaht_m3: "Kopa maht (m³)",
+  },
+  mootor: {
+    võimsus_hj: "Võimsus (hj)",
+    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
+  },
+  mõõtmed: {
+    kaal_kg: "Kaal (kg)",
+    laius_mm: "Laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+  },
+};
+
+// ============================================================================
+// SELF-PROPELLED SPRAYER (Iseliikuv taimekaitseprits) - 4 categories
+// ============================================================================
+export const SELF_PROPELLED_SPRAYER_CATEGORY_ORDER = [
+  "paak",
+  "poomid",
+  "mootor",
+  "mõõtmed",
+] as const;
+
+export const SELF_PROPELLED_SPRAYER_CATEGORY_NAMES: Record<string, string> = {
+  paak: "PAAK",
+  poomid: "POOMID",
+  mootor: "MOOTOR",
+  mõõtmed: "MÕÕTMED",
+};
+
+export const SELF_PROPELLED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>> = {
+  paak: {
+    paagi_maht_l: "Paagi maht (l)",
+    puhastvee_paak_l: "Puhta vee paak (l)",
+  },
+  poomid: {
+    poomi_laius_m: "Poomi laius (m)",
+    poomi_kõrguse_vahemik_mm: "Poomi kõrguse vahemik (mm)",
+  },
+  mootor: {
+    võimsus_hj: "Võimsus (hj)",
+    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
+  },
+  mõõtmed: {
+    kaal_kg: "Kaal (kg)",
+    laius_mm: "Transpordi laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+  },
+};
+
+// ============================================================================
+// TRAILED SPRAYER (Järelveetav taimekaitseprits) - 3 categories
+// ============================================================================
+export const TRAILED_SPRAYER_CATEGORY_ORDER = [
+  "paak",
+  "poomid",
+  "mõõtmed",
+] as const;
+
+export const TRAILED_SPRAYER_CATEGORY_NAMES: Record<string, string> = {
+  paak: "PAAK",
+  poomid: "POOMID",
+  mõõtmed: "MÕÕTMED",
+};
+
+export const TRAILED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>> = {
+  paak: {
+    paagi_maht_l: "Paagi maht (l)",
+    puhastvee_paak_l: "Puhta vee paak (l)",
+  },
+  poomid: {
+    poomi_laius_m: "Poomi laius (m)",
+    poomi_kõrguse_vahemik_mm: "Poomi kõrguse vahemik (mm)",
+  },
+  mõõtmed: {
+    kaal_kg: "Kaal (kg)",
+    laius_mm: "Transpordi laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+  },
+};
+
+// ============================================================================
+// ROUND BALER (Ruloonpress) - 3 categories
+// ============================================================================
+export const ROUND_BALER_CATEGORY_ORDER = [
+  "ruloonid",
+  "nõuded",
+  "mõõtmed",
+] as const;
+
+export const ROUND_BALER_CATEGORY_NAMES: Record<string, string> = {
+  ruloonid: "RULOONID",
+  nõuded: "NÕUDED",
+  mõõtmed: "MÕÕTMED",
+};
+
+export const ROUND_BALER_FIELD_NAMES: Record<string, Record<string, string>> = {
+  ruloonid: {
+    rulooni_läbimõõt_mm: "Rulooni läbimõõt (mm)",
+    rulooni_laius_mm: "Rulooni laius (mm)",
+    sidumine: "Sidumine",
+  },
+  nõuded: {
+    min_võimsus_hj: "Min võimsus (hj)",
+    kardaanivõlli_pöörded: "Kardaanivõlli pöörded (1/min)",
+  },
+  mõõtmed: {
+    kaal_kg: "Kaal (kg)",
+    laius_mm: "Laius (mm)",
+    kõrgus_mm: "Kõrgus (mm)",
+    pikkus_mm: "Pikkus (mm)",
+  },
+};
+
+// ============================================================================
+// BACKWARD COMPATIBILITY - Original exports (aliases to combine data)
+// ============================================================================
+export const CATEGORY_ORDER = COMBINE_CATEGORY_ORDER;
+export const CATEGORY_NAMES = COMBINE_CATEGORY_NAMES;
+export const FIELD_NAMES = COMBINE_FIELD_NAMES;
+
+// ============================================================================
+// DYNAMIC GETTERS - Get specs based on equipment type
+// ============================================================================
+
+/**
+ * Returns the category order array for a given equipment type
+ */
+export function getCategoryOrderForType(typeName?: string): readonly string[] {
+  if (!typeName) return COMBINE_CATEGORY_ORDER;
+  
+  const normalizedType = typeName.toLowerCase().trim();
+  
+  if (normalizedType === "combine" || normalizedType === "kombain") {
+    return COMBINE_CATEGORY_ORDER;
+  }
+  if (normalizedType === "teleskooplaadur" || normalizedType === "telehandler") {
+    return TELEHANDLER_CATEGORY_ORDER;
+  }
+  if (normalizedType === "traktor" || normalizedType === "tractor") {
+    return TRACTOR_CATEGORY_ORDER;
+  }
+  if (normalizedType === "hekseldi" || normalizedType === "forage harvester") {
+    return FORAGE_HARVESTER_CATEGORY_ORDER;
+  }
+  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader") {
+    return WHEEL_LOADER_CATEGORY_ORDER;
+  }
+  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer") {
+    return SELF_PROPELLED_SPRAYER_CATEGORY_ORDER;
+  }
+  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer") {
+    return TRAILED_SPRAYER_CATEGORY_ORDER;
+  }
+  if (normalizedType === "ruloonpress" || normalizedType === "round baler") {
+    return ROUND_BALER_CATEGORY_ORDER;
+  }
+  
+  // Default to combine for unknown types
+  return COMBINE_CATEGORY_ORDER;
+}
+
+/**
+ * Returns the category names mapping for a given equipment type
+ */
+export function getCategoryNamesForType(typeName?: string): Record<string, string> {
+  if (!typeName) return COMBINE_CATEGORY_NAMES;
+  
+  const normalizedType = typeName.toLowerCase().trim();
+  
+  if (normalizedType === "combine" || normalizedType === "kombain") {
+    return COMBINE_CATEGORY_NAMES;
+  }
+  if (normalizedType === "teleskooplaadur" || normalizedType === "telehandler") {
+    return TELEHANDLER_CATEGORY_NAMES;
+  }
+  if (normalizedType === "traktor" || normalizedType === "tractor") {
+    return TRACTOR_CATEGORY_NAMES;
+  }
+  if (normalizedType === "hekseldi" || normalizedType === "forage harvester") {
+    return FORAGE_HARVESTER_CATEGORY_NAMES;
+  }
+  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader") {
+    return WHEEL_LOADER_CATEGORY_NAMES;
+  }
+  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer") {
+    return SELF_PROPELLED_SPRAYER_CATEGORY_NAMES;
+  }
+  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer") {
+    return TRAILED_SPRAYER_CATEGORY_NAMES;
+  }
+  if (normalizedType === "ruloonpress" || normalizedType === "round baler") {
+    return ROUND_BALER_CATEGORY_NAMES;
+  }
+  
+  return COMBINE_CATEGORY_NAMES;
+}
+
+/**
+ * Returns the field names mapping for a given equipment type
+ */
+export function getFieldNamesForType(typeName?: string): Record<string, Record<string, string>> {
+  if (!typeName) return COMBINE_FIELD_NAMES;
+  
+  const normalizedType = typeName.toLowerCase().trim();
+  
+  if (normalizedType === "combine" || normalizedType === "kombain") {
+    return COMBINE_FIELD_NAMES;
+  }
+  if (normalizedType === "teleskooplaadur" || normalizedType === "telehandler") {
+    return TELEHANDLER_FIELD_NAMES;
+  }
+  if (normalizedType === "traktor" || normalizedType === "tractor") {
+    return TRACTOR_FIELD_NAMES;
+  }
+  if (normalizedType === "hekseldi" || normalizedType === "forage harvester") {
+    return FORAGE_HARVESTER_FIELD_NAMES;
+  }
+  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader") {
+    return WHEEL_LOADER_FIELD_NAMES;
+  }
+  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer") {
+    return SELF_PROPELLED_SPRAYER_FIELD_NAMES;
+  }
+  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer") {
+    return TRAILED_SPRAYER_FIELD_NAMES;
+  }
+  if (normalizedType === "ruloonpress" || normalizedType === "round baler") {
+    return ROUND_BALER_FIELD_NAMES;
+  }
+  
+  return COMBINE_FIELD_NAMES;
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
 // Format value for PDF display
 export function formatDetailedValue(value: unknown): string {

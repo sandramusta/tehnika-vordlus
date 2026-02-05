@@ -100,13 +100,10 @@
    // Get dynamic fields based on selected type
    const fieldGroups = useMemo(() => {
      if (!selectedType) return [];
-     return getFieldsForEquipmentType(selectedType.name);
-   }, [selectedType]);
- 
-   // Check if this is a combine type for detailed specs editor
-   const isCombine = selectedType?.name?.toLowerCase() === "combine";
- 
-   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    return getFieldsForEquipmentType(selectedType.name);
+  }, [selectedType]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
      e.preventDefault();
      const formData = new FormData(e.currentTarget);
      onSubmit(formData, imageUrl, threshingImageUrl, detailedSpecs);
@@ -243,15 +240,15 @@
            onImageUploaded={setImageUrl}
            folder="equipment"
          />
-         {isCombine && (
-           <ImageUpload
-             name="threshing_system_image_url"
-             label="Peksusüsteemi pilt"
-             currentImageUrl={threshingImageUrl || undefined}
-             onImageUploaded={setThreshingImageUrl}
-             folder="threshing"
-           />
-         )}
+          {selectedType?.name?.toLowerCase() === "combine" && (
+            <ImageUpload
+              name="threshing_system_image_url"
+              label="Peksusüsteemi pilt"
+              currentImageUrl={threshingImageUrl || undefined}
+              onImageUploaded={setThreshingImageUrl}
+              folder="threshing"
+            />
+          )}
        </div>
  
        {/* Data source URL */}
@@ -275,17 +272,18 @@
          />
        </div>
  
-       {/* Brochures - only for existing equipment */}
-       {equipment && <EquipmentBrochuresList equipment={equipment} />}
- 
-       {/* Detailed specs editor - only for combines or when editing */}
-       {(isCombine || equipment) && (
-         <DetailedSpecsEditor
-           equipment={equipment}
-           initialSpecs={detailedSpecs}
-           onChange={setDetailedSpecs}
-         />
-       )}
+        {/* Brochures - only for existing equipment */}
+        {equipment && <EquipmentBrochuresList equipment={equipment} />}
+
+        {/* Detailed specs editor - always show when type is selected */}
+        {selectedType && (
+          <DetailedSpecsEditor
+            equipment={equipment}
+            initialSpecs={detailedSpecs}
+            onChange={setDetailedSpecs}
+            equipmentTypeName={selectedType.name}
+          />
+        )}
  
        <Button type="submit" className="w-full" disabled={isSubmitting}>
          {isSubmitting ? "Salvestan..." : "Salvesta"}

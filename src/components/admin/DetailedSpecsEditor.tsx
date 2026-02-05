@@ -1,19 +1,20 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Equipment } from "@/types/equipment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronRight, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  CATEGORY_ORDER,
-  CATEGORY_NAMES,
-  FIELD_NAMES,
+  getCategoryOrderForType,
+  getCategoryNamesForType,
+  getFieldNamesForType,
 } from "@/lib/pdfSpecsHelpers";
 
 interface DetailedSpecsEditorProps {
   equipment?: Equipment | null;
   initialSpecs?: Record<string, unknown>;
   onChange: (updatedSpecs: Record<string, unknown>) => void;
+  equipmentTypeName?: string;
 }
 
 function formatDisplayValue(value: unknown): string {
@@ -45,16 +46,27 @@ function parseInputValue(value: string): unknown {
 export function DetailedSpecsEditor({ 
   equipment, 
   initialSpecs = {},
-  onChange 
+  onChange,
+  equipmentTypeName,
 }: DetailedSpecsEditorProps) {
+  // Get dynamic categories and fields based on equipment type
+  const categoryOrder = useMemo(() => getCategoryOrderForType(equipmentTypeName), [equipmentTypeName]);
+  const categoryNames = useMemo(() => getCategoryNamesForType(equipmentTypeName), [equipmentTypeName]);
+  const fieldNames = useMemo(() => getFieldNamesForType(equipmentTypeName), [equipmentTypeName]);
+
   // Track if this is the initial mount to avoid overwriting user edits
   const isInitialMount = useRef(true);
   const equipmentIdRef = useRef<string | null>(equipment?.id || null);
   
   // All categories expanded by default for Admin view
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(CATEGORY_ORDER)
+    new Set(categoryOrder)
   );
+
+  // Update expanded categories when type changes
+  useEffect(() => {
+    setExpandedCategories(new Set(categoryOrder));
+  }, [categoryOrder]);
 
   // Initialize specs from equipment or initialSpecs
   const getInitialSpecs = (): Record<string, Record<string, unknown>> => {
@@ -102,7 +114,7 @@ export function DetailedSpecsEditor({
   };
 
   const expandAll = () => {
-    setExpandedCategories(new Set(CATEGORY_ORDER));
+    setExpandedCategories(new Set(categoryOrder));
   };
 
   const collapseAll = () => {
@@ -168,11 +180,11 @@ export function DetailedSpecsEditor({
       </p>
       
       <div className="border border-border rounded-lg overflow-hidden">
-        {CATEGORY_ORDER.map((categoryKey) => {
+        {categoryOrder.map((categoryKey) => {
           const isExpanded = expandedCategories.has(categoryKey);
-          const categoryName = CATEGORY_NAMES[categoryKey] || categoryKey;
-          const fieldNames = FIELD_NAMES[categoryKey] || {};
-          const fields = Object.entries(fieldNames);
+          const categoryName = categoryNames[categoryKey] || categoryKey;
+          const categoryFieldNames = fieldNames[categoryKey] || {};
+          const fields = Object.entries(categoryFieldNames);
           
           // Count filled fields for this category
           const filledCount = fields.filter(([fieldKey]) => {
