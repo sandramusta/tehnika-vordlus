@@ -1,27 +1,76 @@
 
-## Admin lehe nähtavaks muutmine arenduse ajaks
+## Detailsete spetsifikatsioonide dünaamiliseks muutmine tehnika tüübi järgi
 
-Lihtne muudatus, et Admin link oleks päises alati nähtav ilma sisselogimiseta.
+### Probleem
+`DetailedSpecsEditor` komponent näitab praegu kõikidele tehnikatüüpidele kombainide jaoks mõeldud 12 kategooriat (MOOTOR, KALDTRANSPORTÖÖR, PEKSUSÜSTEEM jne), kuigi peaks näitama ainult valitud tehnika tüübile sobivaid välju.
 
-## Muudatus
+### Lahendus
 
-### Fail: `src/components/layout/Header.tsx`
+#### 1. Laiendada `pdfSpecsHelpers.ts` faili - lisada tehnika tüübipõhised spetsifikatsioonide definitsioonid
 
-Muudan rea 30 nii, et Admin link on **alati nähtav** (`show: true`):
+Praegu on olemas ainult kombainide kategooriad. Lisan:
 
-```tsx
-// ENNE (rida 30):
-{ href: "/admin", label: "Admin", icon: Settings, show: canEdit },
+- **Teleskooplaadurite kategooriad:**
+  - TÕSTEOMADUSED (tõstekõrgus, tõste kaugus, max tõstevõime)
+  - HÜDRAULIKA (hüdraulikapumba võimsus)
+  - MÕÕTMED (laius, kõrgus, pikkus)
+  - MOOTOR (võimsus, kaal)
 
-// PÄRAST:
-{ href: "/admin", label: "Admin", icon: Settings, show: true }, // TODO: Taasta canEdit kui projekt on valmis
+- **Traktorite kategooriad:**
+  - MOOTOR (kütusepaak, töömaht, silindrid, pöördemoment)
+  - HÜDRAULIKA (hüdraulikapump, tõstevõime)
+  - MÕÕTMED
+
+- **Teiste tehnikatüüpide kategooriad** (hekseldi, rataslaadur, pritsimispritsid, ruloonpress)
+
+Iga tehnikatüüp saab oma:
+- `CATEGORY_ORDER_[TYPE]` - kategooriate järjekord
+- `CATEGORY_NAMES_[TYPE]` - kategooriate nimed eesti keeles
+- `FIELD_NAMES_[TYPE]` - väljade nimed eesti keeles
+
+#### 2. Lisa utility funktsioonid `pdfSpecsHelpers.ts` faili
+
+```typescript
+// Tagastab kategooriate järjekorra tehnikatüübi järgi
+export function getCategoryOrderForType(typeName?: string): string[]
+
+// Tagastab kategooriate nimed tehnikatüübi järgi  
+export function getCategoryNamesForType(typeName?: string): Record<string, string>
+
+// Tagastab väljade nimed tehnikatüübi järgi
+export function getFieldNamesForType(typeName?: string): Record<string, Record<string, string>>
 ```
 
-## Tulemus
+#### 3. Muuda `DetailedSpecsEditor.tsx` komponenti
 
-Pärast muudatust on päises kolm vahelehte nähtavad kõigile:
-- **Võrdlus** - avalik
-- **Müüdid** - avalik  
-- **Admin** - nähtav arenduse ajal (hiljem piiratakse `canEdit` tingimusega)
+- Lisa uus prop: `equipmentTypeName?: string`
+- Kasuta dünaamilisi kategooriaid ja välju sõltuvalt tehnikatüübist
+- Asenda staatilised impordid dünaamiliste funktsioonidega
 
-Kui projekt on valmis, saab `show: true` tagasi muuta `show: canEdit` peale, et Admin vaheleht oleks nähtav ainult administraatoritele ja tootejuhtidele.
+#### 4. Muuda `EquipmentForm.tsx` - edasta tehnikatüübi nimi editorile
+
+- Edasta `selectedType?.name` `DetailedSpecsEditor` komponendile
+
+### Tehnilised detailid
+
+**Uued kategooriad teleskooplaaduritele:**
+
+| Kategooria        | Väljad |
+|-------------------|--------|
+| TÕSTEOMADUSED     | Tõstekõrgus (m), Tõste kaugus (m), Max tõstevõime (kg) |
+| HÜDRAULIKA        | Hüdraulikapumba võimsus (l/min) |
+| MÕÕTMED           | Laius (mm), Kõrgus (mm), Pikkus (mm) |
+| MOOTOR            | Võimsus (hj), Kaal (kg), Kütusekulu (l/h) |
+
+**Mõjutatud failid:**
+1. `src/lib/pdfSpecsHelpers.ts` - lisa tehnikatüübipõhised definitsioonid ja utility funktsioonid
+2. `src/components/admin/DetailedSpecsEditor.tsx` - muuda dünaamiliseks
+3. `src/components/admin/EquipmentForm.tsx` - edasta tehnikatüübi nimi
+
+### Tulemus
+
+Pärast muudatust:
+- **Kombainidel** kuvatakse 12 kategooriat (MOOTOR, PEKSUSÜSTEEM jne)
+- **Teleskooplaadurite** kuvatakse 4 kategooriat (TÕSTEOMADUSED, HÜDRAULIKA, MÕÕTMED, MOOTOR)
+- **Traktoritel** kuvatakse 3 kategooriat (MOOTOR, HÜDRAULIKA, MÕÕTMED)
+- Iga tehnika tüüp saab oma spetsifikatsioonid, mis vastavad võrdlustabeli näitajatele
