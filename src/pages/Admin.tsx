@@ -77,16 +77,17 @@ function getCategoryLabel(category: string): string {
  export default function Admin() {
    const { toast } = useToast();
    const { canManageUsers } = useAuthContext();
-   const [equipmentDialogOpen, setEquipmentDialogOpen] = useState(false);
-   const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
-   const [mythDialogOpen, setMythDialogOpen] = useState(false);
-   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
-   const [editingArgument, setEditingArgument] = useState<CompetitiveArgument | null>(null);
-   const [editingMyth, setEditingMyth] = useState<Myth | null>(null);
-   const [brochureDialogOpen, setBrochureDialogOpen] = useState(false);
-   const [brochureEquipment, setBrochureEquipment] = useState<Equipment | null>(null);
-   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
-   const [isSavingBrochureData, setIsSavingBrochureData] = useState(false);
+  const [equipmentDialogOpen, setEquipmentDialogOpen] = useState(false);
+  const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
+  const [mythDialogOpen, setMythDialogOpen] = useState(false);
+  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
+  const [editingArgument, setEditingArgument] = useState<CompetitiveArgument | null>(null);
+  const [editingMyth, setEditingMyth] = useState<Myth | null>(null);
+  const [brochureDialogOpen, setBrochureDialogOpen] = useState(false);
+  const [brochureEquipment, setBrochureEquipment] = useState<Equipment | null>(null);
+  const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+  const [isSavingBrochureData, setIsSavingBrochureData] = useState(false);
+  const [argumentTypeFilter, setArgumentTypeFilter] = useState<string>("all");
  
    const { data: equipment = [] } = useEquipment();
    const { data: brands = [] } = useBrands();
@@ -105,8 +106,8 @@ function getCategoryLabel(category: string): string {
    const updateMyth = useUpdateMyth();
    const deleteMyth = useDeleteMyth();
  
-   const combineType = types.find((t) => t.name === "combine");
- 
+  const combineType = types.find((t) => t.name === "combine");
+  const defaultTypeId = combineType?.id || types[0]?.id || "";
    // Equipment form submit handler
    const handleEquipmentFormSubmit = useCallback(
      async (formData: FormData, imageUrl: string, threshingImageUrl: string, detailedSpecs: Record<string, unknown>) => {
@@ -197,8 +198,8 @@ function getCategoryLabel(category: string): string {
      const benefitText = formData.get("benefit_text") as string;
  
      const argumentData = {
-       competitor_brand_id: formData.get("competitor_brand_id") as string,
-       equipment_type_id: combineType?.id || "",
+      competitor_brand_id: formData.get("competitor_brand_id") as string,
+      equipment_type_id: formData.get("equipment_type_id") as string || defaultTypeId,
        argument_title: formData.get("argument_title") as string,
        argument_description: solutionText || "",
        category: formData.get("category") as string,
@@ -483,63 +484,81 @@ function getCategoryLabel(category: string): string {
                        {editingArgument ? "Muuda argumenti" : "Lisa uus argument"}
                      </DialogTitle>
                    </DialogHeader>
-                   <form onSubmit={handleArgumentSubmit} className="space-y-4">
-                     <div className="grid grid-cols-2 gap-4">
-                       <div className="space-y-2">
-                         <Label>Konkurent</Label>
-                         <Select name="competitor_brand_id" required defaultValue={editingArgument?.competitor_brand_id}>
-                           <SelectTrigger>
-                             <SelectValue placeholder="Vali konkurent" />
-                           </SelectTrigger>
-                           <SelectContent>
-                             {competitorBrands.map((brand) => (
-                               <SelectItem key={brand.id} value={brand.id}>
-                                 {brand.name}
-                               </SelectItem>
-                             ))}
-                           </SelectContent>
-                         </Select>
-                       </div>
-                       <div className="space-y-2">
-                         <Label>Kategooria</Label>
-                         <Select name="category" defaultValue={editingArgument?.category || "technology"}>
-                           <SelectTrigger>
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="technology">Tehnoloogia</SelectItem>
-                             <SelectItem value="performance">Jõudlus</SelectItem>
-                             <SelectItem value="fuel">Kütusesääst</SelectItem>
-                             <SelectItem value="comfort">Mugavus</SelectItem>
-                             <SelectItem value="service">Teenindus</SelectItem>
-                             <SelectItem value="value">Väärtus</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                     </div>
- 
-                     <div className="grid grid-cols-2 gap-4">
-                       <div className="space-y-2">
-                         <Label htmlFor="argument_title">Pealkiri</Label>
-                         <Input name="argument_title" required placeholder="nt. ActiveYield automaatika" defaultValue={editingArgument?.argument_title} />
-                       </div>
-                       <div className="space-y-2">
-                         <Label htmlFor="icon_name">Ikooni nimi</Label>
-                         <Select name="icon_name" defaultValue={editingArgument?.icon_name || "Lightbulb"}>
-                           <SelectTrigger>
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="Lightbulb">Lambipirn (Tehnoloogia)</SelectItem>
-                             <SelectItem value="Fuel">Kütus</SelectItem>
-                             <SelectItem value="Zap">Välk (Jõudlus)</SelectItem>
-                             <SelectItem value="Wrench">Mutrivõti (Hooldus)</SelectItem>
-                             <SelectItem value="TrendingUp">Trend üles (Kasum)</SelectItem>
-                             <SelectItem value="Shield">Kilp (Kvaliteet)</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                     </div>
+                    <form onSubmit={handleArgumentSubmit} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Tehnika tüüp</Label>
+                          <Select name="equipment_type_id" required defaultValue={editingArgument?.equipment_type_id || defaultTypeId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Vali tehnika tüüp" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {types.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {type.name_et}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Konkurent</Label>
+                          <Select name="competitor_brand_id" required defaultValue={editingArgument?.competitor_brand_id}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Vali konkurent" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {competitorBrands.map((brand) => (
+                                <SelectItem key={brand.id} value={brand.id}>
+                                  {brand.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Kategooria</Label>
+                          <Select name="category" defaultValue={editingArgument?.category || "technology"}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="technology">Tehnoloogia</SelectItem>
+                              <SelectItem value="performance">Jõudlus</SelectItem>
+                              <SelectItem value="fuel">Kütusesääst</SelectItem>
+                              <SelectItem value="efficiency">Tõhusus</SelectItem>
+                              <SelectItem value="automation">Automatiseerimine</SelectItem>
+                              <SelectItem value="precision">Täppispõllumajandus</SelectItem>
+                              <SelectItem value="comfort">Mugavus</SelectItem>
+                              <SelectItem value="service">Teenindus</SelectItem>
+                              <SelectItem value="value">Väärtus</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="argument_title">Pealkiri</Label>
+                          <Input name="argument_title" required placeholder="nt. ActiveYield automaatika" defaultValue={editingArgument?.argument_title} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="icon_name">Ikooni nimi</Label>
+                        <Select name="icon_name" defaultValue={editingArgument?.icon_name || "Lightbulb"}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Lightbulb">Lambipirn (Tehnoloogia)</SelectItem>
+                            <SelectItem value="Fuel">Kütus</SelectItem>
+                            <SelectItem value="Zap">Välk (Jõudlus)</SelectItem>
+                            <SelectItem value="Wrench">Mutrivõti (Hooldus)</SelectItem>
+                            <SelectItem value="TrendingUp">Trend üles (Kasum)</SelectItem>
+                            <SelectItem value="Shield">Kilp (Kvaliteet)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
  
                      <div className="space-y-2">
                        <Label htmlFor="problem_text">Probleem</Label>
@@ -562,59 +581,95 @@ function getCategoryLabel(category: string): string {
                    </form>
                  </DialogContent>
                </Dialog>
-             </div>
- 
-             {args.length === 0 ? (
-               <div className="text-center text-muted-foreground py-8">
-                 Argumente pole veel lisatud
-               </div>
-             ) : (
-               <div className="space-y-6">
-                 {competitorBrands.map((brand) => {
-                   const brandArgs = args.filter((arg) => arg.competitor_brand_id === brand.id);
-                   if (brandArgs.length === 0) return null;
-                   
-                   return (
-                     <div key={brand.id} className="space-y-3">
-                       <div className="flex items-center gap-2">
-                         <h3 className="font-semibold text-lg">vs <span className={getBrandTextColor(brand.name)}>{brand.name}</span></h3>
-                         <Badge variant="secondary" className="ml-auto">{brandArgs.length} argumenti</Badge>
-                       </div>
-                       
-                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                         {brandArgs.map((arg) => (
-                           <div key={arg.id} className="rounded-lg border border-border bg-card p-4 relative group">
-                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                               <Button variant="ghost" size="icon" onClick={() => openEditArgument(arg)}>
-                                 <Pencil className="h-4 w-4" />
-                               </Button>
-                               <Button variant="ghost" size="icon" onClick={() => deleteArgument.mutate(arg.id)}>
-                                 <Trash2 className="h-4 w-4 text-destructive" />
-                               </Button>
-                             </div>
-                             <Badge variant="secondary" className="text-xs mb-2">{getCategoryLabel(arg.category)}</Badge>
-                             <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
-                             {arg.problem_text && (
-                               <p className="text-xs text-destructive mb-1">
-                                 <span className="font-medium">Probleem:</span> {arg.problem_text}
-                               </p>
-                             )}
-                             <p className="text-sm text-muted-foreground mb-1">
-                               <span className="font-medium text-primary">Lahendus:</span> {arg.solution_text || arg.argument_description}
-                             </p>
-                             {arg.benefit_text && (
-                               <p className="text-sm font-medium text-success">
-                                 <span>Kasu:</span> {arg.benefit_text}
-                               </p>
-                             )}
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                   );
-                 })}
-               </div>
-             )}
+              </div>
+
+              {/* Equipment type filter */}
+              <div className="flex items-center gap-4">
+                <Label className="text-sm text-muted-foreground">Filtreeri tehnika tüübi järgi:</Label>
+                <Select value={argumentTypeFilter} onValueChange={setArgumentTypeFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Kõik tüübid" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Kõik tüübid</SelectItem>
+                    {types.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name_et}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {args.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">
+                  Argumente pole veel lisatud
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {types
+                    .filter((type) => argumentTypeFilter === "all" || type.id === argumentTypeFilter)
+                    .map((type) => {
+                      const typeArgs = args.filter((arg) => arg.equipment_type_id === type.id);
+                      if (typeArgs.length === 0) return null;
+
+                      return (
+                        <div key={type.id} className="space-y-4">
+                          <div className="flex items-center gap-2 border-b pb-2">
+                            <Tractor className="h-5 w-5 text-primary" />
+                            <h3 className="font-semibold text-lg">{type.name_et}</h3>
+                            <Badge variant="outline" className="ml-auto">{typeArgs.length} argumenti</Badge>
+                          </div>
+
+                          {/* Group by competitor brand within each type */}
+                          {competitorBrands.map((brand) => {
+                            const brandArgs = typeArgs.filter((arg) => arg.competitor_brand_id === brand.id);
+                            if (brandArgs.length === 0) return null;
+
+                            return (
+                              <div key={brand.id} className="space-y-3 pl-4 border-l-2 border-muted">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium">vs <span className={getBrandTextColor(brand.name)}>{brand.name}</span></h4>
+                                  <Badge variant="secondary" className="text-xs">{brandArgs.length}</Badge>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                  {brandArgs.map((arg) => (
+                                    <div key={arg.id} className="rounded-lg border border-border bg-card p-4 relative group">
+                                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                        <Button variant="ghost" size="icon" onClick={() => openEditArgument(arg)}>
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => deleteArgument.mutate(arg.id)}>
+                                          <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                      </div>
+                                      <Badge variant="secondary" className="text-xs mb-2">{getCategoryLabel(arg.category)}</Badge>
+                                      <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
+                                      {arg.problem_text && (
+                                        <p className="text-xs text-destructive mb-1">
+                                          <span className="font-medium">Probleem:</span> {arg.problem_text}
+                                        </p>
+                                      )}
+                                      <p className="text-sm text-muted-foreground mb-1">
+                                        <span className="font-medium text-primary">Lahendus:</span> {arg.solution_text || arg.argument_description}
+                                      </p>
+                                      {arg.benefit_text && (
+                                        <p className="text-sm font-medium text-success">
+                                          <span>Kasu:</span> {arg.benefit_text}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
            </TabsContent>
  
            {/* Myths Tab */}
