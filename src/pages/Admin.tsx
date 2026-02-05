@@ -63,7 +63,7 @@ const ARGUMENT_CATEGORIES: Record<string, string> = {
   fuel: "Kütusesääst",
   efficiency: "Tõhusus",
   automation: "Automatiseerimine",
-  precision: "Täpsuspõllumajandus",
+  precision: "Täppispõllumajandus",
   comfort: "Mugavus",
   service: "Teenindus",
   value: "Väärtus",
