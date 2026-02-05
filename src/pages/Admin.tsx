@@ -61,9 +61,13 @@ const ARGUMENT_CATEGORIES: Record<string, string> = {
   technology: "Tehnoloogia",
   performance: "Jõudlus",
   fuel: "Kütusesääst",
+  efficiency: "Tõhusus",
+  automation: "Automatiseerimine",
+  precision: "Täpsuspõllumajandus",
   comfort: "Mugavus",
   service: "Teenindus",
   value: "Väärtus",
+  general: "Üldine",
 };
 
 function getCategoryLabel(category: string): string {
