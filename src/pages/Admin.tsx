@@ -46,6 +46,7 @@ import { BrochureUpload, type ExtractedData } from "@/components/admin/BrochureU
 import { BrochureDataReview } from "@/components/admin/BrochureDataReview";
 import { DetailedSpecsEditor } from "@/components/admin/DetailedSpecsEditor";
 import { EquipmentBrochuresList } from "@/components/admin/EquipmentBrochuresList";
+ import { EquipmentList } from "@/components/admin/EquipmentList";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -1004,95 +1005,14 @@ export default function Admin() {
               </Dialog>
             </div>
 
-            {(() => {
-              // Group equipment by brand, John Deere first
-              const johnDeereBrand = brands.find(b => b.name === "John Deere");
-              const otherBrands = brands.filter(b => b.name !== "John Deere");
-              const sortedBrands = johnDeereBrand ? [johnDeereBrand, ...otherBrands] : otherBrands;
-              
-              const equipmentByBrand = sortedBrands.map(brand => ({
-                brand,
-                items: equipment.filter(e => e.brand_id === brand.id),
-              })).filter(group => group.items.length > 0);
-
-              return equipmentByBrand.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8 border border-border rounded-lg">
-                  Tehnikaid pole veel lisatud
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {equipmentByBrand.map(({ brand, items }) => (
-                    <div key={brand.id} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className={cn("font-semibold text-lg", getBrandTextColor(brand.name))}>{brand.name}</h3>
-                        <Badge variant={brand.is_primary ? "default" : "secondary"}>
-                          {items.length} mudelit
-                        </Badge>
-                      </div>
-                      <div className="rounded-lg border border-border overflow-hidden">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Mudel</th>
-                              <th>Tüüp</th>
-                              <th>Võimsus</th>
-                              <th>Hind</th>
-                              <th className="w-28">Tegevused</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {items.map((item) => (
-                              <tr key={item.id}>
-                                <td className="font-medium">{item.model_name}</td>
-                                <td>{item.equipment_type?.name_et}</td>
-                                <td>{item.engine_power_hp ? `${item.engine_power_hp} hj` : "—"}</td>
-                                <td>
-                                  {item.price_eur
-                                    ? new Intl.NumberFormat("et-EE", {
-                                        style: "currency",
-                                        currency: "EUR",
-                                        maximumFractionDigits: 0,
-                                      }).format(item.price_eur)
-                                    : "—"}
-                                </td>
-                                <td>
-                                  <div className="flex gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => openEditEquipment(item)}
-                                      title="Muuda"
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => openBrochureDialog(item)}
-                                      title="Lae brošüür üles"
-                                    >
-                                      <FileText className="h-4 w-4 text-primary" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => deleteEquipment.mutate(item.id)}
-                                      title="Kustuta"
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
+            <EquipmentList
+              equipment={equipment}
+              brands={brands}
+              types={types}
+              onEdit={openEditEquipment}
+              onBrochure={openBrochureDialog}
+              onDelete={(id) => deleteEquipment.mutate(id)}
+            />
           </TabsContent>
 
           <TabsContent value="arguments" className="space-y-4">
