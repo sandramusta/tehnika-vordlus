@@ -170,12 +170,10 @@ export function addPDFFooter(
   doc.text(COMPANY_INFO.vatNr, rightCol, footerY + 4);
   doc.text(COMPANY_INFO.bank, rightCol, footerY + 8);
 
-  // Page number (center bottom)
+  // Page number (right column, under bank info)
   doc.setFontSize(8);
   doc.setTextColor(150);
-  doc.text(`${pageNum} / ${totalPages}`, pageWidth / 2, pageHeight - 8, {
-    align: "center",
-  });
+  doc.text(`${pageNum} / ${totalPages}`, rightCol, footerY + 12);
 }
 
 /**
