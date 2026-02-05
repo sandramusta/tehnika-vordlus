@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+ import { getBrandTextColor, getBrandHexColor } from "@/lib/brandColors";
 
 interface CompetitiveAdvantagesProps {
   selectedModel: Equipment;
@@ -32,24 +33,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   general: "Üldine",
 };
 
-// Brand colors for dropdown and badges
-function getBrandColorClass(brandName: string): string {
-  switch (brandName) {
-    case "Claas":
-      return "text-claas";
-    case "Case IH":
-      return "text-case-ih";
-    case "Fendt":
-      return "text-fendt";
-    case "New Holland":
-      return "text-new-holland";
-    default:
-      return "text-foreground";
-  }
-}
-
 // All competitor brands that should be in dropdown
-const COMPETITOR_BRANDS = ["Claas", "Case IH", "Fendt", "New Holland"];
+const COMPETITOR_BRANDS = ["Claas", "Case IH", "Fendt", "New Holland", "Kramer", "Manitou", "JCB", "Merlo", "Weidemann", "Claas Scorpion"];
 
 const TOP_COUNT = 3;
 
@@ -156,9 +141,15 @@ export function CompetitiveAdvantages({
                   value={brand.id}
                   className="cursor-pointer"
                 >
-                  <span className={getBrandColorClass(brand.name)}>
-                    vs {brand.name}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className="h-3 w-3 rounded-full shrink-0"
+                      style={{ backgroundColor: getBrandHexColor(brand.name) }}
+                    />
+                    <span className={getBrandTextColor(brand.name)}>
+                      vs {brand.name}
+                    </span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>

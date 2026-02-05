@@ -2,6 +2,7 @@ import { Equipment } from "@/types/equipment";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+ import { getBrandBgClass } from "@/lib/brandColors";
 
 interface ComparisonTableProps {
   equipment: Equipment[];
@@ -25,21 +26,6 @@ function calculateTCO(equipment: Equipment): number | null {
   if (!equipment.price_eur || !equipment.annual_maintenance_eur) return null;
   const lifespan = equipment.expected_lifespan_years || 10;
   return equipment.price_eur + equipment.annual_maintenance_eur * lifespan;
-}
-
-function getBrandColorClass(brandName: string): string {
-  switch (brandName) {
-    case "John Deere":
-      return "bg-primary";
-    case "Claas":
-      return "bg-claas";
-    case "Case IH":
-      return "bg-case-ih";
-    case "New Holland":
-      return "bg-new-holland";
-    default:
-      return "bg-muted";
-  }
 }
 
 export function ComparisonTable({ equipment }: ComparisonTableProps) {
@@ -107,8 +93,8 @@ export function ComparisonTable({ equipment }: ComparisonTableProps) {
                 <td>
                   <Badge
                     className={cn(
-                      "text-xs font-medium text-white",
-                      getBrandColorClass(item.brand?.name || "")
+                      "text-xs font-medium rounded-md",
+                      getBrandBgClass(item.brand?.name || "")
                     )}
                   >
                     {item.brand?.name}

@@ -6,6 +6,7 @@ import { EditableValueCell, EditableCell } from "./EditableCell";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
 import { toast } from "sonner";
+ import { getBrandTextColor, getBrandBgClass } from "@/lib/brandColors";
 
 interface MultiModelComparisonProps {
   selectedModels: Equipment[];
@@ -16,7 +17,6 @@ function formatNumber(num: number | null): string {
   if (num === null) return "—";
   return new Intl.NumberFormat("et-EE").format(num);
 }
-
 function formatCurrency(num: number | null): string {
   if (num === null) return "—";
   return new Intl.NumberFormat("et-EE", {
@@ -30,23 +30,6 @@ function calculateTCO(equipment: Equipment): number | null {
   if (!equipment.price_eur || !equipment.annual_maintenance_eur) return null;
   const lifespan = equipment.expected_lifespan_years || 10;
   return equipment.price_eur + equipment.annual_maintenance_eur * lifespan;
-}
-
-function getBrandTextColor(brandName: string): string {
-  switch (brandName) {
-    case "John Deere":
-      return "text-john-deere";
-    case "Claas":
-      return "text-claas";
-    case "Case IH":
-      return "text-case-ih";
-    case "New Holland":
-      return "text-new-holland";
-    case "Fendt":
-      return "text-fendt";
-    default:
-      return "text-foreground";
-  }
 }
 
 function isMissing(value: unknown): boolean {
@@ -274,16 +257,21 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
                   <th 
                     key={model.id} 
                     className={cn(
-                      "p-3 text-center text-sm font-semibold min-w-[160px] border-b border-border",
+                      "p-3 text-center min-w-[160px] border-b border-border rounded-t-lg",
                       index < selectedModels.length - 1 && "border-r",
-                      index === 0 && "bg-primary/5"
+                      index === 0 ? "bg-primary/5" : getBrandBgClass(model.brand?.name || "")
                     )}
-                    style={{ backgroundColor: index === 0 ? undefined : 'white' }}
                   >
-                    <span className={getBrandTextColor(model.brand?.name || "")}>
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      index === 0 && getBrandTextColor(model.brand?.name || "")
+                    )}>
                       {model.brand?.name}
                     </span>
-                    <div className="text-xs text-muted-foreground font-normal mt-1">
+                    <div className={cn(
+                      "text-xs font-normal mt-1",
+                      index === 0 ? "text-muted-foreground" : "opacity-90"
+                    )}>
                       {model.model_name}
                     </div>
                   </th>
