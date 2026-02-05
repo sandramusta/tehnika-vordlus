@@ -151,7 +151,7 @@ async function generateComparisonTablePDF(
     columnStyles: {
       0: { cellWidth: 55 },
     },
-    margin: { bottom: 30 }, // Space for footer
+    margin: { top: 28, bottom: 30 }, // Space for header and footer on subsequent pages
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
         const text = data.cell.text[0];
@@ -227,7 +227,7 @@ async function generateComparisonWithTCOPDF(
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 8 },
     columnStyles: { 0: { cellWidth: 55 } },
-    margin: { bottom: 30 },
+    margin: { top: 28, bottom: 30 },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
         const text = data.cell.text[0];
@@ -534,7 +534,7 @@ async function generateFullReportPDF(
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 8 },
     columnStyles: { 0: { cellWidth: 55 } },
-    margin: { bottom: 30 },
+    margin: { top: 28, bottom: 30 },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
         const text = data.cell.text[0];
