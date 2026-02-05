@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ import { BrochureDataReview } from "@/components/admin/BrochureDataReview";
 import { DetailedSpecsEditor } from "@/components/admin/DetailedSpecsEditor";
 import { EquipmentBrochuresList } from "@/components/admin/EquipmentBrochuresList";
  import { EquipmentList } from "@/components/admin/EquipmentList";
+import { EquipmentForm } from "@/components/admin/EquipmentForm";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -262,6 +263,94 @@ export default function Admin() {
     setEditingMyth(null);
   };
 
+  // New equipment form submit handler
+  const handleEquipmentFormSubmit = useCallback(
+    async (formData: FormData, imageUrl: string, threshingImageUrl: string, detailedSpecs: Record<string, unknown>) => {
+      // Helper to parse number or return null
+      const parseNum = (key: string) => {
+        const val = formData.get(key);
+        if (!val || val === "") return null;
+        const num = Number(val);
+        return isNaN(num) ? null : num;
+      };
+
+      const equipmentData = {
+        equipment_type_id: formData.get("equipment_type_id") as string,
+        brand_id: formData.get("brand_id") as string,
+        power_class_id: (formData.get("power_class_id") as string) || null,
+        model_name: formData.get("model_name") as string,
+        engine_power_hp: parseNum("engine_power_hp"),
+        grain_tank_liters: parseNum("grain_tank_liters"),
+        header_width_m: parseNum("header_width_m"),
+        weight_kg: parseNum("weight_kg"),
+        fuel_consumption_lh: parseNum("fuel_consumption_lh"),
+        price_eur: parseNum("price_eur"),
+        annual_maintenance_eur: parseNum("annual_maintenance_eur"),
+        expected_lifespan_years: parseNum("expected_lifespan_years") || 10,
+        notes: (formData.get("notes") as string) || null,
+        data_source_url: (formData.get("data_source_url") as string) || null,
+        image_url: imageUrl || null,
+        threshing_system_image_url: threshingImageUrl || null,
+        // Technical specs
+        fuel_tank_liters: parseNum("fuel_tank_liters"),
+        cleaning_area_m2: parseNum("cleaning_area_m2"),
+        rotor_diameter_mm: parseNum("rotor_diameter_mm"),
+        throughput_tons_h: parseNum("throughput_tons_h"),
+        engine_displacement_liters: parseNum("engine_displacement_liters"),
+        engine_cylinders: parseNum("engine_cylinders"),
+        max_torque_nm: parseNum("max_torque_nm"),
+        feeder_width_mm: parseNum("feeder_width_mm"),
+        rasp_bar_count: parseNum("rasp_bar_count"),
+        threshing_drum_diameter_mm: parseNum("threshing_drum_diameter_mm"),
+        threshing_drum_width_mm: parseNum("threshing_drum_width_mm"),
+        threshing_area_m2: parseNum("threshing_area_m2"),
+        rotor_length_mm: parseNum("rotor_length_mm"),
+        separator_area_m2: parseNum("separator_area_m2"),
+        straw_walker_count: parseNum("straw_walker_count"),
+        straw_walker_area_m2: parseNum("straw_walker_area_m2"),
+        sieve_area_m2: parseNum("sieve_area_m2"),
+        unloading_rate_ls: parseNum("unloading_rate_ls"),
+        auger_reach_m: parseNum("auger_reach_m"),
+        chopper_width_mm: parseNum("chopper_width_mm"),
+        max_slope_percent: parseNum("max_slope_percent"),
+        transport_width_mm: parseNum("transport_width_mm"),
+        transport_height_mm: parseNum("transport_height_mm"),
+        transport_length_mm: parseNum("transport_length_mm"),
+        header_width_min_m: parseNum("header_width_min_m"),
+        header_width_max_m: parseNum("header_width_max_m"),
+        // Telehandler-specific fields
+        lift_height_m: parseNum("lift_height_m"),
+        lift_reach_m: parseNum("lift_reach_m"),
+        max_lift_capacity_kg: parseNum("max_lift_capacity_kg"),
+        hydraulic_pump_lpm: parseNum("hydraulic_pump_lpm"),
+        // Detailed specs JSONB
+        detailed_specs: Object.keys(detailedSpecs).length > 0 ? detailedSpecs : (editingEquipment?.detailed_specs || {}),
+      };
+
+      try {
+        if (editingEquipment) {
+          await updateEquipment.mutateAsync({ id: editingEquipment.id, ...equipmentData });
+          toast({ title: "Tehnika uuendatud!" });
+        } else {
+          await createEquipment.mutateAsync({ ...equipmentData, features: [] });
+          toast({ title: "Tehnika lisatud!" });
+        }
+        setEquipmentDialogOpen(false);
+        setEditingEquipment(null);
+        setImageUrl("");
+        setThreshingImageUrl("");
+        setDetailedSpecs({});
+      } catch (error) {
+        toast({
+          title: "Viga",
+          description: editingEquipment ? "Tehnika uuendamine ebaõnnestus" : "Tehnika lisamine ebaõnnestus",
+          variant: "destructive",
+        });
+      }
+    },
+    [editingEquipment, updateEquipment, createEquipment, toast]
+  );
+
   const openBrochureDialog = (item: Equipment) => {
     setBrochureEquipment(item);
     setExtractedData(null);
@@ -449,16 +538,30 @@ export default function Admin() {
                       {editingEquipment ? "Muuda tehnikat" : "Lisa uus tehnika"}
                     </DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleEquipmentSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="equipment_type_id">Tüüp</Label>
-                        <Select
-                          name="equipment_type_id"
-                          defaultValue={editingEquipment?.equipment_type_id || combineType?.id}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
+                  <EquipmentForm
+                    equipment={editingEquipment}
+                    brands={brands}
+                    powerClasses={powerClasses}
+                    types={types}
+                    allEquipment={equipment}
+                    onSubmit={handleEquipmentFormSubmit}
+                    isSubmitting={createEquipment.isPending || updateEquipment.isPending}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <EquipmentList
+              equipment={equipment}
+              brands={brands}
+              types={types}
+              onEdit={openEditEquipment}
+              onBrochure={openBrochureDialog}
+              onDelete={(id) => deleteEquipment.mutate(id)}
+            />
+          </TabsContent>
+
+          <TabsContent value="arguments" className="space-y-4">
                           </SelectTrigger>
                           <SelectContent>
                             {types.map((type) => (
