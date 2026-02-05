@@ -2,6 +2,7 @@ import { CompetitiveArgument } from "@/types/equipment";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import { AlertTriangle, Lightbulb, TrendingUp, LucideIcon } from "lucide-react";
+ import { getBrandTextColor, getBrandBgClass, isBrandColorLight } from "@/lib/brandColors";
 
 interface AdvantageCardProps {
   argument: CompetitiveArgument;
@@ -22,22 +23,6 @@ function getIconByName(iconName: string | null): LucideIcon {
   return Lightbulb;
 }
 
-// Brand colors for the "vs Brand" badge
-function getBrandColorClass(brandName: string): string {
-  switch (brandName) {
-    case "Claas":
-      return "text-claas";
-    case "Case IH":
-      return "text-case-ih";
-    case "Fendt":
-      return "text-fendt";
-    case "New Holland":
-      return "text-new-holland";
-    default:
-      return "text-foreground";
-  }
-}
-
 export function AdvantageCard({ argument, competitorBrandName }: AdvantageCardProps) {
   const Icon = getIconByName(argument.icon_name);
   
@@ -56,8 +41,8 @@ export function AdvantageCard({ argument, competitorBrandName }: AdvantageCardPr
       {competitorBrandName && (
         <div className="absolute top-3 right-3">
           <span className={cn(
-            "text-xs font-medium px-2 py-0.5 rounded bg-muted/50",
-            getBrandColorClass(competitorBrandName)
+            "text-xs font-medium px-2 py-1 rounded-md",
+            getBrandBgClass(competitorBrandName)
           )}>
             vs {competitorBrandName}
           </span>

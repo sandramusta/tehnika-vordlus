@@ -50,23 +50,7 @@ import { EquipmentBrochuresList } from "@/components/admin/EquipmentBrochuresLis
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/contexts/AuthContext";
-
-function getBrandTextColor(brandName: string): string {
-  switch (brandName) {
-    case "John Deere":
-      return "text-john-deere";
-    case "Claas":
-      return "text-claas";
-    case "Case IH":
-      return "text-case-ih";
-    case "New Holland":
-      return "text-new-holland";
-    case "Fendt":
-      return "text-fendt";
-    default:
-      return "text-foreground";
-  }
-}
+ import { getBrandTextColor } from "@/lib/brandColors";
 
 const MYTH_CATEGORIES = [
   { value: "finance", label: "Finantsid ja investeeringud", icon: Wallet },

@@ -60,6 +60,12 @@ export default {
         "case-ih": "hsl(var(--case-ih))",
         "new-holland": "hsl(var(--new-holland))",
         "fendt": "hsl(var(--fendt))",
+        "kramer": "hsl(var(--kramer))",
+        "manitou": "hsl(var(--manitou))",
+        "jcb": "hsl(var(--jcb))",
+        "merlo": "hsl(var(--merlo))",
+        "weidemann": "hsl(var(--weidemann))",
+        "claas-scorpion": "hsl(var(--claas-scorpion))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

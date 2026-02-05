@@ -54,6 +54,14 @@
     --case-ih: 0 100% 32%;
     --new-holland: 220 80% 45%;
     --fendt: 0 0% 0%;
+    
+    /* Telehandler brand colors (HSL from HEX) */
+    --kramer: 96 46% 41%;
+    --manitou: 0 100% 42%;
+    --jcb: 42 95% 49%;
+    --merlo: 96 46% 41%;
+    --weidemann: 2 46% 46%;
+    --claas-scorpion: 67 78% 42%;
 
     /* Sidebar */
     --sidebar-background: 120 15% 97%;
@@ -96,6 +104,14 @@
 
     --warning: 38 85% 55%;
     --warning-foreground: 0 0% 100%;
+    
+    /* Telehandler brand colors (same in dark mode) */
+    --kramer: 96 46% 41%;
+    --manitou: 0 100% 42%;
+    --jcb: 42 95% 49%;
+    --merlo: 96 46% 41%;
+    --weidemann: 2 46% 46%;
+    --claas-scorpion: 67 78% 42%;
 
     --border: 150 10% 20%;
     --input: 150 10% 20%;
@@ -162,6 +178,62 @@
 
   .text-fendt {
     color: hsl(var(--fendt));
+  }
+  
+  /* Telehandler brand text colors */
+  .text-kramer {
+    color: hsl(var(--kramer));
+  }
+  
+  .text-manitou {
+    color: hsl(var(--manitou));
+  }
+  
+  .text-jcb {
+    color: hsl(var(--jcb));
+  }
+  
+  .text-merlo {
+    color: hsl(var(--merlo));
+  }
+  
+  .text-weidemann {
+    color: hsl(var(--weidemann));
+  }
+  
+  .text-claas-scorpion {
+    color: hsl(var(--claas-scorpion));
+  }
+
+  /* Telehandler brand background colors */
+  .brand-kramer {
+    background-color: hsl(var(--kramer));
+    color: white;
+  }
+  
+  .brand-manitou {
+    background-color: hsl(var(--manitou));
+    color: white;
+  }
+  
+  .brand-jcb {
+    background-color: hsl(var(--jcb));
+    color: black;
+  }
+  
+  .brand-merlo {
+    background-color: hsl(var(--merlo));
+    color: white;
+  }
+  
+  .brand-weidemann {
+    background-color: hsl(var(--weidemann));
+    color: white;
+  }
+  
+  .brand-claas-scorpion {
+    background-color: hsl(var(--claas-scorpion));
+    color: black;
   }
 
   .comparison-card {
