@@ -6,7 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FileDown, Table, Calculator, FileText, Download } from "lucide-react";
+import { FileDown, Table, Calculator, FileText, Download, Loader2 } from "lucide-react";
 import { Equipment, EquipmentType } from "@/types/equipment";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -15,8 +15,9 @@ import {
   CATEGORY_NAMES,
   buildDetailedSpecRows,
 } from "@/lib/pdfSpecsHelpers";
-import { addPDFHeader, addPDFFooter } from "@/lib/pdfHelpers";
+import { addPDFHeader, addPDFFooter, initializePDFGeneration } from "@/lib/pdfHelpers";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 interface ComparisonPDFExportProps {
   selectedModels: Equipment[];
@@ -85,11 +86,13 @@ function buildFullSpecBody(
 }
 
 // Generate Comparison Table PDF (with all detailed specs)
-function generateComparisonTablePDF(
+async function generateComparisonTablePDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
   userInfo: { name: string; email: string }
-): void {
+): Promise<void> {
+  await initializePDFGeneration();
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
@@ -100,7 +103,7 @@ function generateComparisonTablePDF(
     equipmentType,
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, true);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -136,6 +139,7 @@ function generateComparisonTablePDF(
 
   // Generate table with category header styling
   const categoryNames = Object.values(CATEGORY_NAMES);
+  let currentPage = 1;
 
   autoTable(doc, {
     startY: tableStartY,
@@ -147,6 +151,7 @@ function generateComparisonTablePDF(
     columnStyles: {
       0: { cellWidth: 55 },
     },
+    margin: { bottom: 30 }, // Space for footer
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
         const text = data.cell.text[0];
@@ -156,21 +161,38 @@ function generateComparisonTablePDF(
         }
       }
     },
-    didDrawPage: () => {
-      const currentPage = doc.getCurrentPageInfo().pageNumber;
-      addPDFFooter(doc, pageWidth, currentPage, doc.getNumberOfPages());
+    didDrawPage: (data) => {
+      const pageNum = doc.getCurrentPageInfo().pageNumber;
+      // Add header on new pages (not first page, already added)
+      if (pageNum > 1 && currentPage !== pageNum) {
+        currentPage = pageNum;
+        addPDFHeader(doc, pageWidth, {
+          title: "Tehnika võrdlustabel",
+          generatorName: userInfo.name,
+          generatorEmail: userInfo.email,
+        }, false);
+      }
     },
   });
+
+  // Add footers to all pages
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addPDFFooter(doc, pageWidth, i, totalPages);
+  }
 
   doc.save("vordlustabel.pdf");
 }
 
 // Generate Comparison Table + TCO PDF
-function generateComparisonWithTCOPDF(
+async function generateComparisonWithTCOPDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
   userInfo: { name: string; email: string }
-): void {
+): Promise<void> {
+  await initializePDFGeneration();
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
@@ -182,7 +204,7 @@ function generateComparisonWithTCOPDF(
     equipmentType,
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, true);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -205,6 +227,7 @@ function generateComparisonWithTCOPDF(
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 8 },
     columnStyles: { 0: { cellWidth: 55 } },
+    margin: { bottom: 30 },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
         const text = data.cell.text[0];
@@ -224,7 +247,7 @@ function generateComparisonWithTCOPDF(
     equipmentType,
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, false);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -269,6 +292,7 @@ function generateComparisonWithTCOPDF(
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 9 },
     columnStyles: { 0: { cellWidth: 50 } },
+    margin: { bottom: 30 },
   });
 
   const lastY =
@@ -319,11 +343,13 @@ function generateComparisonWithTCOPDF(
 }
 
 // Generate ROI PDF
-function generateROIPDF(
+async function generateROIPDF(
   existingInputs: ROIInputs,
   newInputs: ROIInputs,
   userInfo: { name: string; email: string }
-): void {
+): Promise<void> {
+  await initializePDFGeneration();
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -340,7 +366,7 @@ function generateROIPDF(
     title: "ROI Võrdlusraport",
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, true);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -396,6 +422,7 @@ function generateROIPDF(
     ],
     theme: "striped",
     headStyles: { fillColor: [34, 87, 46] },
+    margin: { bottom: 30 },
   });
 
   yPos =
@@ -435,6 +462,7 @@ function generateROIPDF(
     ],
     theme: "striped",
     headStyles: { fillColor: [34, 87, 46] },
+    margin: { bottom: 30 },
   });
 
   // Footer
@@ -444,13 +472,15 @@ function generateROIPDF(
 }
 
 // Generate Full Report PDF (all specs + TCO + ROI)
-function generateFullReportPDF(
+async function generateFullReportPDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
   existingInputs: ROIInputs,
   newInputs: ROIInputs,
   userInfo: { name: string; email: string }
-): void {
+): Promise<void> {
+  await initializePDFGeneration();
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
@@ -462,7 +492,7 @@ function generateFullReportPDF(
     equipmentType,
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, true);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -504,6 +534,7 @@ function generateFullReportPDF(
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 8 },
     columnStyles: { 0: { cellWidth: 55 } },
+    margin: { bottom: 30 },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
         const text = data.cell.text[0];
@@ -523,7 +554,7 @@ function generateFullReportPDF(
     equipmentType,
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, false);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -568,6 +599,7 @@ function generateFullReportPDF(
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 9 },
     columnStyles: { 0: { cellWidth: 50 } },
+    margin: { bottom: 30 },
   });
 
   // ========== ROI Analysis Page ==========
@@ -576,7 +608,7 @@ function generateFullReportPDF(
     title: "ROI Kalkulaator",
     generatorName: userInfo.name,
     generatorEmail: userInfo.email,
-  });
+  }, false);
 
   doc.setFontSize(16);
   doc.setTextColor(34, 87, 46);
@@ -632,6 +664,7 @@ function generateFullReportPDF(
     theme: "striped",
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 9 },
+    margin: { bottom: 30 },
   });
 
   yPos =
@@ -672,6 +705,7 @@ function generateFullReportPDF(
     theme: "striped",
     headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
     bodyStyles: { fontSize: 9 },
+    margin: { bottom: 30 },
   });
 
   // Add footers to all pages
@@ -692,6 +726,7 @@ export function ComparisonPDFExport({
   newInputs,
 }: ComparisonPDFExportProps) {
   const { profile } = useAuth();
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const hasModels = selectedModels.length > 0;
   const hasROIInputs = existingInputs && newInputs;
@@ -701,39 +736,48 @@ export function ComparisonPDFExport({
     email: profile?.email || "",
   };
 
-  const handleGeneratePDF = (pdfType: PDFType) => {
-    switch (pdfType) {
-      case "comparison":
-        generateComparisonTablePDF(selectedModels, equipmentType, userInfo);
-        break;
-      case "comparison-tco":
-        generateComparisonWithTCOPDF(selectedModels, equipmentType, userInfo);
-        break;
-      case "roi":
-        if (existingInputs && newInputs) {
-          generateROIPDF(existingInputs, newInputs, userInfo);
-        }
-        break;
-      case "full":
-        if (existingInputs && newInputs) {
-          generateFullReportPDF(
-            selectedModels,
-            equipmentType,
-            existingInputs,
-            newInputs,
-            userInfo
-          );
-        }
-        break;
+  const handleGeneratePDF = async (pdfType: PDFType) => {
+    setIsGenerating(true);
+    try {
+      switch (pdfType) {
+        case "comparison":
+          await generateComparisonTablePDF(selectedModels, equipmentType, userInfo);
+          break;
+        case "comparison-tco":
+          await generateComparisonWithTCOPDF(selectedModels, equipmentType, userInfo);
+          break;
+        case "roi":
+          if (existingInputs && newInputs) {
+            await generateROIPDF(existingInputs, newInputs, userInfo);
+          }
+          break;
+        case "full":
+          if (existingInputs && newInputs) {
+            await generateFullReportPDF(
+              selectedModels,
+              equipmentType,
+              existingInputs,
+              newInputs,
+              userInfo
+            );
+          }
+          break;
+      }
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2" disabled={!hasModels}>
-          <Download className="h-4 w-4" />
-          Laadi alla PDF
+        <Button variant="outline" className="gap-2" disabled={!hasModels || isGenerating}>
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          {isGenerating ? "Genereerin..." : "Laadi alla PDF"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-popover w-[280px]">
@@ -746,6 +790,7 @@ export function ComparisonPDFExport({
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
               onClick={() => handleGeneratePDF("comparison")}
+              disabled={isGenerating}
             >
               <Table className="h-4 w-4" />
               <div>
@@ -759,6 +804,7 @@ export function ComparisonPDFExport({
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
               onClick={() => handleGeneratePDF("comparison-tco")}
+              disabled={isGenerating}
             >
               <Calculator className="h-4 w-4" />
               <div>
@@ -776,6 +822,7 @@ export function ComparisonPDFExport({
                 <DropdownMenuItem
                   className="gap-2 cursor-pointer"
                   onClick={() => handleGeneratePDF("roi")}
+                  disabled={isGenerating}
                 >
                   <FileText className="h-4 w-4" />
                   <div>
@@ -789,6 +836,7 @@ export function ComparisonPDFExport({
                 <DropdownMenuItem
                   className="gap-2 cursor-pointer"
                   onClick={() => handleGeneratePDF("full")}
+                  disabled={isGenerating}
                 >
                   <FileDown className="h-4 w-4" />
                   <div>
