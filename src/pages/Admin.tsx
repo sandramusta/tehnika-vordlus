@@ -168,6 +168,12 @@ export default function Admin() {
       header_width_min_m: parseNum("header_width_min_m"),
       header_width_max_m: parseNum("header_width_max_m"),
       // Detailed specs JSONB
+      // Telehandler-specific fields
+      lift_height_m: parseNum("lift_height_m"),
+      lift_reach_m: parseNum("lift_reach_m"),
+      max_lift_capacity_kg: parseNum("max_lift_capacity_kg"),
+      hydraulic_pump_lpm: parseNum("hydraulic_pump_lpm"),
+      // Detailed specs JSONB
       detailed_specs: Object.keys(detailedSpecs).length > 0 ? detailedSpecs : (editingEquipment?.detailed_specs || {}),
     };
 
@@ -526,6 +532,48 @@ export default function Admin() {
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                    </div>
+
+                    {/* Telehandler-specific fields */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="lift_height_m">Tõstekõrgus (m)</Label>
+                        <Input
+                          name="lift_height_m"
+                          type="number"
+                          step="0.1"
+                          placeholder="6.0"
+                          defaultValue={editingEquipment?.lift_height_m ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lift_reach_m">Tõste kaugus (m)</Label>
+                        <Input
+                          name="lift_reach_m"
+                          type="number"
+                          step="0.1"
+                          placeholder="3.5"
+                          defaultValue={editingEquipment?.lift_reach_m ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="max_lift_capacity_kg">Max tõstevõime (kg)</Label>
+                        <Input
+                          name="max_lift_capacity_kg"
+                          type="number"
+                          placeholder="4400"
+                          defaultValue={editingEquipment?.max_lift_capacity_kg ?? ""}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="hydraulic_pump_lpm">Hüdraulikapump (l/min)</Label>
+                        <Input
+                          name="hydraulic_pump_lpm"
+                          type="number"
+                          placeholder="140"
+                          defaultValue={editingEquipment?.hydraulic_pump_lpm ?? ""}
+                        />
                       </div>
                     </div>
 
