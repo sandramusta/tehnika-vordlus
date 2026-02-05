@@ -91,14 +91,14 @@ export function addPDFHeader(
   if (cachedLogo) {
     try {
       // Calculate dimensions maintaining aspect ratio
-      // Target height of 10mm, calculate width proportionally
-      const targetHeight = 10;
+      // Target height of 12mm for better visibility, calculate width proportionally
+      const targetHeight = 12;
       const aspectRatio = cachedLogo.width / cachedLogo.height;
       const logoWidth = targetHeight * aspectRatio;
       const logoHeight = targetHeight;
       
-      doc.addImage(cachedLogo.base64, "PNG", margin, 8, logoWidth, logoHeight);
-      headerBottomY = 8 + logoHeight + 2;
+      doc.addImage(cachedLogo.base64, "PNG", margin, 10, logoWidth, logoHeight);
+      headerBottomY = 10 + logoHeight + 4;
     } catch (e) {
       console.warn("Failed to add logo to PDF:", e);
     }
