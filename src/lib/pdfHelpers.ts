@@ -22,10 +22,13 @@ export interface PDFHeaderOptions {
   generatorEmail?: string;
 }
 
+// Cache for loaded logo with dimensions
+let cachedLogo: { base64: string; width: number; height: number } | null = null;
+
 /**
- * Load image as base64 for PDF embedding
+ * Load image as base64 for PDF embedding with original dimensions
  */
-async function loadImageAsBase64(url: string): Promise<string | null> {
+async function loadImageWithDimensions(url: string): Promise<{ base64: string; width: number; height: number } | null> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -36,7 +39,11 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/png"));
+        resolve({
+          base64: canvas.toDataURL("image/png"),
+          width: img.width,
+          height: img.height,
+        });
       } else {
         resolve(null);
       }
@@ -46,15 +53,12 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   });
 }
 
-// Cache for loaded logo
-let cachedLogo: string | null = null;
-
 /**
  * Preload logo for PDF generation
  */
 export async function preloadPDFLogo(): Promise<void> {
   if (!cachedLogo) {
-    cachedLogo = await loadImageAsBase64(LOGO_PATH);
+    cachedLogo = await loadImageWithDimensions(LOGO_PATH);
   }
 }
 
@@ -70,7 +74,7 @@ function formatDateEstonian(date: Date): string {
 
 /**
  * Add a professional header to PDF documents with Wihuri Agri branding
- * Header includes: logo (left), date (right)
+ * Header includes: logo (left), date (right), separator line
  * Author info is added separately only on first page
  */
 export function addPDFHeader(
@@ -81,14 +85,20 @@ export function addPDFHeader(
 ): number {
   const { generatorName, generatorEmail } = options;
   const margin = 14;
+  let headerBottomY = 22;
 
-  // Add logo (left side)
+  // Add logo (left side) - maintain aspect ratio
   if (cachedLogo) {
     try {
-      // Logo dimensions - maintain aspect ratio
-      const logoWidth = 50;
-      const logoHeight = 12;
-      doc.addImage(cachedLogo, "PNG", margin, 10, logoWidth, logoHeight);
+      // Calculate dimensions maintaining aspect ratio
+      // Target height of 10mm, calculate width proportionally
+      const targetHeight = 10;
+      const aspectRatio = cachedLogo.width / cachedLogo.height;
+      const logoWidth = targetHeight * aspectRatio;
+      const logoHeight = targetHeight;
+      
+      doc.addImage(cachedLogo.base64, "PNG", margin, 8, logoWidth, logoHeight);
+      headerBottomY = 8 + logoHeight + 2;
     } catch (e) {
       console.warn("Failed to add logo to PDF:", e);
     }
@@ -98,10 +108,15 @@ export function addPDFHeader(
   const dateStr = formatDateEstonian(new Date());
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text(dateStr, pageWidth - margin, 18, { align: "right" });
+  doc.text(dateStr, pageWidth - margin, 14, { align: "right" });
 
-  // Author info (only on first page, left side under header)
-  let yPos = 30;
+  // Draw separator line under header
+  doc.setDrawColor(34, 87, 46); // Wihuri green
+  doc.setLineWidth(0.5);
+  doc.line(margin, headerBottomY, pageWidth - margin, headerBottomY);
+
+  // Author info (only on first page, left side under separator)
+  let yPos = headerBottomY + 6;
   if (isFirstPage && (generatorName || generatorEmail)) {
     doc.setFontSize(9);
     doc.setTextColor(80);
@@ -117,8 +132,8 @@ export function addPDFHeader(
     yPos += 3;
   }
 
-  // Return Y position for content to start
-  return Math.max(yPos, 32);
+  // Return Y position for content to start (with some padding)
+  return Math.max(yPos, headerBottomY + 8);
 }
 
 /**
