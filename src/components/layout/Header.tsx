@@ -27,7 +27,7 @@ export function Header() {
   const navItems = [
     { href: "/", label: "Võrdlus", icon: BarChart3, show: true },
     { href: "/myths", label: "Müüdid", icon: MessageSquareWarning, show: true },
-    { href: "/admin", label: "Admin", icon: Settings, show: canEdit },
+    { href: "/admin", label: "Admin", icon: Settings, show: true }, // TODO: Taasta canEdit kui projekt on valmis
   ];
 
   const handleSignOut = async () => {
