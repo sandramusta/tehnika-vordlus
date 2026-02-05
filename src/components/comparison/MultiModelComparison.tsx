@@ -259,19 +259,16 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
                     className={cn(
                       "p-3 text-center min-w-[160px] border-b border-border rounded-t-lg",
                       index < selectedModels.length - 1 && "border-r",
-                      index === 0 ? "bg-primary/5" : getBrandBgClass(model.brand?.name || "")
+                      index === 0 ? "bg-primary/5" : "bg-white"
                     )}
                   >
                     <span className={cn(
                       "text-sm font-semibold",
-                      index === 0 && getBrandTextColor(model.brand?.name || "")
+                      getBrandTextColor(model.brand?.name || "")
                     )}>
                       {model.brand?.name}
                     </span>
-                    <div className={cn(
-                      "text-xs font-normal mt-1",
-                      index === 0 ? "text-muted-foreground" : "opacity-90"
-                    )}>
+                    <div className="text-xs font-normal mt-1 text-muted-foreground">
                       {model.model_name}
                     </div>
                   </th>
