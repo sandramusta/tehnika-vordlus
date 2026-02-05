@@ -2,11 +2,30 @@ import { CompetitiveArgument } from "@/types/equipment";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import { AlertTriangle, Lightbulb, TrendingUp, LucideIcon } from "lucide-react";
- import { getBrandTextColor, getBrandBgClass, isBrandColorLight } from "@/lib/brandColors";
+import { getBrandTextColor, getBrandBgClass, isBrandColorLight } from "@/lib/brandColors";
+import { Badge } from "@/components/ui/badge";
 
 interface AdvantageCardProps {
   argument: CompetitiveArgument;
   competitorBrandName?: string;
+}
+
+// Category display names in Estonian
+const CATEGORY_LABELS: Record<string, string> = {
+  technology: "Tehnoloogia",
+  performance: "Jõudlus",
+  fuel: "Kütusesääst",
+  efficiency: "Tõhusus",
+  automation: "Automatiseerimine",
+  comfort: "Mugavus",
+  precision: "Täpsuspõllumajandus",
+  service: "Teenindus",
+  value: "Väärtus",
+  general: "Üldine",
+};
+
+function getCategoryLabel(category: string): string {
+  return CATEGORY_LABELS[category.toLowerCase()] || category;
 }
 
 // Get icon by name from lucide-react
@@ -49,11 +68,13 @@ export function AdvantageCard({ argument, competitorBrandName }: AdvantageCardPr
         </div>
       )}
       
+      {/* Category badge */}
+      <Badge variant="secondary" className="mb-3">
+        {getCategoryLabel(argument.category)}
+      </Badge>
+      
       {/* Header with icon */}
       <div className="mb-4 flex items-center gap-3 pr-16">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
-        </div>
         <h4 className="text-base font-semibold text-foreground leading-tight">
           {argument.argument_title}
         </h4>
