@@ -91,8 +91,8 @@ export function addPDFHeader(
   if (cachedLogo) {
     try {
       // Calculate dimensions maintaining aspect ratio
-      // Target height of 12mm for better visibility, calculate width proportionally
-      const targetHeight = 12;
+      // Target height of 4mm, calculate width proportionally
+      const targetHeight = 4;
       const aspectRatio = cachedLogo.width / cachedLogo.height;
       const logoWidth = targetHeight * aspectRatio;
       const logoHeight = targetHeight;
