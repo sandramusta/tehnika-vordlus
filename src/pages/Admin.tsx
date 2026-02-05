@@ -54,7 +54,21 @@
    { value: "tech", label: "Tehnika ja töökindlus", icon: Wrench },
    { value: "weather", label: "Ilm, saagikus ja juhtimine", icon: CloudSun },
    { value: "market", label: "Turg ja konkurents", icon: TrendingUp },
- ];
+];
+
+// Argument category translations
+const ARGUMENT_CATEGORIES: Record<string, string> = {
+  technology: "Tehnoloogia",
+  performance: "Jõudlus",
+  fuel: "Kütusesääst",
+  comfort: "Mugavus",
+  service: "Teenindus",
+  value: "Väärtus",
+};
+
+function getCategoryLabel(category: string): string {
+  return ARGUMENT_CATEGORIES[category] || category;
+}
  
  export default function Admin() {
    const { toast } = useToast();
@@ -366,12 +380,12 @@
    return (
      <Layout>
        <div className="space-y-8">
-         <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
-           <h1 className="text-3xl font-bold">Administreerimine</h1>
-           <p className="mt-2 text-primary-foreground/80">
-             Halda tehnikaid, võrdlusandmeid ja konkurentsieeliseid.
-           </p>
-         </div>
+          <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
+            <h1 className="text-3xl font-bold">Administreerimine</h1>
+            <p className="mt-2 text-primary-foreground/80">
+              Halda tehnikaid, konkurentsieeliseid ja müüte.
+            </p>
+          </div>
  
          <Tabs defaultValue="equipment" className="space-y-6">
            <div className="flex justify-between items-center">
@@ -574,7 +588,7 @@
                                  <Trash2 className="h-4 w-4 text-destructive" />
                                </Button>
                              </div>
-                             <Badge variant="secondary" className="text-xs mb-2">{arg.category}</Badge>
+                             <Badge variant="secondary" className="text-xs mb-2">{getCategoryLabel(arg.category)}</Badge>
                              <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
                              {arg.problem_text && (
                                <p className="text-xs text-destructive mb-1">
