@@ -18,7 +18,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   efficiency: "Tõhusus",
   automation: "Automatiseerimine",
   comfort: "Mugavus",
-  precision: "Täpsuspõllumajandus",
+  precision: "Täppispõllumajandus",
   service: "Teenindus",
   value: "Väärtus",
   general: "Üldine",
