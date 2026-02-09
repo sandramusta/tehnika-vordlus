@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { Equipment } from "@/types/equipment";
 
 const HP_RANGE = 50;
-const LIFT_HEIGHT_RANGE_M = 1.5; // ±1.5m for telehandler matching
-const LIFT_CAPACITY_RANGE_KG = 1000; // ±1000kg for telehandler matching
+const LIFT_HEIGHT_RANGE_M = 1; // ±1m for telehandler matching
+const LIFT_CAPACITY_RANGE_KG = 500; // ±500kg for telehandler matching
 
 // Check if equipment type is telehandler
 function isTelehandler(equipment: Equipment): boolean {
@@ -68,7 +68,7 @@ export function getCompetitorSummary(
     const capacityInfo = selectedModel.max_lift_capacity_kg 
       ? `, ${selectedModel.max_lift_capacity_kg} kg` 
       : "";
-    return `Leitud ${competitors.length} konkurenti ±${LIFT_HEIGHT_RANGE_M}m tõstekõrguse vahemikus (valitud: ${selectedModel.lift_height_m}m${capacityInfo})`;
+    return `Leitud ${competitors.length} konkurenti ±${LIFT_HEIGHT_RANGE_M}m tõstekõrguse ja ±${LIFT_CAPACITY_RANGE_KG}kg tõstevõime vahemikus (valitud: ${selectedModel.lift_height_m}m${capacityInfo})`;
   }
 
   // For other equipment, show HP info
