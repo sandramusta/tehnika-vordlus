@@ -23,6 +23,9 @@ export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProp
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const fetchBrochures = async () => {
       setIsLoading(true);
       try {
@@ -30,10 +33,10 @@ export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProp
           .from("equipment_brochures")
           .select("*")
           .eq("equipment_id", equipment.id)
+          .abortSignal(controller.signal)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        // Deduplicate by filename — keep only the latest upload per filename
         const seen = new Map<string, Brochure>();
         for (const b of (data || [])) {
           if (!seen.has(b.original_filename)) {
@@ -46,10 +49,12 @@ export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProp
         setBrochures([]);
       } finally {
         setIsLoading(false);
+        clearTimeout(timeoutId);
       }
     };
 
     fetchBrochures();
+    return () => { controller.abort(); clearTimeout(timeoutId); };
   }, [equipment.id]);
 
   if (isLoading) {

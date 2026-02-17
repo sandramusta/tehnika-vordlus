@@ -90,6 +90,7 @@ function getCategoryLabel(category: string): string {
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [isSavingBrochureData, setIsSavingBrochureData] = useState(false);
   const [argumentTypeFilter, setArgumentTypeFilter] = useState<string>("all");
+  const [isSavingEquipment, setIsSavingEquipment] = useState(false);
  
    const { data: equipment = [] } = useEquipment();
    const { data: brands = [] } = useBrands();
@@ -170,25 +171,28 @@ function getCategoryLabel(category: string): string {
          detailed_specs: Object.keys(detailedSpecs).length > 0 ? detailedSpecs : (editingEquipment?.detailed_specs || {}),
        };
  
-       try {
-         if (editingEquipment) {
-           await updateEquipment.mutateAsync({ id: editingEquipment.id, ...equipmentData });
-           toast({ title: "Tehnika uuendatud!" });
-         } else {
-           await createEquipment.mutateAsync({ ...equipmentData, features: [] });
-           toast({ title: "Tehnika lisatud!" });
-         }
-         setEquipmentDialogOpen(false);
-         setEditingEquipment(null);
-      } catch (error) {
-        console.error("Equipment save error:", error);
-        toast({
-          title: "Viga",
-          description: error instanceof Error ? error.message : (editingEquipment ? "Tehnika uuendamine ebaõnnestus" : "Tehnika lisamine ebaõnnestus"),
-          variant: "destructive",
-        });
-      }
-    },
+      setIsSavingEquipment(true);
+        try {
+          if (editingEquipment) {
+            await updateEquipment.mutateAsync({ id: editingEquipment.id, ...equipmentData });
+            toast({ title: "Tehnika uuendatud!" });
+          } else {
+            await createEquipment.mutateAsync({ ...equipmentData, features: [] });
+            toast({ title: "Tehnika lisatud!" });
+          }
+          setEquipmentDialogOpen(false);
+          setEditingEquipment(null);
+       } catch (error) {
+         console.error("Equipment save error:", error);
+         toast({
+           title: "Viga",
+           description: error instanceof Error ? error.message : (editingEquipment ? "Tehnika uuendamine ebaõnnestus" : "Tehnika lisamine ebaõnnestus"),
+           variant: "destructive",
+         });
+       } finally {
+         setIsSavingEquipment(false);
+       }
+     },
     [editingEquipment, updateEquipment, createEquipment, toast]
    );
  
@@ -503,7 +507,7 @@ function getCategoryLabel(category: string): string {
                      types={types}
                      allEquipment={equipment}
                      onSubmit={handleEquipmentFormSubmit}
-                     isSubmitting={createEquipment.isPending || updateEquipment.isPending}
+                     isSubmitting={isSavingEquipment}
                    />
                  </DialogContent>
                </Dialog>
