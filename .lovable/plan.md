@@ -1,34 +1,71 @@
 
 
-## Topeltnäitajate eemaldamine ja andmevoo konsolideerimine
+## Brošüüri üleslaadimise ja salvestamise "jääb laadima" probleemide parandamine
 
-### Probleem
+### Tuvastatud probleemid
 
-Praegu kuvab admin vormi redigeerimisvaade **kahes kohas** sarnaseid tehnilisi näitajaid:
-1. **Dünaamilised väljad** (nt Tõstekõrgus, Tõste kaugus, Max tõstevõime, Laius, Kõrgus, Pikkus jne) -- salvestatakse otse equipment tabeli veergudesse
-2. **Detailsed spetsifikatsioonid** (samad väljad kategooriate kaupa tabelis) -- salvestatakse detailed_specs JSONB väljale
+1. **Brošüüri üleslaadimine jääb laadima**: Edge function kutsel puudub timeout. Kui AI analüüs vottab kaua aega (suurte PDF-ide puhul), jääb brauser lihtsalt ootama -- lõpmatuseni. Samuti on kliendipoolne PDF teksti lugemine (`readPdfAsText`) vigane -- see ei suuda kaasaegseid tihendatud PDF-e lugeda ja saadab AI-le binaarseid jäätmeid.
 
-See tekitab segadust, sest samad andmed on kahes kohas.
+2. **Salvesta nupp jääb "Salvestan..." peale**: Kui eelmine mutation ebaonnestub (nt vorguviga), siis React Query `isPending` olek voib jääda kinni. Vaja on paremat veakäsitlust.
 
-### Lahendus
+3. **Brošüüride laadimise lõputu spinner**: `EquipmentBrochuresList` komponendi fetch voib vaikselt ebaonnestuda ja loading olek jääb trueks.
 
-1. **Eemaldame tüübipõhised dünaamilised väljad** vormist (EquipmentForm read 220-234) -- need on "Bunker ja heedrid", "Mootor ja küttesüsteem", "Peksusüsteem", "Tõsteomadused", "Hüdraulika", "Mõõtmed" jne plokid
-2. **Jätame alles majandusandmed** (hind, hoolduskulu, eluiga) ja põhiandmed (võimsus, kaal, kütusekulu), sest need on vajalikud TCO/ROI arvutusteks
-3. **Brošüüri andmete kinnitamisel** suuname ka equipment_columns väärtused detailsete spetsifikatsioonide tabelisse, et kõik tehnilised andmed oleksid ühes kohas
+4. **React ref hoiatus**: `BrochureUpload` komponent saab Radix Dialog'ilt ref'i, aga ei kasuta `forwardRef`'i. See tekitab konsooli hoiatuse ja voib põhjustada renderdamisprobleeme.
 
-### Tehnilised detailid
+### Lahendusplaan
 
-**Fail 1: `src/components/admin/EquipmentForm.tsx`**
-- Eemaldame read 220-234 (tüübipõhiste dünaamiliste väljade renderdamine)
-- Jätame alles COMMON_FIELDS ploki (Põhiandmed + Majandusandmed), kuna need sisaldavad hinda, hoolduskulu, eluiga jms
+**Fail 1: `src/components/admin/BrochureUpload.tsx`**
+- Lisa edge function kutsele 120-sekundiline timeout (`AbortController`)
+- Kui timeout saabub, sea staatus "error" ja kuva selge veateade
+- Lisa `forwardRef` wrapper, et Radix Dialog ref-hoiatus kaoks
+- Paranda `readPdfAsText` -- kui teksti ei suudeta lugeda, saada AI-le ausalt teada, et tekst on minimaalne
 
-**Fail 2: `src/lib/equipmentTypeFields.ts`**
-- Eemaldame TYPE_SPECIFIC_FIELDS ekspordi (kuna seda enam vormis ei kasutata)
-- Jätame alles COMMON_FIELDS
+**Fail 2: `src/components/admin/EquipmentBrochuresList.tsx`**
+- Lisa veakäsitlus `catch` plokki, et loading olek läheks alati false'iks
+- Lisa ka timeout fetch'ile, et see ei jääks igavesti laadima
 
 **Fail 3: `src/pages/Admin.tsx`**
-- Brošüüri andmete kinnitamise funktsioonis (`handleConfirmBrochureData`) lisame loogika, mis teisendab `equipment_columns` väärtused ka `detailed_specs` struktuuri, et need ilmuksid DetailedSpecsEditori tabelisse
+- Paranda `handleEquipmentFormSubmit` veakäsitlust, et mutation kindlasti lahti lastaks ka ootamatute vigade puhul (nt vorgukatkestus)
 
-**Fail 4: `src/components/admin/BrochureDataReview.tsx`**
-- Lihtsustame ülevaatuse vaadet -- equipment_columns andmed kuvatakse koos detailed_specs andmetega samas tabeliformaadis, mitte eraldi sektsioonina
+### Tehniline detailid
+
+**Timeout lisamine edge function kutsele:**
+```typescript
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+try {
+  const { data, error } = await supabase.functions.invoke(
+    "extract-brochure-specs",
+    { body: { ... }, signal: controller.signal }
+  );
+  clearTimeout(timeoutId);
+} catch (err) {
+  clearTimeout(timeoutId);
+  if (err.name === 'AbortError') {
+    throw new Error('Ekstraheerimine aegus. Proovi väiksema PDF-iga.');
+  }
+  throw err;
+}
+```
+
+**forwardRef lisamine BrochureUpload-ile:**
+```typescript
+export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
+  function BrochureUpload({ equipment, onExtractionComplete }, ref) {
+    // ... existing code
+    return <div ref={ref} className="space-y-3">...</div>;
+  }
+);
+```
+
+**EquipmentBrochuresList vigade käsitlus:**
+```typescript
+} catch (error) {
+  console.error("Failed to fetch brochures:", error);
+  setBrochures([]);  // ensure empty state shown
+} finally {
+  setIsLoading(false);  // already there, but ensure it runs
+}
+```
 
