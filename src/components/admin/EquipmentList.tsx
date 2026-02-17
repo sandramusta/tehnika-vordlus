@@ -6,10 +6,11 @@
    CollapsibleContent,
    CollapsibleTrigger,
  } from "@/components/ui/collapsible";
- import { ChevronRight, Pencil, FileText, Trash2 } from "lucide-react";
- import { cn } from "@/lib/utils";
- import type { Equipment, Brand, EquipmentType } from "@/types/equipment";
- import { getBrandTextColor } from "@/lib/brandColors";
+import { ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Equipment, Brand, EquipmentType } from "@/types/equipment";
+import { getBrandTextColor } from "@/lib/brandColors";
+import { BrochurePopover } from "./BrochurePopover";
  
  interface EquipmentListProps {
    equipment: Equipment[];
@@ -167,18 +168,10 @@
                                  >
                                    <Pencil className="h-4 w-4" />
                                  </Button>
-                                 <Button
-                                   variant="ghost"
-                                   size="icon"
-                                   className="h-8 w-8"
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     onBrochure(item);
-                                   }}
-                                   title="Lae brošüür üles"
-                                 >
-                                   <FileText className="h-4 w-4 text-primary" />
-                                 </Button>
+                                  <BrochurePopover
+                                    equipment={item}
+                                    onUploadNew={onBrochure}
+                                  />
                                  <Button
                                    variant="ghost"
                                    size="icon"
