@@ -2,45 +2,47 @@
 
 ## Probleem
 
-Kutse-e-kirjas olev link on "recovery" tüüpi link, mis suunab kasutaja `/auth` lehele. Kuid rakenduses puudub parooli seadistamise leht (`/reset-password`), seega:
+Brošüüri üleslaadimise ja andmete ekstraheerimise süsteem kasutab alati kombainide välju, sõltumata tehnika tüübist. See tähendab, et teleskooplaaduri brošüüri üles laadides kuvatakse kombainidele spetsiifilisi näitajaid (rootori läbimõõt, pekspind, viljabunker jne), mitte telehandleri omi (tõstekõrgus, tõstevõime, hüdraulikapump jne).
 
-1. Kasutaja klikib lingil ja suunatakse `/auth` lehele
-2. Taustapeal logitakse kasutaja hetkeks sisse (recovery token), kuid parooli pole seadistatud
-3. Kasutaja proovib e-posti ja parooliga sisse logida, kuid parool puudub -- "vale kasutaja/parool"
+## Põhjus
+
+Serverfunktsioon `extract-brochure-specs` sisaldab ainult kombainide skeemi ja ei tea, mis tüüpi tehnikaga on tegu. Ka kliendipoolne kood ei edasta tehnika tüüpi funktsioonile.
 
 ## Lahendus
 
-Loome parooli seadistamise lehe ja uuendame kutsete suunamise loogika.
+Muudame süsteemi nii, et see edastab tehnika tüübi ja kasutab tüübipõhist skeemi.
 
 ### Muudatused
 
-**1. Uus leht: `src/pages/ResetPassword.tsx`**
+**1. `supabase/functions/extract-brochure-specs/index.ts`** — Tüübipõhine skeem
 
-- Vorm uue parooli sisestamiseks (kaks paroolivälja: parool + kinnitus)
-- Kontrollib URL-ist `type=recovery` tokenit
-- Kutsub `supabase.auth.updateUser({ password })` parooli salvestamiseks
-- Edukal salvestamisel suunab kasutaja `/auth` lehele koos teatega
+- Lisame eraldi väljade konfiguratsioonid iga tehnika tüübi jaoks (telehandler, combine, tractor jne)
+- Võtame vastu uue parameetri `equipment_type` (nt "telehandler", "combine")
+- Kasutame tüübile vastavat skeemi AI promptis
+- Teleskooplaaduri skeem sisaldab:
+  - equipment_columns: lift_height_m, lift_reach_m, max_lift_capacity_kg, hydraulic_pump_lpm, engine_power_hp, weight_kg, transport_width_mm, transport_height_mm, fuel_tank_liters
+  - detailed_specs: tõsteomadused, hüdraulika, mõõtmed, mootor (4 kategooriat)
 
-**2. `src/App.tsx`** — Uue marsruudi lisamine
+**2. `src/components/admin/BrochureUpload.tsx`** — Tehnika tüübi edastamine
 
-- Lisame `/reset-password` marsruudi, mis viitab uuele `ResetPassword` lehele
-- See marsruut peab olema avalik (mitte ProtectedRoute taga)
+- Lisame `equipment.equipment_type?.name` andmete saatmisele serverfunktsiooni
+- Edge function kutse saab uue välja: `equipment_type`
 
-**3. `supabase/functions/resend-invite/index.ts`** — Suunamise URL uuendamine
+**3. `src/components/admin/BrochureDataReview.tsx`** — Tüübipõhised sildid
 
-- Muudame `redirectTo` väärtuse: `/auth` asemel `/reset-password`
-- See tagab, et kasutaja suunatakse parooli seadistamise lehele, mitte sisselogimise lehele
+- Lisame telehandler-spetsiifilised COLUMN_LABELS (lift_height_m, lift_reach_m jne)
+- Lisame telehandler-spetsiifilised CATEGORY_LABELS (tõsteomadused, hüdraulika)
 
-**4. `supabase/functions/create-first-admin/index.ts`** — Suunamise URL uuendamine
+### Toetatud tüübid ja nende skeem
 
-- Sama muudatus: `redirectTo` muudetakse `/reset-password` peale
+| Tüüp | equipment_columns | detailed_specs kategooriad |
+|-------|------------------|---------------------------|
+| Teleskooplaadur | lift_height_m, lift_reach_m, max_lift_capacity_kg, hydraulic_pump_lpm, engine_power_hp, weight_kg, transport_width/height_mm, fuel_tank_liters | tõsteomadused, hüdraulika, mõõtmed, mootor |
+| Kombain | Praegune skeem (rootor, peks, bunker jne) | Kõik 12 kategooriat |
+| Teised tüübid | Tüübile vastavad väljad | Tüübile vastavad kategooriad |
 
-### Voog parast muudatust
+### Muudatuste failid
 
-```text
-1. Admin saadab kutse --> e-kiri saadetakse
-2. Kasutaja klikib lingil --> suunatakse /reset-password lehele
-3. Kasutaja sisestab uue parooli --> parool salvestatakse
-4. Suunatakse /auth lehele --> kasutaja logib sisse e-posti ja parooliga
-```
-
+- `supabase/functions/extract-brochure-specs/index.ts`
+- `src/components/admin/BrochureUpload.tsx`
+- `src/components/admin/BrochureDataReview.tsx`
