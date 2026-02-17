@@ -99,35 +99,26 @@ export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
         // Step 3: Read PDF content as text
         const pdfContent = await readPdfAsText(file);
 
-        // Step 4: Call edge function with 120s timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000);
+        // Step 4: Call edge function with 120s timeout using Promise.race
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error("Ekstraheerimine aegus (2 min). Proovi väiksema PDF-iga.")), 120000);
+        });
 
-        let extractionResult: Record<string, unknown> | null = null;
-        let extractionError: Error | null = null;
-
-        try {
-          const response = await supabase.functions.invoke(
-            "extract-brochure-specs",
-            {
-              body: {
-                brochure_id: brochureRecord.id,
-                pdf_content: pdfContent,
-                model_name: equipment.model_name,
-                equipment_type: equipment.equipment_type?.name || "combine",
-              },
-            }
-          );
-          extractionResult = response.data;
-          extractionError = response.error;
-        } catch (err: unknown) {
-          clearTimeout(timeoutId);
-          if (err instanceof DOMException && err.name === "AbortError") {
-            throw new Error("Ekstraheerimine aegus (2 min). Proovi väiksema PDF-iga.");
+        const invokePromise = supabase.functions.invoke(
+          "extract-brochure-specs",
+          {
+            body: {
+              brochure_id: brochureRecord.id,
+              pdf_content: pdfContent,
+              model_name: equipment.model_name,
+              equipment_type: equipment.equipment_type?.name || "combine",
+            },
           }
-          throw err;
-        }
-        clearTimeout(timeoutId);
+        );
+
+        const response = await Promise.race([invokePromise, timeoutPromise]);
+        const extractionResult = response.data;
+        const extractionError = response.error;
 
         if (extractionError) {
           throw new Error(`Andmete ekstraheerimine ebaõnnestus: ${extractionError.message}`);
