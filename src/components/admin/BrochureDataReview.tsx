@@ -330,7 +330,7 @@ export function BrochureDataReview({
                         <Input
                           id={`col-${key}`}
                           value={value === null || value === undefined ? "" : String(value)}
-                          onChange={(e) => updateColumnValue(key, e.target.value)}
+                          onChange={(e) => updateColumnValue(key, e.target.value.replace(/,/g, "."))}
                           className={cn(
                             "h-8 text-sm",
                             hasValue && "border-green-300 bg-green-50 dark:bg-green-950/20",
@@ -400,7 +400,7 @@ export function BrochureDataReview({
                             id={`spec-${categoryKey}-${field}`}
                             value={value === null || value === undefined ? "" : String(value)}
                             onChange={(e) =>
-                              updateDetailedSpecValue(categoryKey, field, e.target.value)
+                              updateDetailedSpecValue(categoryKey, field, e.target.value.replace(/,/g, "."))
                             }
                             className={cn(
                               "h-8 text-sm",
