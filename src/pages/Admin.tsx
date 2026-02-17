@@ -1,4 +1,5 @@
  import { useState, useCallback } from "react";
+ import { useQueryClient } from "@tanstack/react-query";
  import { Layout } from "@/components/layout/Layout";
  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
  import { Button } from "@/components/ui/button";
@@ -75,8 +76,9 @@ function getCategoryLabel(category: string): string {
 }
  
  export default function Admin() {
-   const { toast } = useToast();
-   const { canManageUsers } = useAuthContext();
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const { canManageUsers } = useAuthContext();
   const [equipmentDialogOpen, setEquipmentDialogOpen] = useState(false);
   const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
   const [mythDialogOpen, setMythDialogOpen] = useState(false);
@@ -331,8 +333,8 @@ function getCategoryLabel(category: string): string {
          description: `${brochureEquipment.model_name} tehnilised andmed on uuendatud.`,
        });
  
-       closeBrochureDialog();
-       window.location.reload();
+        closeBrochureDialog();
+        queryClient.invalidateQueries({ queryKey: ["equipment"] });
      } catch (error) {
        console.error("Failed to save brochure data:", error);
        toast({
