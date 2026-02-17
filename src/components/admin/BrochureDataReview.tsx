@@ -4,10 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import { Check, X, AlertTriangle, ChevronDown, ChevronRight, Info, ShieldAlert, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Equipment } from "@/types/equipment";
-import type { ExtractedData } from "./BrochureUpload";
+import type { ExtractedData, ExtractionMetadata } from "./BrochureUpload";
 
 interface BrochureDataReviewProps {
   equipment: Equipment;
@@ -105,6 +105,7 @@ export function BrochureDataReview({
   isLoading = false,
 }: BrochureDataReviewProps) {
   const [editedData, setEditedData] = useState<ExtractedData>(extractedData);
+  const metadata: ExtractionMetadata | undefined = extractedData.extraction_metadata;
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(["equipment_columns", "mootor"])
   );
@@ -192,6 +193,19 @@ export function BrochureDataReview({
             </CardDescription>
           </div>
           <div className="flex gap-2">
+            {metadata && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  metadata.confidence === "high" && "bg-green-100 text-green-700 border-green-300",
+                  metadata.confidence === "medium" && "bg-amber-100 text-amber-700 border-amber-300",
+                  metadata.confidence === "low" && "bg-red-100 text-red-700 border-red-300",
+                )}
+              >
+                {metadata.confidence === "high" ? <ShieldCheck className="h-3 w-3 mr-1" /> : <ShieldAlert className="h-3 w-3 mr-1" />}
+                {metadata.confidence === "high" ? "Kõrge kindlus" : metadata.confidence === "medium" ? "Keskmine kindlus" : "Madal kindlus"}
+              </Badge>
+            )}
             <Badge variant="outline" className="bg-green-100 text-green-700">
               {stats.extracted} leitud
             </Badge>
@@ -200,6 +214,44 @@ export function BrochureDataReview({
             </Badge>
           </div>
         </div>
+
+        {/* Extraction metadata info */}
+        {metadata && (
+          <div className="mt-3 space-y-2">
+            {/* Models found in brochure */}
+            {metadata.models_found && metadata.models_found.length > 1 && (
+              <div className="flex items-start gap-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-2 text-sm">
+                <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-medium text-blue-700 dark:text-blue-300">Brošüürist tuvastati {metadata.models_found.length} mudelit: </span>
+                  <span className="text-blue-600 dark:text-blue-400">{metadata.models_found.join(", ")}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Target model not found warning */}
+            {!metadata.target_model_found && (
+              <div className="flex items-start gap-2 rounded-md bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2 text-sm">
+                <ShieldAlert className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                <span className="text-red-700 dark:text-red-300 font-medium">
+                  Sihtmudelit ei leitud brošüürist otse — kontrolli andmeid hoolikalt!
+                </span>
+              </div>
+            )}
+
+            {/* Warnings */}
+            {metadata.warnings && metadata.warnings.length > 0 && (
+              <div className="flex items-start gap-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                <div className="space-y-0.5">
+                  {metadata.warnings.map((warning, i) => (
+                    <p key={i} className="text-amber-700 dark:text-amber-300">{warning}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Equipment Columns Section */}

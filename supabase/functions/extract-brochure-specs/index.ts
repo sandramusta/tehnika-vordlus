@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Type-specific field schemas for brochure extraction
@@ -378,6 +378,84 @@ function getSchemaForType(equipmentType: string) {
   return EQUIPMENT_TYPE_SCHEMAS[key] || EQUIPMENT_TYPE_SCHEMAS["combine"];
 }
 
+// Validate extracted numeric values for sanity
+function validateAndCleanData(data: Record<string, unknown>, schema: typeof EQUIPMENT_TYPE_SCHEMAS[string]): { cleaned: Record<string, unknown>; warnings: string[] } {
+  const warnings: string[] = [];
+  const cleaned = JSON.parse(JSON.stringify(data));
+
+  // Validation rules for numeric fields
+  const validationRules: Record<string, { min: number; max: number; label: string }> = {
+    engine_power_hp: { min: 10, max: 2000, label: "Mootori võimsus" },
+    lift_height_m: { min: 1, max: 30, label: "Tõstekõrgus" },
+    lift_reach_m: { min: 1, max: 25, label: "Tõste kaugus" },
+    max_lift_capacity_kg: { min: 100, max: 30000, label: "Max tõstevõime" },
+    hydraulic_pump_lpm: { min: 10, max: 500, label: "Hüdraulikapump" },
+    weight_kg: { min: 500, max: 100000, label: "Kaal" },
+    transport_width_mm: { min: 1000, max: 6000, label: "Laius" },
+    transport_height_mm: { min: 1000, max: 6000, label: "Kõrgus" },
+    fuel_tank_liters: { min: 10, max: 2000, label: "Kütusepaak" },
+    grain_tank_liters: { min: 100, max: 20000, label: "Bunker" },
+    rotor_diameter_mm: { min: 200, max: 2000, label: "Rootori läbimõõt" },
+    rotor_length_mm: { min: 500, max: 5000, label: "Rootori pikkus" },
+  };
+
+  // Validate equipment_columns
+  if (cleaned.equipment_columns && typeof cleaned.equipment_columns === 'object') {
+    for (const [key, value] of Object.entries(cleaned.equipment_columns as Record<string, unknown>)) {
+      if (value === null || value === undefined) continue;
+      const numVal = Number(value);
+      if (typeof value === 'number' || !isNaN(numVal)) {
+        if (numVal < 0) {
+          warnings.push(`${validationRules[key]?.label || key}: negatiivne väärtus (${numVal}) asendatud null-iga`);
+          (cleaned.equipment_columns as Record<string, unknown>)[key] = null;
+        } else if (validationRules[key]) {
+          const rule = validationRules[key];
+          if (numVal < rule.min || numVal > rule.max) {
+            warnings.push(`${rule.label}: väärtus ${numVal} väljaspool oodatud vahemikku (${rule.min}-${rule.max}) — kontrollima!`);
+          }
+        }
+      }
+    }
+  }
+
+  return { cleaned, warnings };
+}
+
+// Convert kW to HP if engine_power_hp was given in kW
+function applyUnitConversions(data: Record<string, unknown>): Record<string, unknown> {
+  const result = JSON.parse(JSON.stringify(data));
+  
+  if (result.equipment_columns && typeof result.equipment_columns === 'object') {
+    const cols = result.equipment_columns as Record<string, unknown>;
+    
+    // If engine_power looks like it's in kW (typically < 400 for telehandlers), convert
+    // But only if explicitly marked — we rely on the AI prompt to handle this correctly
+    // This is a safety net for obvious kW values
+    if (typeof cols.engine_power_hp === 'number') {
+      const val = cols.engine_power_hp as number;
+      // Heuristic: if power is very low and there's evidence it's kW, convert
+      // We check the detailed_specs for the kW/hj string as confirmation
+      if (result.detailed_specs && typeof result.detailed_specs === 'object') {
+        const specs = result.detailed_specs as Record<string, Record<string, unknown>>;
+        const motorSpecs = specs.mootor || specs.MOOTOR;
+        if (motorSpecs) {
+          const powerStr = String(motorSpecs.võimsus_kW_hj || '');
+          // If the spec string has format "75 kW / 102 hj", use the hj value
+          const hjMatch = powerStr.match(/(\d+(?:[.,]\d+)?)\s*(?:hj|hp|PS)/i);
+          if (hjMatch) {
+            const hjVal = parseFloat(hjMatch[1].replace(',', '.'));
+            if (hjVal > 0 && Math.abs(hjVal - val) > 5) {
+              cols.engine_power_hp = Math.round(hjVal);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return result;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -406,24 +484,55 @@ Deno.serve(async (req) => {
     const schema = getSchemaForType(equipment_type || "combine");
     const schemaDescription = buildSchemaDescription(schema);
     
-    console.log('Equipment type:', equipment_type, '-> normalized:', normalizeTypeName(equipment_type || "combine"));
+    const normalizedType = normalizeTypeName(equipment_type || "combine");
+    console.log('Equipment type:', equipment_type, '-> normalized:', normalizedType);
 
-    const systemPrompt = `Sa oled struktureeritud andmete ekstraheerija. Sinu ülesanne on analüüsida PDF-brošüüri sisu ja ekstraheerida AINULT need tehnilised näitajad, mis vastavad etteantud skeemile.
+    // Build an intelligent multi-model aware prompt
+    const systemPrompt = `Sa oled struktureeritud andmete ekstraheerija, kes on spetsialiseerunud põllumajandustehnika brošüüride analüüsimisele. Sinu ülesanne on analüüsida PDF-brošüüri sisu ja ekstraheerida AINULT konkreetse mudeli "${model_name}" tehnilised näitajad.
 
-REEGLID:
-1. Ekstraheeri AINULT väärtused, mis on PDF-is selgelt kirjas
-2. Ära tee ümberarvutusi ega oletusi
-3. Säilita täpsed ühikud ja väärtused nagu PDF-is
-4. Kui väärtust ei leidu, jäta väli tühjaks (null)
-5. Ära lisa uusi näitajaid, mida skeemis pole
-6. Vastus peab olema kehtiv JSON objekt
+KRIITILINE: MITME MUDELI BROŠÜÜRIDE KÄSITLEMINE
+Brošüürid sisaldavad sageli MITME mudeli andmeid koos (nt tabelid, kus veergudeks on erinevad mudelid). Sa PEAD:
+
+1. MUDELITE TUVASTAMINE:
+   - Skaneeri kogu dokument ja tuvasta KÕIK mainitud mudelid/mudelinimed
+   - Otsi mudelite nimesid pealkirjadest, rasvases kirjas tekstist, tabelite veeru- ja reapäistest
+   - Mudelid on tüüpiliselt nimetatud nagu: SCORPION 635, SCORPION 741, SCORPION 1033, S7 700, X9 1100 jne
+
+2. MUDELIPÕHINE ANDMETE ERISTAMINE:
+   - Ekstraheeri andmed AINULT mudeli "${model_name}" kohta
+   - Kui andmed on tabelis, kus veerud = mudelid ja read = parameetrid, loe AINULT õige veeru väärtusi
+   - Kui andmed on tekstis, otsi mudeli "${model_name}" nime lähedusest vastavaid väärtusi
+   - Ära sega kokku erinevate mudelite andmeid!
+
+3. ÜHIKUTE TEISENDAMINE:
+   - Kui mootori võimsus on antud kW-des, teisenda hobujõududeks (1 kW = 1.36 hj) ja kirjuta engine_power_hp väljale HJ väärtus
+   - Kui kaal on tonnides, teisenda kilogrammideks
+   - Kui mõõtmed on meetrites aga skeem nõuab mm, teisenda millimeetriteks
+   - Jäta "võimsus_kW_hj" väljale algne string kujul "XX kW / YY hj"
+
+4. ANDMETE KVALITEET:
+   - Ekstraheeri AINULT väärtused, mis on PDF-is selgelt kirjas konkreetse mudeli kohta
+   - Ära tee oletusi ega kasuta teiste mudelite andmeid puuduvate väärtuste täitmiseks
+   - Kui väärtust ei leidu konkreetselt mudeli "${model_name}" kohta, jäta väli null-iks
+   - Negatiivsed väärtused on valed — jäta null
+   - Kontrolli, et ühikud vastavad skeemile
+
+5. VASTUSE FORMAAT:
+   Vasta JSON objektiga, mis sisaldab kolm osa:
+   a) "equipment_columns" — põhinäitajad vastavalt skeemile
+   b) "detailed_specs" — detailsed kategooriad vastavalt skeemile
+   c) "extraction_metadata" — metainfo:
+      - "models_found": string[] — kõik brošüüris tuvastatud mudelite nimed
+      - "target_model_found": boolean — kas sihtmudel "${model_name}" leiti brošüürist
+      - "confidence": "high" | "medium" | "low" — kui kindel oled andmete õigsuses
+      - "warnings": string[] — hoiatused (nt "Mootori võimsus teisendatud kW-st hj-ks", "Mudel leitud kuid andmed osaliselt puudu")
 
 MUDELI NIMI: ${model_name}
 
 EKSTRAHEERITAVATE VÄLJADE SKEEM:
 ${schemaDescription}
 
-Vasta AINULT kehtiva JSON objektiga, mis vastab täpselt skeemile. Ära lisa selgitusi ega kommentaare.`;
+Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljaspool JSON-i.`;
 
     console.log('Calling AI gateway to extract specs for:', model_name);
 
@@ -434,19 +543,33 @@ Vasta AINULT kehtiva JSON objektiga, mis vastab täpselt skeemile. Ära lisa sel
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Analüüsi järgnevat brošüüri sisu ja ekstraheeri tehnilised andmed mudeli "${model_name}" kohta:\n\n${pdf_content}` }
+          { role: 'user', content: `Analüüsi järgnevat brošüüri sisu ja ekstraheeri AINULT mudeli "${model_name}" tehnilised andmed. Kui brošüüris on mitu mudelit, eralda hoolikalt just selle mudeli andmed.\n\n${pdf_content.substring(0, 80000)}` }
         ],
-        temperature: 0.1,
-        max_tokens: 8000,
+        temperature: 0.05,
+        max_tokens: 10000,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('AI gateway error:', errorData);
+      console.error('AI gateway error:', response.status, errorData);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Liiga palju päringuid. Proovi mõne minuti pärast uuesti.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'AI krediit on otsas. Lisa krediiti Lovable seadetes.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ success: false, error: `AI extraction failed: ${response.status}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -469,12 +592,51 @@ Vasta AINULT kehtiva JSON objektiga, mis vastab täpselt skeemile. Ära lisa sel
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       extractedData = JSON.parse(cleanContent);
     } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', content);
+      console.error('Failed to parse AI response as JSON:', content.substring(0, 500));
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to parse extracted data as JSON' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Extract metadata before cleaning
+    const extractionMetadata = extractedData.extraction_metadata || {
+      models_found: [model_name],
+      target_model_found: true,
+      confidence: "medium",
+      warnings: [],
+    };
+
+    // Apply unit conversions
+    extractedData = applyUnitConversions(extractedData);
+
+    // Validate and clean data
+    const { cleaned, warnings: validationWarnings } = validateAndCleanData(extractedData, schema);
+    
+    // Merge warnings
+    const allWarnings = [
+      ...(extractionMetadata.warnings || []),
+      ...validationWarnings,
+    ];
+    
+    if (!extractionMetadata.target_model_found) {
+      allWarnings.unshift(`Mudelit "${model_name}" ei leitud brošüürist otseselt. Andmed võivad olla ebatäpsed.`);
+    }
+
+    // Build final response data
+    const finalData = {
+      equipment_columns: (cleaned as Record<string, unknown>).equipment_columns || {},
+      detailed_specs: (cleaned as Record<string, unknown>).detailed_specs || {},
+    };
+
+    console.log('Extraction metadata:', JSON.stringify(extractionMetadata));
+    console.log('Models found in brochure:', extractionMetadata.models_found);
+    console.log('Target model found:', extractionMetadata.target_model_found);
+    console.log('Confidence:', extractionMetadata.confidence);
+    if (allWarnings.length > 0) {
+      console.log('Warnings:', allWarnings);
+    }
+    console.log('Successfully extracted specs for:', model_name);
 
     // Update the brochure record with extracted data
     const supabase = createClient(
@@ -485,7 +647,13 @@ Vasta AINULT kehtiva JSON objektiga, mis vastab täpselt skeemile. Ära lisa sel
     const { error: updateError } = await supabase
       .from('equipment_brochures')
       .update({
-        extracted_data: extractedData,
+        extracted_data: {
+          ...finalData,
+          extraction_metadata: {
+            ...extractionMetadata,
+            warnings: allWarnings,
+          },
+        },
         extraction_status: 'completed',
       })
       .eq('id', brochure_id);
@@ -498,12 +666,14 @@ Vasta AINULT kehtiva JSON objektiga, mis vastab täpselt skeemile. Ära lisa sel
       );
     }
 
-    console.log('Successfully extracted specs for:', model_name);
-
     return new Response(
       JSON.stringify({ 
         success: true, 
-        data: extractedData,
+        data: finalData,
+        extraction_metadata: {
+          ...extractionMetadata,
+          warnings: allWarnings,
+        },
         schema
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -536,7 +706,12 @@ function buildSchemaDescription(schema: typeof EQUIPMENT_TYPE_SCHEMAS[string]): 
     }
   );
   description += categoryDescriptions.join(',\n');
-  description += '\n  }\n}';
+  description += '\n  },\n  "extraction_metadata": {\n';
+  description += '    "models_found": string[], // kõik brošüüris tuvastatud mudelid\n';
+  description += '    "target_model_found": boolean, // kas sihtmudel leiti\n';
+  description += '    "confidence": "high" | "medium" | "low",\n';
+  description += '    "warnings": string[] // hoiatused ja märkused\n';
+  description += '  }\n}';
   
   return description;
 }
