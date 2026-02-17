@@ -6,41 +6,53 @@ const corsHeaders = {
 };
 
 // Type-specific field schemas for brochure extraction
+// Synced with equipmentTypeFields.ts (equipment_columns) and pdfSpecsHelpers.ts (detailed_specs)
 const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
   equipment_columns: Array<{ key: string; label: string; type: string }>;
   detailed_specs_categories: Record<string, { label: string; fields: Array<{ key: string; label: string; type: string }> }>;
 }> = {
-  // COMBINE (default)
+  // ====================== COMBINE ======================
   combine: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
-      { key: "engine_displacement_liters", label: "Mootori töömaht (l)", type: "number" },
+      // COMMON_FIELDS (excl. economic)
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
+      // Bunker ja heedrid
+      { key: "grain_tank_liters", label: "Bunker (l)", type: "number" },
+      { key: "header_width_m", label: "Heedri laius (m)", type: "number" },
+      { key: "header_width_min_m", label: "Heedri min laius (m)", type: "number" },
+      { key: "header_width_max_m", label: "Heedri max laius (m)", type: "number" },
+      // Mootor ja küttesüsteem
+      { key: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number" },
+      { key: "engine_displacement_liters", label: "Mootori töömaht (L)", type: "number" },
       { key: "engine_cylinders", label: "Silindrite arv", type: "number" },
       { key: "max_torque_nm", label: "Max pöördemoment (Nm)", type: "number" },
-      { key: "fuel_tank_liters", label: "Kütusepaagi maht (l)", type: "number" },
-      { key: "grain_tank_liters", label: "Viljabunkri maht (l)", type: "number" },
-      { key: "unloading_rate_ls", label: "Tühjenduskiirus (l/s)", type: "number" },
-      { key: "auger_reach_m", label: "Tigu ulatus (m)", type: "number" },
-      { key: "cleaning_area_m2", label: "Puhastusala (m²)", type: "number" },
-      { key: "sieve_area_m2", label: "Sõelapind (m²)", type: "number" },
+      // Peksusüsteem
       { key: "rotor_diameter_mm", label: "Rootori läbimõõt (mm)", type: "number" },
       { key: "rotor_length_mm", label: "Rootori pikkus (mm)", type: "number" },
-      { key: "separator_area_m2", label: "Separaatori pind (m²)", type: "number" },
       { key: "feeder_width_mm", label: "Etteande laius (mm)", type: "number" },
-      { key: "threshing_drum_diameter_mm", label: "Pekstrulli läbimõõt (mm)", type: "number" },
-      { key: "threshing_drum_width_mm", label: "Pekstrulli laius (mm)", type: "number" },
-      { key: "threshing_area_m2", label: "Pekspind (m²)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "rasp_bar_count", label: "Raspi latid", type: "number" },
+      { key: "threshing_drum_diameter_mm", label: "Trumli läbimõõt (mm)", type: "number" },
+      { key: "threshing_drum_width_mm", label: "Trumli laius (mm)", type: "number" },
+      { key: "threshing_area_m2", label: "Peksupindala (m²)", type: "number" },
+      // Separeerimine ja puhastus
+      { key: "separator_area_m2", label: "Separeerimispind (m²)", type: "number" },
+      { key: "straw_walker_count", label: "Õlekõndijaid", type: "number" },
+      { key: "straw_walker_area_m2", label: "Õlekõndija pind (m²)", type: "number" },
+      { key: "cleaning_area_m2", label: "Puhasti pindala (m²)", type: "number" },
+      { key: "sieve_area_m2", label: "Sõelapind (m²)", type: "number" },
+      // Terapunker ja tühjendamine
+      { key: "unloading_rate_ls", label: "Tühjenduskiirus (l/s)", type: "number" },
+      { key: "auger_reach_m", label: "Tigu ulatus (m)", type: "number" },
+      // Heksel ja transport
+      { key: "chopper_width_mm", label: "Heksli laius (mm)", type: "number" },
+      { key: "max_slope_percent", label: "Max kalle (%)", type: "number" },
       { key: "transport_width_mm", label: "Transpordi laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Transpordi kõrgus (mm)", type: "number" },
-      { key: "header_width_min_m", label: "Heedri laius min (m)", type: "number" },
-      { key: "header_width_max_m", label: "Heedri laius max (m)", type: "number" },
-      { key: "max_slope_percent", label: "Max nõlv (%)", type: "number" },
+      { key: "transport_length_mm", label: "Transpordi pikkus (mm)", type: "number" },
+      // Jõudlus
       { key: "throughput_tons_h", label: "Läbilaskevõime (t/h)", type: "number" },
-      { key: "straw_walker_count", label: "Õlgkõndijate arv", type: "number" },
-      { key: "straw_walker_area_m2", label: "Õlgkõndijate pind (m²)", type: "number" },
-      { key: "chopper_width_mm", label: "Hekseldi laius (mm)", type: "number" },
-      { key: "rasp_bar_count", label: "Raspi latide arv", type: "number" },
     ],
     detailed_specs_categories: {
       mootor: {
@@ -154,78 +166,67 @@ const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
     }
   },
 
-  // TELEHANDLER
+  // ====================== TELEHANDLER ======================
   telehandler: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
       { key: "lift_height_m", label: "Tõstekõrgus (m)", type: "number" },
       { key: "lift_reach_m", label: "Tõste kaugus (m)", type: "number" },
       { key: "max_lift_capacity_kg", label: "Max tõstevõime (kg)", type: "number" },
       { key: "hydraulic_pump_lpm", label: "Hüdraulikapump (l/min)", type: "number" },
-      { key: "weight_kg", label: "Masina mass (kg)", type: "number" },
       { key: "transport_width_mm", label: "Laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Kõrgus (mm)", type: "number" },
-      { key: "fuel_tank_liters", label: "Kütusepaagi maht (l)", type: "number" },
+      { key: "transport_length_mm", label: "Pikkus (mm)", type: "number" },
     ],
     detailed_specs_categories: {
       tõsteomadused: {
         label: "TÕSTEOMADUSED",
         fields: [
-          { key: "max_tõstekõrgus_m", label: "Max tõstekõrgus (m)", type: "number" },
-          { key: "max_ulatus_m", label: "Max ulatus (m)", type: "number" },
-          { key: "tõstevõime_max_kõrgusel_kg", label: "Tõstevõime max kõrgusel (kg)", type: "number" },
-          { key: "tõstevõime_max_ulatusel_kg", label: "Tõstevõime max ulatusel (kg)", type: "number" },
-          { key: "tõsteaeg_s", label: "Tõsteaeg (s)", type: "number" },
-          { key: "kallutusjõud_kN", label: "Kallutusjõud (kN)", type: "number" },
+          { key: "tõstekõrgus_m", label: "Tõstekõrgus (m)", type: "number" },
+          { key: "tõste_kaugus_m", label: "Tõste kaugus (m)", type: "number" },
+          { key: "max_tõstevõime_kg", label: "Max tõstevõime (kg)", type: "number" },
         ]
       },
       hüdraulika: {
         label: "HÜDRAULIKA",
         fields: [
-          { key: "pumba_tüüp", label: "Pumba tüüp", type: "string" },
-          { key: "pumba_tootlikkus_l_min", label: "Pumba tootlikkus (l/min)", type: "number" },
-          { key: "süsteemi_rõhk_bar", label: "Süsteemi rõhk (bar)", type: "number" },
-          { key: "hüdraulika_vooluhulk_l_min", label: "Hüdraulika vooluhulk (l/min)", type: "number" },
+          { key: "hüdraulikapumba_võimsus_lpm", label: "Hüdraulikapumba võimsus (l/min)", type: "number" },
         ]
       },
       mõõtmed: {
         label: "MÕÕTMED",
         fields: [
-          { key: "gabariidi_pikkus_mm", label: "Gabariidi pikkus (mm)", type: "number" },
-          { key: "gabariidi_laius_mm", label: "Gabariidi laius (mm)", type: "number" },
-          { key: "gabariidi_kõrgus_mm", label: "Gabariidi kõrgus (mm)", type: "number" },
-          { key: "teljevahe_mm", label: "Teljevahe (mm)", type: "number" },
-          { key: "kliirens_mm", label: "Kliirens (mm)", type: "number" },
-          { key: "pöörderaadius_m", label: "Pöörderaadius (m)", type: "number" },
+          { key: "laius_mm", label: "Laius (mm)", type: "number" },
+          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
           { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
         ]
       },
       mootor: {
         label: "MOOTOR",
         fields: [
-          { key: "mark_ja_mudel", label: "Mark ja mudel", type: "string" },
-          { key: "heitgaasinorm", label: "Heitgaasinorm", type: "string" },
-          { key: "silindrid", label: "Silindrid", type: "number" },
-          { key: "töömahu_liitrid", label: "Töömaht (l)", type: "number" },
-          { key: "võimsus_kW_hj", label: "Võimsus (kW/hj)", type: "string" },
-          { key: "max_pöördemoment_Nm", label: "Max pöördemoment (Nm)", type: "number" },
+          { key: "võimsus_hj", label: "Võimsus (hj)", type: "number" },
+          { key: "kütusekulu_lh", label: "Kütusekulu (l/h)", type: "number" },
           { key: "kütusepaagi_maht_l", label: "Kütusepaagi maht (l)", type: "number" },
         ]
       },
     }
   },
 
-  // TRACTOR
+  // ====================== TRACTOR ======================
   tractor: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
-      { key: "engine_displacement_liters", label: "Mootori töömaht (l)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
+      { key: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number" },
+      { key: "engine_displacement_liters", label: "Mootori töömaht (L)", type: "number" },
       { key: "engine_cylinders", label: "Silindrite arv", type: "number" },
       { key: "max_torque_nm", label: "Max pöördemoment (Nm)", type: "number" },
-      { key: "fuel_tank_liters", label: "Kütusepaagi maht (l)", type: "number" },
       { key: "hydraulic_pump_lpm", label: "Hüdraulikapump (l/min)", type: "number" },
       { key: "max_lift_capacity_kg", label: "Tagumise tõstuki võime (kg)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
       { key: "transport_width_mm", label: "Laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Kõrgus (mm)", type: "number" },
       { key: "transport_length_mm", label: "Pikkus (mm)", type: "number" },
@@ -234,113 +235,249 @@ const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
       mootor: {
         label: "MOOTOR",
         fields: [
-          { key: "mark_ja_mudel", label: "Mark ja mudel", type: "string" },
-          { key: "heitgaasinorm", label: "Heitgaasinorm", type: "string" },
+          { key: "võimsus_hj", label: "Võimsus (hj)", type: "number" },
+          { key: "töömaht_l", label: "Töömaht (l)", type: "number" },
           { key: "silindrid", label: "Silindrid", type: "number" },
-          { key: "töömahu_liitrid", label: "Töömaht (l)", type: "number" },
-          { key: "võimsus_kW_hj", label: "Võimsus (kW/hj)", type: "string" },
           { key: "max_pöördemoment_Nm", label: "Max pöördemoment (Nm)", type: "number" },
           { key: "kütusepaagi_maht_l", label: "Kütusepaagi maht (l)", type: "number" },
+        ]
+      },
+      hüdraulika: {
+        label: "HÜDRAULIKA",
+        fields: [
+          { key: "hüdraulikapumba_võimsus_lpm", label: "Hüdraulikapumba võimsus (l/min)", type: "number" },
+          { key: "tõstevõime_kg", label: "Tõstevõime (kg)", type: "number" },
         ]
       },
       mõõtmed: {
         label: "MÕÕTMED",
         fields: [
-          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
           { key: "laius_mm", label: "Laius (mm)", type: "number" },
           { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
-          { key: "teljevahe_mm", label: "Teljevahe (mm)", type: "number" },
-          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
         ]
       },
     }
   },
 
-  // FORAGE HARVESTER
+  // ====================== FORAGE HARVESTER ======================
   forage_harvester: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
-      { key: "engine_displacement_liters", label: "Mootori töömaht (l)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
+      { key: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number" },
+      { key: "engine_displacement_liters", label: "Mootori töömaht (L)", type: "number" },
       { key: "engine_cylinders", label: "Silindrite arv", type: "number" },
       { key: "max_torque_nm", label: "Max pöördemoment (Nm)", type: "number" },
-      { key: "fuel_tank_liters", label: "Kütusepaagi maht (l)", type: "number" },
       { key: "header_width_m", label: "Heedri laius (m)", type: "number" },
       { key: "header_width_min_m", label: "Min laius (m)", type: "number" },
       { key: "header_width_max_m", label: "Max laius (m)", type: "number" },
       { key: "throughput_tons_h", label: "Läbilaskevõime (t/h)", type: "number" },
       { key: "chopper_width_mm", label: "Heksli laius (mm)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
-      { key: "transport_width_mm", label: "Transpordi laius (mm)", type: "number" },
-      { key: "transport_height_mm", label: "Transpordi kõrgus (mm)", type: "number" },
     ],
     detailed_specs_categories: {
       mootor: {
         label: "MOOTOR",
         fields: [
-          { key: "mark_ja_mudel", label: "Mark ja mudel", type: "string" },
-          { key: "heitgaasinorm", label: "Heitgaasinorm", type: "string" },
+          { key: "võimsus_hj", label: "Võimsus (hj)", type: "number" },
+          { key: "töömaht_l", label: "Töömaht (l)", type: "number" },
           { key: "silindrid", label: "Silindrid", type: "number" },
-          { key: "töömahu_liitrid", label: "Töömaht (l)", type: "number" },
-          { key: "võimsus_kW_hj", label: "Võimsus (kW/hj)", type: "string" },
+          { key: "kütusepaagi_maht_l", label: "Kütusepaagi maht (l)", type: "number" },
+        ]
+      },
+      lõikur: {
+        label: "LÕIKUR",
+        fields: [
+          { key: "lõikelaius_m", label: "Lõikelaius (m)", type: "number" },
+          { key: "nugade_arv", label: "Nugade arv", type: "number" },
+          { key: "lõikekiirus_min", label: "Lõikekiirus (1/min)", type: "number" },
+        ]
+      },
+      tõstuk: {
+        label: "TÕSTUK",
+        fields: [
+          { key: "väljutuskõrgus_m", label: "Väljutuskõrgus (m)", type: "number" },
+          { key: "väljutuskaugus_m", label: "Väljutuskaugus (m)", type: "number" },
+        ]
+      },
+      mõõtmed: {
+        label: "MÕÕTMED",
+        fields: [
+          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
+          { key: "laius_mm", label: "Laius (mm)", type: "number" },
+          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
         ]
       },
     }
   },
 
-  // WHEEL LOADER
+  // ====================== WHEEL LOADER ======================
   wheel_loader: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
       { key: "lift_height_m", label: "Kallutuskõrgus (m)", type: "number" },
       { key: "max_lift_capacity_kg", label: "Kandevõime (kg)", type: "number" },
       { key: "hydraulic_pump_lpm", label: "Hüdraulikapump (l/min)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
       { key: "transport_width_mm", label: "Laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Kõrgus (mm)", type: "number" },
       { key: "transport_length_mm", label: "Pikkus (mm)", type: "number" },
     ],
-    detailed_specs_categories: {}
+    detailed_specs_categories: {
+      tõsteomadused: {
+        label: "TÕSTEOMADUSED",
+        fields: [
+          { key: "tõstekõrgus_m", label: "Tõstekõrgus (m)", type: "number" },
+          { key: "max_tõstevõime_kg", label: "Max tõstevõime (kg)", type: "number" },
+          { key: "kopalaius_mm", label: "Kopa laius (mm)", type: "number" },
+          { key: "kopamaht_m3", label: "Kopa maht (m³)", type: "number" },
+        ]
+      },
+      mootor: {
+        label: "MOOTOR",
+        fields: [
+          { key: "võimsus_hj", label: "Võimsus (hj)", type: "number" },
+          { key: "kütusepaagi_maht_l", label: "Kütusepaagi maht (l)", type: "number" },
+        ]
+      },
+      mõõtmed: {
+        label: "MÕÕTMED",
+        fields: [
+          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
+          { key: "laius_mm", label: "Laius (mm)", type: "number" },
+          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+        ]
+      },
+    }
   },
 
-  // SELF-PROPELLED SPRAYER
+  // ====================== SELF-PROPELLED SPRAYER ======================
   self_propelled_sprayer: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
       { key: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number" },
       { key: "grain_tank_liters", label: "Pritsimispaak (L)", type: "number" },
       { key: "header_width_m", label: "Töölaius (m)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
       { key: "transport_width_mm", label: "Transpordi laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Transpordi kõrgus (mm)", type: "number" },
     ],
-    detailed_specs_categories: {}
+    detailed_specs_categories: {
+      paak: {
+        label: "PAAK",
+        fields: [
+          { key: "paagi_maht_l", label: "Paagi maht (l)", type: "number" },
+          { key: "puhastvee_paak_l", label: "Puhta vee paak (l)", type: "number" },
+        ]
+      },
+      poomid: {
+        label: "POOMID",
+        fields: [
+          { key: "poomi_laius_m", label: "Poomi laius (m)", type: "number" },
+          { key: "poomi_kõrguse_vahemik_mm", label: "Poomi kõrguse vahemik (mm)", type: "string" },
+        ]
+      },
+      mootor: {
+        label: "MOOTOR",
+        fields: [
+          { key: "võimsus_hj", label: "Võimsus (hj)", type: "number" },
+          { key: "kütusepaagi_maht_l", label: "Kütusepaagi maht (l)", type: "number" },
+        ]
+      },
+      mõõtmed: {
+        label: "MÕÕTMED",
+        fields: [
+          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
+          { key: "laius_mm", label: "Transpordi laius (mm)", type: "number" },
+          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+        ]
+      },
+    }
   },
 
-  // TRAILED SPRAYER
+  // ====================== TRAILED SPRAYER ======================
   trailed_sprayer: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
       { key: "grain_tank_liters", label: "Pritsimispaak (L)", type: "number" },
       { key: "header_width_m", label: "Töölaius (m)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
       { key: "transport_width_mm", label: "Transpordi laius (mm)", type: "number" },
       { key: "transport_length_mm", label: "Transpordi pikkus (mm)", type: "number" },
     ],
-    detailed_specs_categories: {}
+    detailed_specs_categories: {
+      paak: {
+        label: "PAAK",
+        fields: [
+          { key: "paagi_maht_l", label: "Paagi maht (l)", type: "number" },
+          { key: "puhastvee_paak_l", label: "Puhta vee paak (l)", type: "number" },
+        ]
+      },
+      poomid: {
+        label: "POOMID",
+        fields: [
+          { key: "poomi_laius_m", label: "Poomi laius (m)", type: "number" },
+          { key: "poomi_kõrguse_vahemik_mm", label: "Poomi kõrguse vahemik (mm)", type: "string" },
+        ]
+      },
+      mõõtmed: {
+        label: "MÕÕTMED",
+        fields: [
+          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
+          { key: "laius_mm", label: "Transpordi laius (mm)", type: "number" },
+          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+        ]
+      },
+    }
   },
 
-  // ROUND BALER
+  // ====================== ROUND BALER ======================
   round_baler: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Mootori võimsus (hj)", type: "number" },
+      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
       { key: "header_width_m", label: "Korje laius (m)", type: "number" },
       { key: "throughput_tons_h", label: "Tootlikkus (palli/h)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
       { key: "transport_width_mm", label: "Laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Kõrgus (mm)", type: "number" },
       { key: "transport_length_mm", label: "Pikkus (mm)", type: "number" },
     ],
-    detailed_specs_categories: {}
+    detailed_specs_categories: {
+      ruloonid: {
+        label: "RULOONID",
+        fields: [
+          { key: "rulooni_läbimõõt_mm", label: "Rulooni läbimõõt (mm)", type: "number" },
+          { key: "rulooni_laius_mm", label: "Rulooni laius (mm)", type: "number" },
+          { key: "sidumine", label: "Sidumine", type: "string" },
+        ]
+      },
+      nõuded: {
+        label: "NÕUDED",
+        fields: [
+          { key: "min_võimsus_hj", label: "Min võimsus (hj)", type: "number" },
+          { key: "kardaanivõlli_pöörded", label: "Kardaanivõlli pöörded (1/min)", type: "string" },
+        ]
+      },
+      mõõtmed: {
+        label: "MÕÕTMED",
+        fields: [
+          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
+          { key: "laius_mm", label: "Laius (mm)", type: "number" },
+          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
+          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+        ]
+      },
+    }
   },
 };
 
@@ -383,9 +520,9 @@ function validateAndCleanData(data: Record<string, unknown>, schema: typeof EQUI
   const warnings: string[] = [];
   const cleaned = JSON.parse(JSON.stringify(data));
 
-  // Validation rules for numeric fields
   const validationRules: Record<string, { min: number; max: number; label: string }> = {
     engine_power_hp: { min: 10, max: 2000, label: "Mootori võimsus" },
+    fuel_consumption_lh: { min: 1, max: 200, label: "Kütusekulu" },
     lift_height_m: { min: 1, max: 30, label: "Tõstekõrgus" },
     lift_reach_m: { min: 1, max: 25, label: "Tõste kaugus" },
     max_lift_capacity_kg: { min: 100, max: 30000, label: "Max tõstevõime" },
@@ -393,13 +530,13 @@ function validateAndCleanData(data: Record<string, unknown>, schema: typeof EQUI
     weight_kg: { min: 500, max: 100000, label: "Kaal" },
     transport_width_mm: { min: 1000, max: 6000, label: "Laius" },
     transport_height_mm: { min: 1000, max: 6000, label: "Kõrgus" },
+    transport_length_mm: { min: 1000, max: 15000, label: "Pikkus" },
     fuel_tank_liters: { min: 10, max: 2000, label: "Kütusepaak" },
     grain_tank_liters: { min: 100, max: 20000, label: "Bunker" },
     rotor_diameter_mm: { min: 200, max: 2000, label: "Rootori läbimõõt" },
     rotor_length_mm: { min: 500, max: 5000, label: "Rootori pikkus" },
   };
 
-  // Validate equipment_columns
   if (cleaned.equipment_columns && typeof cleaned.equipment_columns === 'object') {
     for (const [key, value] of Object.entries(cleaned.equipment_columns as Record<string, unknown>)) {
       if (value === null || value === undefined) continue;
@@ -428,19 +565,13 @@ function applyUnitConversions(data: Record<string, unknown>): Record<string, unk
   if (result.equipment_columns && typeof result.equipment_columns === 'object') {
     const cols = result.equipment_columns as Record<string, unknown>;
     
-    // If engine_power looks like it's in kW (typically < 400 for telehandlers), convert
-    // But only if explicitly marked — we rely on the AI prompt to handle this correctly
-    // This is a safety net for obvious kW values
     if (typeof cols.engine_power_hp === 'number') {
       const val = cols.engine_power_hp as number;
-      // Heuristic: if power is very low and there's evidence it's kW, convert
-      // We check the detailed_specs for the kW/hj string as confirmation
       if (result.detailed_specs && typeof result.detailed_specs === 'object') {
         const specs = result.detailed_specs as Record<string, Record<string, unknown>>;
         const motorSpecs = specs.mootor || specs.MOOTOR;
         if (motorSpecs) {
-          const powerStr = String(motorSpecs.võimsus_kW_hj || '');
-          // If the spec string has format "75 kW / 102 hj", use the hj value
+          const powerStr = String(motorSpecs.võimsus_kW_hj || motorSpecs.võimsus_hj || '');
           const hjMatch = powerStr.match(/(\d+(?:[.,]\d+)?)\s*(?:hj|hp|PS)/i);
           if (hjMatch) {
             const hjVal = parseFloat(hjMatch[1].replace(',', '.'));
@@ -480,14 +611,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get schema based on equipment type
     const schema = getSchemaForType(equipment_type || "combine");
     const schemaDescription = buildSchemaDescription(schema);
     
     const normalizedType = normalizeTypeName(equipment_type || "combine");
     console.log('Equipment type:', equipment_type, '-> normalized:', normalizedType);
 
-    // Build an intelligent multi-model aware prompt
     const systemPrompt = `Sa oled struktureeritud andmete ekstraheerija, kes on spetsialiseerunud põllumajandustehnika brošüüride analüüsimisele. Sinu ülesanne on analüüsida PDF-brošüüri sisu ja ekstraheerida AINULT konkreetse mudeli "${model_name}" tehnilised näitajad.
 
 KRIITILINE: MITME MUDELI BROŠÜÜRIDE KÄSITLEMINE
@@ -586,7 +715,6 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
       );
     }
 
-    // Parse the JSON response
     let extractedData;
     try {
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -599,7 +727,6 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
       );
     }
 
-    // Extract metadata before cleaning
     const extractionMetadata = extractedData.extraction_metadata || {
       models_found: [model_name],
       target_model_found: true,
@@ -607,13 +734,9 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
       warnings: [],
     };
 
-    // Apply unit conversions
     extractedData = applyUnitConversions(extractedData);
-
-    // Validate and clean data
     const { cleaned, warnings: validationWarnings } = validateAndCleanData(extractedData, schema);
     
-    // Merge warnings
     const allWarnings = [
       ...(extractionMetadata.warnings || []),
       ...validationWarnings,
@@ -623,7 +746,6 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
       allWarnings.unshift(`Mudelit "${model_name}" ei leitud brošüürist otseselt. Andmed võivad olla ebatäpsed.`);
     }
 
-    // Build final response data
     const finalData = {
       equipment_columns: (cleaned as Record<string, unknown>).equipment_columns || {},
       detailed_specs: (cleaned as Record<string, unknown>).detailed_specs || {},
@@ -638,7 +760,6 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
     }
     console.log('Successfully extracted specs for:', model_name);
 
-    // Update the brochure record with extracted data
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
