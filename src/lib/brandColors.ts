@@ -77,7 +77,7 @@
        return "#000000";
      // Telehandler brands
      case "Kramer":
-       return "#609839";
+      return "#42805E";
      case "Manitou":
        return "#D40000";
      case "JCB":
