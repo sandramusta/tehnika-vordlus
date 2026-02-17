@@ -33,7 +33,14 @@ export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProp
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setBrochures(data || []);
+        // Deduplicate by filename — keep only the latest upload per filename
+        const seen = new Map<string, Brochure>();
+        for (const b of (data || [])) {
+          if (!seen.has(b.original_filename)) {
+            seen.set(b.original_filename, b);
+          }
+        }
+        setBrochures(Array.from(seen.values()));
       } catch (error) {
         console.error("Failed to fetch brochures:", error);
       } finally {
