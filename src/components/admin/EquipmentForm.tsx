@@ -195,24 +195,26 @@
              defaultValue={equipment?.model_name || ""}
            />
          </div>
-         <div className="space-y-2">
-           <Label htmlFor="power_class_id">Jõuklass</Label>
-           <Select
-             name="power_class_id"
-             defaultValue={equipment?.power_class_id || undefined}
-           >
-             <SelectTrigger>
-               <SelectValue placeholder="Vali jõuklass" />
-             </SelectTrigger>
-             <SelectContent>
-               {powerClasses.map((pc) => (
-                 <SelectItem key={pc.id} value={pc.id}>
-                   {pc.name}
-                 </SelectItem>
-               ))}
-             </SelectContent>
-           </Select>
-         </div>
+          {selectedType?.name !== "telehandler" && (
+            <div className="space-y-2">
+              <Label htmlFor="power_class_id">Jõuklass</Label>
+              <Select
+                name="power_class_id"
+                defaultValue={equipment?.power_class_id || undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Vali jõuklass" />
+                </SelectTrigger>
+                <SelectContent>
+                  {powerClasses.map((pc) => (
+                    <SelectItem key={pc.id} value={pc.id}>
+                      {pc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
        </div>
  
        {/* Dynamic fields based on equipment type */}
