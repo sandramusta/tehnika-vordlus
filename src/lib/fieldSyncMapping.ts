@@ -46,17 +46,12 @@ const TELEHANDLER_MAPPING: Record<string, SpecLocation> = {
 };
 
 const TRACTOR_MAPPING: Record<string, SpecLocation> = {
-  engine_power_hp: { category: "mootor", field: "võimsus_hj" },
-  engine_displacement_liters: { category: "mootor", field: "töömaht_l" },
+  engine_power_hp: { category: "mootor", field: "max_võimsus_hj_kw" },
+  engine_displacement_liters: { category: "mootor", field: "kubatuur_l" },
   engine_cylinders: { category: "mootor", field: "silindrid" },
   max_torque_nm: { category: "mootor", field: "max_pöördemoment_Nm" },
-  fuel_tank_liters: { category: "mootor", field: "kütusepaagi_maht_l" },
-  hydraulic_pump_lpm: { category: "hüdraulika", field: "hüdraulikapumba_võimsus_lpm" },
-  max_lift_capacity_kg: { category: "hüdraulika", field: "tõstevõime_kg" },
-  weight_kg: { category: "mõõtmed", field: "kaal_kg" },
-  transport_width_mm: { category: "mõõtmed", field: "laius_mm" },
-  transport_height_mm: { category: "mõõtmed", field: "kõrgus_mm" },
-  transport_length_mm: { category: "mõõtmed", field: "pikkus_mm" },
+  fuel_tank_liters: { category: "mahud", field: "kütusepaak_l" },
+  weight_kg: { category: "massid", field: "tühimass_kg" },
 };
 
 const FORAGE_HARVESTER_MAPPING: Record<string, SpecLocation> = {
