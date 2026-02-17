@@ -5,9 +5,17 @@ import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronRight, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getCategoryOrderForType,
   getCategoryNamesForType,
   getFieldNamesForType,
+  TRACTOR_TRANSMISSION_OPTIONS,
 } from "@/lib/pdfSpecsHelpers";
 
 interface DetailedSpecsEditorProps {
@@ -223,6 +231,7 @@ export function DetailedSpecsEditor({
                     {fields.map(([fieldKey, fieldLabel]) => {
                       const fieldValue = getFieldValue(categoryKey, fieldKey);
                       const hasValue = fieldValue !== "";
+                      const isTransmissionSelect = categoryKey === "käigukast" && fieldKey === "tüüp" && equipmentTypeName?.toLowerCase().includes("tractor");
                       
                       return (
                         <div key={fieldKey} className="space-y-1">
@@ -235,17 +244,35 @@ export function DetailedSpecsEditor({
                           >
                             {fieldLabel}
                           </Label>
-                          <Input
-                            id={`${categoryKey}-${fieldKey}`}
-                            value={fieldValue}
-                            onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value.replace(/,/g, "."))}
-                            placeholder="—"
-                            className={cn(
-                              "h-8 text-sm",
-                              hasValue && "border-primary/30 bg-primary/5"
-                            )}
-                            // No disabled, readOnly, or any other restrictions
-                          />
+                          {isTransmissionSelect ? (
+                            <Select
+                              value={fieldValue || undefined}
+                              onValueChange={(val) => handleFieldChange(categoryKey, fieldKey, val)}
+                            >
+                              <SelectTrigger className={cn(
+                                "h-8 text-sm",
+                                hasValue && "border-primary/30 bg-primary/5"
+                              )}>
+                                <SelectValue placeholder="Vali käigukast" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TRACTOR_TRANSMISSION_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              id={`${categoryKey}-${fieldKey}`}
+                              value={fieldValue}
+                              onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value.replace(/,/g, "."))}
+                              placeholder="—"
+                              className={cn(
+                                "h-8 text-sm",
+                                hasValue && "border-primary/30 bg-primary/5"
+                              )}
+                            />
+                          )}
                         </div>
                       );
                     })}

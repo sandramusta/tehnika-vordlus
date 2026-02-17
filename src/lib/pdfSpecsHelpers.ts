@@ -175,6 +175,19 @@ export const TRACTOR_CATEGORY_NAMES: Record<string, string> = {
   massid: "MASSID",
 };
 
+export const TRACTOR_TRANSMISSION_OPTIONS = [
+  "PowrQuad™ Plus",
+  "AutoQuad™ Plus",
+  "AutoQuad™ Plus EcoShift",
+  "CommandQuad™ Plus",
+  "CommandQuad™ Plus EcoShift",
+  "AutoPowr™",
+  "e23",
+  "eAutoPowr™",
+  "e18",
+  "e21",
+] as const;
+
 export const TRACTOR_FIELD_NAMES: Record<string, Record<string, string>> = {
   mootor: {
     max_võimsus_hj_kw: "Max võimsus (ECE-R120), hj (kW)",
@@ -185,16 +198,7 @@ export const TRACTOR_FIELD_NAMES: Record<string, Record<string, string>> = {
     kubatuur_l: "Kubatuur (l)",
   },
   käigukast: {
-    powrquad_plus: "PowrQuad™ Plus",
-    autoquad_plus: "AutoQuad™ Plus",
-    autoquad_plus_ecoshift: "AutoQuad™ Plus EcoShift",
-    commandquad_plus: "CommandQuad™ Plus",
-    commandquad_plus_ecoshift: "CommandQuad™ Plus EcoShift",
-    autopowr: "AutoPowr™",
-    e23: "e23",
-    eautopowr: "eAutoPowr™",
-    e18: "e18",
-    e21: "e21",
+    tüüp: "Käigukasti tüüp",
   },
   hüdrosüsteem: {
     hüdrojaoturid: "Hüdrojaoturid",
