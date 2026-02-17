@@ -8,6 +8,8 @@ import { Check, X, AlertTriangle, ChevronDown, ChevronRight, Info, ShieldAlert, 
 import { cn } from "@/lib/utils";
 import type { Equipment } from "@/types/equipment";
 import type { ExtractedData, ExtractionMetadata } from "./BrochureUpload";
+import { getFieldsForEquipmentType } from "@/lib/equipmentTypeFields";
+import { getCategoryOrderForType, getCategoryNamesForType, getFieldNamesForType } from "@/lib/pdfSpecsHelpers";
 
 interface BrochureDataReviewProps {
   equipment: Equipment;
@@ -17,65 +19,8 @@ interface BrochureDataReviewProps {
   isLoading?: boolean;
 }
 
-// Field labels for equipment columns
-const COLUMN_LABELS: Record<string, string> = {
-  // Combine fields
-  engine_power_hp: "Mootori võimsus (hj)",
-  engine_displacement_liters: "Mootori töömaht (l)",
-  engine_cylinders: "Silindrite arv",
-  max_torque_nm: "Max pöördemoment (Nm)",
-  fuel_tank_liters: "Kütusepaagi maht (l)",
-  grain_tank_liters: "Viljabunkri maht (l)",
-  unloading_rate_ls: "Tühjenduskiirus (l/s)",
-  auger_reach_m: "Tigu ulatus (m)",
-  cleaning_area_m2: "Puhastusala (m²)",
-  sieve_area_m2: "Sõelapind (m²)",
-  rotor_diameter_mm: "Rootori läbimõõt (mm)",
-  rotor_length_mm: "Rootori pikkus (mm)",
-  separator_area_m2: "Separaatori pind (m²)",
-  feeder_width_mm: "Etteande laius (mm)",
-  threshing_drum_diameter_mm: "Pekstrulli läbimõõt (mm)",
-  threshing_drum_width_mm: "Pekstrulli laius (mm)",
-  threshing_area_m2: "Pekspind (m²)",
-  weight_kg: "Kaal (kg)",
-  transport_width_mm: "Transpordi laius (mm)",
-  transport_height_mm: "Transpordi kõrgus (mm)",
-  transport_length_mm: "Transpordi pikkus (mm)",
-  header_width_min_m: "Heedri laius min (m)",
-  header_width_max_m: "Heedri laius max (m)",
-  max_slope_percent: "Max nõlv (%)",
-  throughput_tons_h: "Läbilaskevõime (t/h)",
-  straw_walker_count: "Õlgkõndijate arv",
-  straw_walker_area_m2: "Õlgkõndijate pind (m²)",
-  chopper_width_mm: "Hekseldi laius (mm)",
-  rasp_bar_count: "Raspi latide arv",
-  // Telehandler fields
-  lift_height_m: "Tõstekõrgus (m)",
-  lift_reach_m: "Tõste kaugus (m)",
-  max_lift_capacity_kg: "Max tõstevõime (kg)",
-  hydraulic_pump_lpm: "Hüdraulikapump (l/min)",
-  // Other type fields
-  header_width_m: "Heedri laius (m)",
-};
-
-// Category labels
-const CATEGORY_LABELS: Record<string, string> = {
-  mootor: "MOOTOR",
-  kaldtransportöör_etteanne: "KALDTRANSPORTÖÖR / ETTEANNE",
-  peksusüsteem: "PEKS JA SEPAREERIMINE",
-  puhastussüsteem: "PUHASTUSSÜSTEEM",
-  terapunker: "TERAPUNKER",
-  koristusjääkide_käitlemine: "KORISTUSJÄÄKIDE KÄITLEMINE",
-  nõlvakusüsteem: "NÕLVAKUSÜSTEEM",
-  mõõtmed: "MÕÕTMED",
-  heedrid: "HEEDRID",
-  kabiin: "KABIIN",
-  veosüsteem: "VEOSÜSTEEM",
-  tehnoloogia: "INTEGREERITUD TEHNOLOOGIA",
-  // Telehandler categories
-  tõsteomadused: "TÕSTEOMADUSED",
-  hüdraulika: "HÜDRAULIKA",
-};
+// Fields that cannot come from brochures (economic data entered manually)
+const EXCLUDED_FIELDS = new Set(["price_eur", "annual_maintenance_eur", "expected_lifespan_years"]);
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "—";
@@ -104,10 +49,67 @@ export function BrochureDataReview({
   onCancel,
   isLoading = false,
 }: BrochureDataReviewProps) {
-  const [editedData, setEditedData] = useState<ExtractedData>(extractedData);
+  const equipmentTypeName = equipment.equipment_type?.name || "combine";
+
+  // Build allowed column keys and labels from equipmentTypeFields.ts
+  const { allowedColumnKeys, columnLabels } = useMemo(() => {
+    const fieldGroups = getFieldsForEquipmentType(equipmentTypeName);
+    const keys = new Set<string>();
+    const labels: Record<string, string> = {};
+    for (const group of fieldGroups) {
+      for (const field of group.fields) {
+        if (!EXCLUDED_FIELDS.has(field.name)) {
+          keys.add(field.name);
+          labels[field.name] = field.label;
+        }
+      }
+    }
+    return { allowedColumnKeys: keys, columnLabels: labels };
+  }, [equipmentTypeName]);
+
+  // Build allowed detailed_specs categories/fields from pdfSpecsHelpers.ts
+  const { allowedCategories, categoryLabels, fieldLabels } = useMemo(() => {
+    const catOrder = getCategoryOrderForType(equipmentTypeName);
+    const catNames = getCategoryNamesForType(equipmentTypeName);
+    const fieldNames = getFieldNamesForType(equipmentTypeName);
+    return {
+      allowedCategories: new Set(catOrder),
+      categoryLabels: catNames,
+      fieldLabels: fieldNames,
+    };
+  }, [equipmentTypeName]);
+
+  // Filter extracted data to only allowed fields, filling missing with null
+  const filteredData = useMemo(() => {
+    // Filter equipment_columns
+    const filteredColumns: Record<string, unknown> = {};
+    for (const key of allowedColumnKeys) {
+      filteredColumns[key] = extractedData.equipment_columns?.[key] ?? null;
+    }
+
+    // Filter detailed_specs
+    const filteredSpecs: Record<string, Record<string, unknown>> = {};
+    for (const catKey of allowedCategories) {
+      const allowedFields = fieldLabels[catKey];
+      if (!allowedFields) continue;
+      filteredSpecs[catKey] = {};
+      for (const fieldKey of Object.keys(allowedFields)) {
+        const extractedCat = extractedData.detailed_specs?.[catKey] as Record<string, unknown> | undefined;
+        filteredSpecs[catKey][fieldKey] = extractedCat?.[fieldKey] ?? null;
+      }
+    }
+
+    return {
+      equipment_columns: filteredColumns,
+      detailed_specs: filteredSpecs,
+      extraction_metadata: extractedData.extraction_metadata,
+    } as ExtractedData;
+  }, [extractedData, allowedColumnKeys, allowedCategories, fieldLabels]);
+
+  const [editedData, setEditedData] = useState<ExtractedData>(filteredData);
   const metadata: ExtractionMetadata | undefined = extractedData.extraction_metadata;
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(["equipment_columns", "mootor"])
+    new Set(["equipment_columns", ...Array.from(allowedCategories).slice(0, 1)])
   );
 
   const toggleCategory = (category: string) => {
@@ -150,7 +152,6 @@ export function BrochureDataReview({
     let extracted = 0;
     let empty = 0;
 
-    // Count equipment columns
     Object.values(editedData.equipment_columns || {}).forEach((val) => {
       if (val !== null && val !== undefined && val !== "") {
         extracted++;
@@ -159,7 +160,6 @@ export function BrochureDataReview({
       }
     });
 
-    // Count detailed specs
     Object.values(editedData.detailed_specs || {}).forEach((category) => {
       if (typeof category === "object" && category !== null) {
         Object.values(category).forEach((val) => {
@@ -178,6 +178,11 @@ export function BrochureDataReview({
   const handleConfirm = async () => {
     await onConfirm(editedData);
   };
+
+  // Get ordered category keys for display
+  const orderedCategoryKeys = useMemo(() => {
+    return Array.from(getCategoryOrderForType(equipmentTypeName));
+  }, [equipmentTypeName]);
 
   return (
     <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
@@ -218,7 +223,6 @@ export function BrochureDataReview({
         {/* Extraction metadata info */}
         {metadata && (
           <div className="mt-3 space-y-2">
-            {/* Models found in brochure */}
             {metadata.models_found && metadata.models_found.length > 1 && (
               <div className="flex items-start gap-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-2 text-sm">
                 <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
@@ -229,7 +233,6 @@ export function BrochureDataReview({
               </div>
             )}
 
-            {/* Target model not found warning */}
             {!metadata.target_model_found && (
               <div className="flex items-start gap-2 rounded-md bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2 text-sm">
                 <ShieldAlert className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
@@ -239,7 +242,6 @@ export function BrochureDataReview({
               </div>
             )}
 
-            {/* Warnings */}
             {metadata.warnings && metadata.warnings.length > 0 && (
               <div className="flex items-start gap-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-2 text-sm">
                 <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
@@ -273,6 +275,7 @@ export function BrochureDataReview({
             <div className="border-t p-3">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {Object.entries(editedData.equipment_columns || {}).map(([key, value]) => {
+                  if (!allowedColumnKeys.has(key)) return null;
                   const currentValue = getCurrentValue(equipment, key);
                   const hasValue = value !== null && value !== undefined && value !== "";
                   const isDifferent = hasValue && currentValue !== value;
@@ -283,7 +286,7 @@ export function BrochureDataReview({
                         htmlFor={`col-${key}`}
                         className="flex items-center gap-1 text-xs"
                       >
-                        <span>{COLUMN_LABELS[key] || key}</span>
+                        <span>{columnLabels[key] || key}</span>
                         {hasValue ? (
                           <Check className="h-3 w-3 text-green-500" />
                         ) : (
@@ -316,9 +319,12 @@ export function BrochureDataReview({
           )}
         </div>
 
-        {/* Detailed Specs Categories */}
-        {Object.entries(editedData.detailed_specs || {}).map(([categoryKey, categoryData]) => {
-          if (!categoryData || typeof categoryData !== "object") return null;
+        {/* Detailed Specs Categories - ordered by pdfSpecsHelpers */}
+        {orderedCategoryKeys.map((categoryKey) => {
+          const categoryData = editedData.detailed_specs?.[categoryKey] as Record<string, unknown> | undefined;
+          if (!categoryData) return null;
+          const allowedFields = fieldLabels[categoryKey];
+          if (!allowedFields) return null;
 
           return (
             <div key={categoryKey} className="rounded-lg border bg-card">
@@ -327,7 +333,7 @@ export function BrochureDataReview({
                 className="flex w-full items-center justify-between p-3 text-left font-semibold hover:bg-muted/50"
                 onClick={() => toggleCategory(categoryKey)}
               >
-                <span>{CATEGORY_LABELS[categoryKey] || categoryKey}</span>
+                <span>{categoryLabels[categoryKey] || categoryKey}</span>
                 {expandedCategories.has(categoryKey) ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
@@ -338,7 +344,8 @@ export function BrochureDataReview({
               {expandedCategories.has(categoryKey) && (
                 <div className="border-t p-3">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {Object.entries(categoryData as Record<string, unknown>).map(([field, value]) => {
+                    {Object.entries(allowedFields).map(([field, fieldLabel]) => {
+                      const value = categoryData[field] ?? null;
                       const currentValue = getDetailedSpecValue(equipment, categoryKey, field);
                       const hasValue = value !== null && value !== undefined && value !== "";
                       const isDifferent = hasValue && currentValue !== value;
@@ -349,7 +356,7 @@ export function BrochureDataReview({
                             htmlFor={`spec-${categoryKey}-${field}`}
                             className="flex items-center gap-1 text-xs"
                           >
-                            <span>{field.replace(/_/g, " ")}</span>
+                            <span>{fieldLabel}</span>
                             {hasValue ? (
                               <Check className="h-3 w-3 text-green-500" />
                             ) : (
