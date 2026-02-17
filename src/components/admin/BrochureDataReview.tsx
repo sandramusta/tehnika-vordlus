@@ -19,6 +19,7 @@ interface BrochureDataReviewProps {
 
 // Field labels for equipment columns
 const COLUMN_LABELS: Record<string, string> = {
+  // Combine fields
   engine_power_hp: "Mootori võimsus (hj)",
   engine_displacement_liters: "Mootori töömaht (l)",
   engine_cylinders: "Silindrite arv",
@@ -39,6 +40,7 @@ const COLUMN_LABELS: Record<string, string> = {
   weight_kg: "Kaal (kg)",
   transport_width_mm: "Transpordi laius (mm)",
   transport_height_mm: "Transpordi kõrgus (mm)",
+  transport_length_mm: "Transpordi pikkus (mm)",
   header_width_min_m: "Heedri laius min (m)",
   header_width_max_m: "Heedri laius max (m)",
   max_slope_percent: "Max nõlv (%)",
@@ -47,6 +49,13 @@ const COLUMN_LABELS: Record<string, string> = {
   straw_walker_area_m2: "Õlgkõndijate pind (m²)",
   chopper_width_mm: "Hekseldi laius (mm)",
   rasp_bar_count: "Raspi latide arv",
+  // Telehandler fields
+  lift_height_m: "Tõstekõrgus (m)",
+  lift_reach_m: "Tõste kaugus (m)",
+  max_lift_capacity_kg: "Max tõstevõime (kg)",
+  hydraulic_pump_lpm: "Hüdraulikapump (l/min)",
+  // Other type fields
+  header_width_m: "Heedri laius (m)",
 };
 
 // Category labels
@@ -63,6 +72,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   kabiin: "KABIIN",
   veosüsteem: "VEOSÜSTEEM",
   tehnoloogia: "INTEGREERITUD TEHNOLOOGIA",
+  // Telehandler categories
+  tõsteomadused: "TÕSTEOMADUSED",
+  hüdraulika: "HÜDRAULIKA",
 };
 
 function formatValue(value: unknown): string {

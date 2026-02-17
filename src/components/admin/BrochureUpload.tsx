@@ -102,6 +102,7 @@ export function BrochureUpload({ equipment, onExtractionComplete }: BrochureUplo
             brochure_id: brochureRecord.id,
             pdf_content: pdfContent,
             model_name: equipment.model_name,
+            equipment_type: equipment.equipment_type?.name || "combine",
           },
         }
       );
