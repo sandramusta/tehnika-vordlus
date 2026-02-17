@@ -595,9 +595,9 @@ Deno.serve(async (req) => {
   try {
     const { brochure_id, pdf_content, model_name, equipment_type } = await req.json();
 
-    if (!brochure_id || !pdf_content || !model_name) {
+    if (!pdf_content || !model_name) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing required fields: brochure_id, pdf_content, model_name' }),
+        JSON.stringify({ success: false, error: 'Missing required fields: pdf_content, model_name' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -759,31 +759,30 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
     }
     console.log('Successfully extracted specs for:', model_name);
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    const { error: updateError } = await supabase
-      .from('equipment_brochures')
-      .update({
-        extracted_data: {
-          ...finalData,
-          extraction_metadata: {
-            ...extractionMetadata,
-            warnings: allWarnings,
-          },
-        },
-        extraction_status: 'completed',
-      })
-      .eq('id', brochure_id);
-
-    if (updateError) {
-      console.error('Failed to update brochure record:', updateError);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Failed to save extracted data' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    // Only update brochure record if brochure_id was provided
+    if (brochure_id) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
+
+      const { error: updateError } = await supabase
+        .from('equipment_brochures')
+        .update({
+          extracted_data: {
+            ...finalData,
+            extraction_metadata: {
+              ...extractionMetadata,
+              warnings: allWarnings,
+            },
+          },
+          extraction_status: 'completed',
+        })
+        .eq('id', brochure_id);
+
+      if (updateError) {
+        console.error('Failed to update brochure record:', updateError);
+      }
     }
 
     return new Response(

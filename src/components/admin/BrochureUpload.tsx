@@ -15,7 +15,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 interface BrochureUploadProps {
   equipment: Equipment;
-  onExtractionComplete: (extractedData: ExtractedData) => void;
+  onExtractionComplete: (extractedData: ExtractedData, brochureUrl: string, originalFilename: string) => void;
 }
 
 export interface ExtractionMetadata {
@@ -87,19 +87,7 @@ export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
           .from("equipment-brochures")
           .getPublicUrl(fileName);
 
-        // Step 2: Create brochure record
-        const { data: brochureRecord, error: insertError } = await supabase
-          .from("equipment_brochures")
-          .insert({
-            equipment_id: equipment.id,
-            brochure_url: urlData.publicUrl,
-            original_filename: file.name,
-            extraction_status: "processing",
-          })
-          .select()
-          .single();
-
-        if (insertError) throw new Error(`Kirje loomine ebaõnnestus: ${insertError.message}`);
+        const brochureUrl = urlData.publicUrl;
 
         setStatus("extracting");
 
@@ -115,7 +103,6 @@ export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
           "extract-brochure-specs",
           {
             body: {
-              brochure_id: brochureRecord.id,
               pdf_content: pdfContent,
               model_name: equipment.model_name,
               equipment_type: equipment.equipment_type?.name || "combine",
@@ -141,7 +128,7 @@ export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
           ...(extractionResult.data as { equipment_columns: Record<string, unknown>; detailed_specs: Record<string, Record<string, unknown>> }),
           extraction_metadata: (extractionResult.extraction_metadata as ExtractionMetadata) || undefined,
         };
-        onExtractionComplete(dataWithMeta);
+        onExtractionComplete(dataWithMeta, brochureUrl, file.name);
 
         toast({
           title: "Andmed ekstraheeritud!",

@@ -88,6 +88,8 @@ function getCategoryLabel(category: string): string {
   const [brochureDialogOpen, setBrochureDialogOpen] = useState(false);
   const [brochureEquipment, setBrochureEquipment] = useState<Equipment | null>(null);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+  const [pendingBrochureUrl, setPendingBrochureUrl] = useState<string>("");
+  const [pendingBrochureFilename, setPendingBrochureFilename] = useState<string>("");
   const [isSavingBrochureData, setIsSavingBrochureData] = useState(false);
   const [argumentTypeFilter, setArgumentTypeFilter] = useState<string>("all");
   const [isSavingEquipment, setIsSavingEquipment] = useState(false);
@@ -273,14 +275,18 @@ function getCategoryLabel(category: string): string {
    };
  
    const closeBrochureDialog = () => {
-     setBrochureDialogOpen(false);
-     setBrochureEquipment(null);
-     setExtractedData(null);
-   };
+    setBrochureDialogOpen(false);
+    setBrochureEquipment(null);
+    setExtractedData(null);
+    setPendingBrochureUrl("");
+    setPendingBrochureFilename("");
+  };
  
-   const handleExtractionComplete = (data: ExtractedData) => {
-     setExtractedData(data);
-   };
+  const handleExtractionComplete = (data: ExtractedData, brochureUrl: string, originalFilename: string) => {
+    setExtractedData(data);
+    setPendingBrochureUrl(brochureUrl);
+    setPendingBrochureFilename(originalFilename);
+  };
  
     const handleConfirmBrochureData = async (data: ExtractedData) => {
       if (!brochureEquipment) return;
@@ -393,12 +399,19 @@ function getCategoryLabel(category: string): string {
  
        if (error) throw error;
  
-       await supabase
-         .from("equipment_brochures")
-         .update({ applied_at: new Date().toISOString() })
-         .eq("equipment_id", brochureEquipment.id)
-         .eq("extraction_status", "completed")
-         .is("applied_at", null);
+       // Create brochure record only on confirmation
+       if (pendingBrochureUrl) {
+         await supabase
+           .from("equipment_brochures")
+           .insert({
+             equipment_id: brochureEquipment.id,
+             brochure_url: pendingBrochureUrl,
+             original_filename: pendingBrochureFilename,
+             extraction_status: "completed",
+             extracted_data: data as unknown as Record<string, never>,
+             applied_at: new Date().toISOString(),
+           });
+       }
  
        toast({
          title: "Andmed salvestatud!",
