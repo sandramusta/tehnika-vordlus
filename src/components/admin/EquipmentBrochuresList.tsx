@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Equipment } from "@/types/equipment";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, ExternalLink, Loader2 } from "lucide-react";
+import { FileText, ExternalLink, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface Brochure {
   id: string;
@@ -21,41 +22,60 @@ interface EquipmentBrochuresListProps {
 export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProps) {
   const [brochures, setBrochures] = useState<Brochure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const fetchBrochures = async (signal?: AbortSignal) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("equipment_brochures")
+        .select("*")
+        .eq("equipment_id", equipment.id)
+        .abortSignal(signal!)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      const seen = new Map<string, Brochure>();
+      for (const b of (data || [])) {
+        if (!seen.has(b.original_filename)) {
+          seen.set(b.original_filename, b);
+        }
+      }
+      setBrochures(Array.from(seen.values()));
+    } catch (error: any) {
+      if (error?.name !== "AbortError") {
+        console.error("Failed to fetch brochures:", error);
+        setBrochures([]);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    const fetchBrochures = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("equipment_brochures")
-          .select("*")
-          .eq("equipment_id", equipment.id)
-          .abortSignal(controller.signal)
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        const seen = new Map<string, Brochure>();
-        for (const b of (data || [])) {
-          if (!seen.has(b.original_filename)) {
-            seen.set(b.original_filename, b);
-          }
-        }
-        setBrochures(Array.from(seen.values()));
-      } catch (error) {
-        console.error("Failed to fetch brochures:", error);
-        setBrochures([]);
-      } finally {
-        setIsLoading(false);
-        clearTimeout(timeoutId);
-      }
-    };
-
-    fetchBrochures();
-    return () => { controller.abort(); clearTimeout(timeoutId); };
+    fetchBrochures(controller.signal);
+    return () => { controller.abort(); };
   }, [equipment.id]);
+
+  const handleDelete = async (brochure: Brochure) => {
+    if (!confirm(`Kas olete kindel, et soovite brošüüri "${brochure.original_filename}" kustutada?`)) return;
+    setDeletingId(brochure.id);
+    try {
+      const { error } = await supabase
+        .from("equipment_brochures")
+        .delete()
+        .eq("id", brochure.id);
+      if (error) throw error;
+      setBrochures((prev) => prev.filter((b) => b.id !== brochure.id));
+      toast.success("Brošüür kustutatud");
+    } catch (error) {
+      console.error("Failed to delete brochure:", error);
+      toast.error("Brošüüri kustutamine ebaõnnestus");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -110,6 +130,19 @@ export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProp
               <a href={brochure.brochure_url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4" />
               </a>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Kustuta brošüür"
+              disabled={deletingId === brochure.id}
+              onClick={() => handleDelete(brochure)}
+            >
+              {deletingId === brochure.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 text-destructive" />
+              )}
             </Button>
           </div>
         ))}
