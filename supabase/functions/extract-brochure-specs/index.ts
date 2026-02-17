@@ -717,8 +717,7 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
 
     let extractedData;
     try {
-      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      extractedData = JSON.parse(cleanContent);
+      extractedData = extractJsonFromResponse(content);
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', content.substring(0, 500));
       return new Response(
@@ -808,6 +807,73 @@ Vasta AINULT kehtiva JSON objektiga. Ära lisa selgitusi ega kommentaare väljas
     );
   }
 });
+
+function extractJsonFromResponse(response: string): unknown {
+  // Remove markdown code blocks
+  let cleaned = response
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim();
+
+  // Find JSON boundaries
+  const jsonStart = cleaned.search(/[\{\[]/);
+  if (jsonStart === -1) {
+    throw new Error('No JSON object found in response');
+  }
+  
+  cleaned = cleaned.substring(jsonStart);
+
+  // Try direct parse first
+  try {
+    return JSON.parse(cleaned);
+  } catch (_e) {
+    // Ignore, try repairs below
+  }
+
+  // Fix common issues: trailing commas, control characters
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    .replace(/[\x00-\x1F\x7F]/g, (ch) => ch === '\n' || ch === '\r' || ch === '\t' ? ch : '');
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (_e) {
+    // Ignore, try truncation repair
+  }
+
+  // Handle truncated JSON: close all open braces/brackets
+  let braceCount = 0;
+  let bracketCount = 0;
+  let inString = false;
+  let escape = false;
+  
+  for (const ch of cleaned) {
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') braceCount++;
+    if (ch === '}') braceCount--;
+    if (ch === '[') bracketCount++;
+    if (ch === ']') bracketCount--;
+  }
+
+  // Remove trailing incomplete key-value pairs (e.g. `"key": ` without value)
+  cleaned = cleaned.replace(/,?\s*"[^"]*"\s*:\s*$/m, '');
+  // Remove trailing commas
+  cleaned = cleaned.replace(/,\s*$/, '');
+
+  // Close unclosed brackets/braces
+  for (let i = 0; i < bracketCount; i++) cleaned += ']';
+  for (let i = 0; i < braceCount; i++) cleaned += '}';
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (finalError) {
+    throw new Error(`JSON repair failed: ${(finalError as Error).message}`);
+  }
+}
 
 function buildSchemaDescription(schema: typeof EQUIPMENT_TYPE_SCHEMAS[string]): string {
   let description = '{\n  "equipment_columns": {\n';
