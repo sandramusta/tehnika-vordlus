@@ -43,6 +43,7 @@ export function EquipmentBrochuresList({ equipment }: EquipmentBrochuresListProp
         setBrochures(Array.from(seen.values()));
       } catch (error) {
         console.error("Failed to fetch brochures:", error);
+        setBrochures([]);
       } finally {
         setIsLoading(false);
       }

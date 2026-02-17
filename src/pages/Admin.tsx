@@ -180,15 +180,16 @@ function getCategoryLabel(category: string): string {
          }
          setEquipmentDialogOpen(false);
          setEditingEquipment(null);
-       } catch (error) {
-         toast({
-           title: "Viga",
-           description: editingEquipment ? "Tehnika uuendamine ebaõnnestus" : "Tehnika lisamine ebaõnnestus",
-           variant: "destructive",
-         });
-       }
-     },
-     [editingEquipment, updateEquipment, createEquipment, toast]
+      } catch (error) {
+        console.error("Equipment save error:", error);
+        toast({
+          title: "Viga",
+          description: error instanceof Error ? error.message : (editingEquipment ? "Tehnika uuendamine ebaõnnestus" : "Tehnika lisamine ebaõnnestus"),
+          variant: "destructive",
+        });
+      }
+    },
+    [editingEquipment, updateEquipment, createEquipment, toast]
    );
  
    const handleArgumentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
