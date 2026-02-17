@@ -151,23 +151,9 @@
                                key={item.id}
                                className="flex items-center gap-3 rounded-md bg-background border border-border p-3 hover:bg-accent/30 transition-colors group"
                              >
-                               <div className="flex-1 min-w-0">
-                                 <p className="font-medium truncate">{item.model_name}</p>
-                                 <div className="flex gap-3 text-xs text-muted-foreground mt-0.5">
-                                   {item.engine_power_hp && (
-                                     <span>{item.engine_power_hp} hj</span>
-                                   )}
-                                   {item.price_eur && (
-                                     <span>
-                                       {new Intl.NumberFormat("et-EE", {
-                                         style: "currency",
-                                         currency: "EUR",
-                                         maximumFractionDigits: 0,
-                                       }).format(item.price_eur)}
-                                     </span>
-                                   )}
-                                 </div>
-                               </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">{item.model_name}</p>
+                                </div>
                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                  <Button
                                    variant="ghost"
