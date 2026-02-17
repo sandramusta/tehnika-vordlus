@@ -13,7 +13,7 @@
  import { ImageUpload } from "./ImageUpload";
  import { DetailedSpecsEditor } from "./DetailedSpecsEditor";
  import { EquipmentBrochuresList } from "./EquipmentBrochuresList";
- import { getFieldsForEquipmentType, type FieldGroup, type FieldConfig } from "@/lib/equipmentTypeFields";
+ import { COMMON_FIELDS, type FieldGroup, type FieldConfig } from "@/lib/equipmentTypeFields";
  import type { Equipment, Brand, PowerClass, EquipmentType } from "@/types/equipment";
  import { cn } from "@/lib/utils";
  
@@ -98,10 +98,10 @@
    }, [brands, selectedTypeId, allEquipment, equipment]);
  
    // Get dynamic fields based on selected type
-   const fieldGroups = useMemo(() => {
-     if (!selectedType) return [];
-    return getFieldsForEquipmentType(selectedType.name);
-  }, [selectedType]);
+    // Only show COMMON_FIELDS (Põhiandmed + Majandusandmed), not type-specific fields
+    const fieldGroups = useMemo(() => {
+      return COMMON_FIELDS;
+    }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
      e.preventDefault();
@@ -217,21 +217,21 @@
           )}
        </div>
  
-       {/* Dynamic fields based on equipment type */}
-       {selectedType && fieldGroups.length > 0 && (
-         <div className="space-y-6">
-           {fieldGroups.map((group: FieldGroup) => (
-             <div key={group.title} className="space-y-3">
-               <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide border-b pb-1">
-                 {group.title}
-               </h4>
-               <div className="grid grid-cols-3 gap-4">
-                 {group.fields.map((field) => renderField(field))}
-               </div>
-             </div>
-           ))}
-         </div>
-       )}
+        {/* Common fields (Põhiandmed + Majandusandmed) */}
+        {fieldGroups.length > 0 && (
+          <div className="space-y-6">
+            {fieldGroups.map((group: FieldGroup) => (
+              <div key={group.title} className="space-y-3">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide border-b pb-1">
+                  {group.title}
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  {group.fields.map((field) => renderField(field))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
  
        {/* Images */}
        <div className="grid grid-cols-2 gap-4">

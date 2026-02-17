@@ -277,39 +277,91 @@ function getCategoryLabel(category: string): string {
      setExtractedData(data);
    };
  
-   const handleConfirmBrochureData = async (data: ExtractedData) => {
-     if (!brochureEquipment) return;
- 
-     setIsSavingBrochureData(true);
-     try {
-       const columnUpdates: Record<string, unknown> = {};
-       if (data.equipment_columns) {
-         Object.entries(data.equipment_columns).forEach(([key, value]) => {
-           if (value !== null && value !== undefined && value !== "") {
-             columnUpdates[key] = value;
-           }
-         });
-       }
- 
-       const existingSpecs = (brochureEquipment.detailed_specs as Record<string, unknown>) || {};
-       const mergedSpecs = { ...existingSpecs };
-       
-       if (data.detailed_specs) {
-         Object.entries(data.detailed_specs).forEach(([category, fields]) => {
-           if (typeof fields === "object" && fields !== null) {
-             const existingCategory = (mergedSpecs[category] as Record<string, unknown>) || {};
-             const updatedCategory = { ...existingCategory };
-             
-             Object.entries(fields as Record<string, unknown>).forEach(([field, value]) => {
-               if (value !== null && value !== undefined && value !== "") {
-                 updatedCategory[field] = value;
-               }
-             });
-             
-             mergedSpecs[category] = updatedCategory;
-           }
-         });
-       }
+    const handleConfirmBrochureData = async (data: ExtractedData) => {
+      if (!brochureEquipment) return;
+
+      setIsSavingBrochureData(true);
+      try {
+        const columnUpdates: Record<string, unknown> = {};
+        if (data.equipment_columns) {
+          Object.entries(data.equipment_columns).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== "") {
+              columnUpdates[key] = value;
+            }
+          });
+        }
+
+        const existingSpecs = (brochureEquipment.detailed_specs as Record<string, unknown>) || {};
+        const mergedSpecs = { ...existingSpecs };
+        
+        if (data.detailed_specs) {
+          Object.entries(data.detailed_specs).forEach(([category, fields]) => {
+            if (typeof fields === "object" && fields !== null) {
+              const existingCategory = (mergedSpecs[category] as Record<string, unknown>) || {};
+              const updatedCategory = { ...existingCategory };
+              
+              Object.entries(fields as Record<string, unknown>).forEach(([field, value]) => {
+                if (value !== null && value !== undefined && value !== "") {
+                  updatedCategory[field] = value;
+                }
+              });
+              
+              mergedSpecs[category] = updatedCategory;
+            }
+          });
+        }
+
+        // Also map equipment_columns into detailed_specs categories
+        // so all technical data appears in the DetailedSpecsEditor table
+        const columnToSpecMap: Record<string, { category: string; field: string }> = {
+          engine_power_hp: { category: "mootor", field: "võimsus_hj" },
+          engine_displacement_liters: { category: "mootor", field: "töömaht_l" },
+          engine_cylinders: { category: "mootor", field: "silindrid" },
+          max_torque_nm: { category: "mootor", field: "max_pöördemoment_nm" },
+          fuel_tank_liters: { category: "mootor", field: "kütusepaak_l" },
+          grain_tank_liters: { category: "terapunker", field: "maht_l" },
+          unloading_rate_ls: { category: "terapunker", field: "tühjenduskiirus_ls" },
+          auger_reach_m: { category: "terapunker", field: "tigu_ulatus_m" },
+          rotor_diameter_mm: { category: "peksusüsteem", field: "rootori_läbimõõt_mm" },
+          rotor_length_mm: { category: "peksusüsteem", field: "rootori_pikkus_mm" },
+          feeder_width_mm: { category: "kaldtransportöör_etteanne", field: "etteande_laius_mm" },
+          threshing_drum_diameter_mm: { category: "peksusüsteem", field: "trumli_läbimõõt_mm" },
+          threshing_drum_width_mm: { category: "peksusüsteem", field: "trumli_laius_mm" },
+          threshing_area_m2: { category: "peksusüsteem", field: "peksupindala_m2" },
+          separator_area_m2: { category: "peksusüsteem", field: "separeerimispind_m2" },
+          straw_walker_count: { category: "peksusüsteem", field: "õlekõndijad" },
+          straw_walker_area_m2: { category: "peksusüsteem", field: "õlekõndija_pind_m2" },
+          cleaning_area_m2: { category: "puhastussüsteem", field: "puhastuspind_m2" },
+          sieve_area_m2: { category: "puhastussüsteem", field: "sõelapind_m2" },
+          chopper_width_mm: { category: "koristusjääkide_käitlemine", field: "heksli_laius_mm" },
+          rasp_bar_count: { category: "peksusüsteem", field: "raspi_latid" },
+          transport_width_mm: { category: "mõõtmed", field: "transpordi_laius_mm" },
+          transport_height_mm: { category: "mõõtmed", field: "transpordi_kõrgus_mm" },
+          transport_length_mm: { category: "mõõtmed", field: "transpordi_pikkus_mm" },
+          weight_kg: { category: "mõõtmed", field: "kaal_kg" },
+          max_slope_percent: { category: "nõlvakusüsteem", field: "max_kalle_pct" },
+          header_width_min_m: { category: "heedrid", field: "min_laius_m" },
+          header_width_max_m: { category: "heedrid", field: "max_laius_m" },
+          throughput_tons_h: { category: "mootor", field: "läbilaskevõime_th" },
+          // Telehandler
+          lift_height_m: { category: "tõsteomadused", field: "tõstekõrgus_m" },
+          lift_reach_m: { category: "tõsteomadused", field: "tõste_kaugus_m" },
+          max_lift_capacity_kg: { category: "tõsteomadused", field: "max_tõstevõime_kg" },
+          hydraulic_pump_lpm: { category: "hüdraulika", field: "pump_lpm" },
+        };
+
+        if (data.equipment_columns) {
+          Object.entries(data.equipment_columns).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== "") {
+              const mapping = columnToSpecMap[key];
+              if (mapping) {
+                const cat = (mergedSpecs[mapping.category] as Record<string, unknown>) || {};
+                cat[mapping.field] = value;
+                mergedSpecs[mapping.category] = cat;
+              }
+            }
+          });
+        }
  
        const { error } = await supabase
          .from("equipment")
