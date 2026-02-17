@@ -125,32 +125,29 @@
        ],
      },
    ],
-   tractor: [
-     {
-       title: "Mootor",
-       fields: [
-         { name: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number", placeholder: "400" },
-         { name: "engine_displacement_liters", label: "Mootori töömaht (L)", type: "number", step: "0.1", placeholder: "6.8" },
-         { name: "engine_cylinders", label: "Silindrite arv", type: "number", placeholder: "6" },
-         { name: "max_torque_nm", label: "Max pöördemoment (Nm)", type: "number", placeholder: "980" },
-       ],
-     },
-     {
-       title: "Hüdraulika",
-       fields: [
-         { name: "hydraulic_pump_lpm", label: "Hüdraulikapump (l/min)", type: "number", placeholder: "200" },
-         { name: "max_lift_capacity_kg", label: "Tagumise tõstuki võime (kg)", type: "number", placeholder: "12000" },
-       ],
-     },
-     {
-       title: "Mõõtmed",
-       fields: [
-         { name: "transport_width_mm", label: "Laius (mm)", type: "number", placeholder: "2550" },
-         { name: "transport_height_mm", label: "Kõrgus (mm)", type: "number", placeholder: "3100" },
-         { name: "transport_length_mm", label: "Pikkus (mm)", type: "number", placeholder: "5500" },
-       ],
-     },
-   ],
+  tractor: [
+    {
+      title: "Mootor",
+      fields: [
+        { name: "engine_power_hp", label: "Max võimsus (hj)", type: "number", placeholder: "150" },
+        { name: "engine_displacement_liters", label: "Kubatuur (L)", type: "number", step: "0.1", placeholder: "6.8" },
+        { name: "engine_cylinders", label: "Silindrite arv", type: "number", placeholder: "6" },
+        { name: "max_torque_nm", label: "Max pöördemoment (Nm)", type: "number", placeholder: "980" },
+      ],
+    },
+    {
+      title: "Mahud",
+      fields: [
+        { name: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number", placeholder: "400" },
+      ],
+    },
+    {
+      title: "Massid",
+      fields: [
+        { name: "weight_kg", label: "Tühimass (kg)", type: "number", placeholder: "6500" },
+      ],
+    },
+  ],
    "forage_harvester": [
      {
        title: "Mootor",

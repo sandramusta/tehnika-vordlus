@@ -149,37 +149,80 @@ export const TELEHANDLER_FIELD_NAMES: Record<string, Record<string, string>> = {
 };
 
 // ============================================================================
-// TRACTOR (Traktor) - 3 categories
+// TRACTOR (Traktor) - 9 categories
 // ============================================================================
 export const TRACTOR_CATEGORY_ORDER = [
   "mootor",
-  "hüdraulika",
+  "käigukast",
+  "hüdrosüsteem",
+  "tagumine_rippsüsteem",
+  "eesmine_rippsüsteem",
+  "kabiin",
+  "mahud",
   "mõõtmed",
+  "massid",
 ] as const;
 
 export const TRACTOR_CATEGORY_NAMES: Record<string, string> = {
   mootor: "MOOTOR",
-  hüdraulika: "HÜDRAULIKA",
+  käigukast: "KÄIGUKAST",
+  hüdrosüsteem: "HÜDROSÜSTEEM",
+  tagumine_rippsüsteem: "TAGUMINE RIPPSÜSTEEM",
+  eesmine_rippsüsteem: "EESMINE RIPPSÜSTEEM",
+  kabiin: "KABIIN",
+  mahud: "MAHUD",
   mõõtmed: "MÕÕTMED",
+  massid: "MASSID",
 };
 
 export const TRACTOR_FIELD_NAMES: Record<string, Record<string, string>> = {
   mootor: {
-    võimsus_hj: "Võimsus (hj)",
-    töömaht_l: "Töömaht (l)",
+    max_võimsus_hj_kw: "Max võimsus (ECE-R120), hj (kW)",
+    max_võimsus_ipm_hj_kw: "Max võimsus IPM-iga, hj (kW)",
+    pöördemomendi_varu_pct: "Pöördemomendi varu (%)",
+    max_pöördemoment_Nm: "Maksimaalne pöördemoment (Nm)",
     silindrid: "Silindrid",
-    max_pöördemoment_Nm: "Max pöördemoment (Nm)",
-    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
+    kubatuur_l: "Kubatuur (l)",
   },
-  hüdraulika: {
-    hüdraulikapumba_võimsus_lpm: "Hüdraulikapumba võimsus (l/min)",
-    tõstevõime_kg: "Tõstevõime (kg)",
+  käigukast: {
+    powrquad_plus: "PowrQuad™ Plus",
+    autoquad_plus: "AutoQuad™ Plus",
+    autoquad_plus_ecoshift: "AutoQuad™ Plus EcoShift",
+    commandquad_plus: "CommandQuad™ Plus",
+    commandquad_plus_ecoshift: "CommandQuad™ Plus EcoShift",
+    autopowr: "AutoPowr™",
+    e23: "e23",
+    eautopowr: "eAutoPowr™",
+    e18: "e18",
+    e21: "e21",
+  },
+  hüdrosüsteem: {
+    hüdrojaoturid: "Hüdrojaoturid",
+    vooluhulk_lpm: "Vooluhulk mootori nimipööretel (l/min)",
+  },
+  tagumine_rippsüsteem: {
+    max_tõstevõime_konksudel_kg: "Max tõstevõime aisa konksudel (kg)",
+    tõstevõime_oecd_610_kg: "Tõstevõime kogu tõsteulatuses OECD 610 mm (kg)",
+  },
+  eesmine_rippsüsteem: {
+    max_tõstevõime_konksudel_kg: "Max tõstevõime aisa konksudel (kg)",
+    tõstevõime_oecd_610_kg: "Tõstevõime kogu tõsteulatuses OECD 610 mm (kg)",
+  },
+  kabiin: {
+    vedrustus: "Vedrustus",
+    kabiini_ruumala_m3: "Kabiini ruumala (m³)",
+  },
+  mahud: {
+    kütusepaak_l: "Kütusepaak (standard/lisavarustus) (l)",
+    def_l: "DEF (l)",
   },
   mõõtmed: {
-    kaal_kg: "Kaal (kg)",
-    laius_mm: "Laius (mm)",
-    kõrgus_mm: "Kõrgus (mm)",
-    pikkus_mm: "Pikkus (mm)",
+    teljevahe_mm: "Teljevahe (mm)",
+    kliirens_mm: "Kliirens (mm)",
+  },
+  massid: {
+    tühimass_kg: "Tühimass (kg)",
+    max_lubatud_täismass_kg: "Maksimaalne lubatud täismass (kg)",
   },
 };
 
