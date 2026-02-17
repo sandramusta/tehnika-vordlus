@@ -218,44 +218,79 @@ const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
   // ====================== TRACTOR ======================
   tractor: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
-      { key: "weight_kg", label: "Kaal (kg)", type: "number" },
+      { key: "engine_power_hp", label: "Max võimsus (hj)", type: "number" },
+      { key: "weight_kg", label: "Tühimass (kg)", type: "number" },
       { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
-      { key: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number" },
-      { key: "engine_displacement_liters", label: "Mootori töömaht (L)", type: "number" },
+      { key: "engine_displacement_liters", label: "Kubatuur (L)", type: "number" },
       { key: "engine_cylinders", label: "Silindrite arv", type: "number" },
       { key: "max_torque_nm", label: "Max pöördemoment (Nm)", type: "number" },
-      { key: "hydraulic_pump_lpm", label: "Hüdraulikapump (l/min)", type: "number" },
-      { key: "max_lift_capacity_kg", label: "Tagumise tõstuki võime (kg)", type: "number" },
-      { key: "transport_width_mm", label: "Laius (mm)", type: "number" },
-      { key: "transport_height_mm", label: "Kõrgus (mm)", type: "number" },
-      { key: "transport_length_mm", label: "Pikkus (mm)", type: "number" },
+      { key: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number" },
     ],
     detailed_specs_categories: {
       mootor: {
         label: "MOOTOR",
         fields: [
-          { key: "võimsus_hj", label: "Võimsus (hj)", type: "number" },
-          { key: "töömaht_l", label: "Töömaht (l)", type: "number" },
+          { key: "max_võimsus_hj_kw", label: "Max võimsus (ECE-R120), hj (kW)", type: "string" },
+          { key: "max_võimsus_ipm_hj_kw", label: "Max võimsus IPM-iga, hj (kW)", type: "string" },
+          { key: "pöördemomendi_varu_pct", label: "Pöördemomendi varu (%)", type: "number" },
+          { key: "max_pöördemoment_Nm", label: "Maksimaalne pöördemoment (Nm)", type: "number" },
           { key: "silindrid", label: "Silindrid", type: "number" },
-          { key: "max_pöördemoment_Nm", label: "Max pöördemoment (Nm)", type: "number" },
-          { key: "kütusepaagi_maht_l", label: "Kütusepaagi maht (l)", type: "number" },
+          { key: "kubatuur_l", label: "Kubatuur (l)", type: "number" },
         ]
       },
-      hüdraulika: {
-        label: "HÜDRAULIKA",
+      käigukast: {
+        label: "KÄIGUKAST",
         fields: [
-          { key: "hüdraulikapumba_võimsus_lpm", label: "Hüdraulikapumba võimsus (l/min)", type: "number" },
-          { key: "tõstevõime_kg", label: "Tõstevõime (kg)", type: "number" },
+          { key: "tüüp", label: "Käigukasti tüüp (valikud: PowrQuad™ Plus, AutoQuad™ Plus, AutoQuad™ Plus EcoShift, CommandQuad™ Plus, CommandQuad™ Plus EcoShift, AutoPowr™, e23, eAutoPowr™, e18, e21)", type: "string" },
+        ]
+      },
+      hüdrosüsteem: {
+        label: "HÜDROSÜSTEEM",
+        fields: [
+          { key: "hüdrojaoturid", label: "Hüdrojaoturid", type: "string" },
+          { key: "vooluhulk_lpm", label: "Vooluhulk mootori nimipööretel (l/min)", type: "number" },
+        ]
+      },
+      tagumine_rippsüsteem: {
+        label: "TAGUMINE RIPPSÜSTEEM",
+        fields: [
+          { key: "max_tõstevõime_konksudel_kg", label: "Max tõstevõime aisa konksudel (kg)", type: "number" },
+          { key: "tõstevõime_oecd_610_kg", label: "Tõstevõime kogu tõsteulatuses OECD 610 mm (kg)", type: "number" },
+        ]
+      },
+      eesmine_rippsüsteem: {
+        label: "EESMINE RIPPSÜSTEEM",
+        fields: [
+          { key: "max_tõstevõime_konksudel_kg", label: "Max tõstevõime aisa konksudel (kg)", type: "number" },
+          { key: "tõstevõime_oecd_610_kg", label: "Tõstevõime kogu tõsteulatuses OECD 610 mm (kg)", type: "number" },
+        ]
+      },
+      kabiin: {
+        label: "KABIIN",
+        fields: [
+          { key: "vedrustus", label: "Vedrustus", type: "string" },
+          { key: "kabiini_ruumala_m3", label: "Kabiini ruumala (m³)", type: "number" },
+        ]
+      },
+      mahud: {
+        label: "MAHUD",
+        fields: [
+          { key: "kütusepaak_l", label: "Kütusepaak (standard/lisavarustus) (l)", type: "string" },
+          { key: "def_l", label: "DEF (l)", type: "number" },
         ]
       },
       mõõtmed: {
         label: "MÕÕTMED",
         fields: [
-          { key: "kaal_kg", label: "Kaal (kg)", type: "number" },
-          { key: "laius_mm", label: "Laius (mm)", type: "number" },
-          { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
-          { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+          { key: "teljevahe_mm", label: "Teljevahe (mm)", type: "number" },
+          { key: "kliirens_mm", label: "Kliirens (mm)", type: "number" },
+        ]
+      },
+      massid: {
+        label: "MASSID",
+        fields: [
+          { key: "tühimass_kg", label: "Tühimass (kg)", type: "number" },
+          { key: "max_lubatud_täismass_kg", label: "Maksimaalne lubatud täismass (kg)", type: "number" },
         ]
       },
     }
