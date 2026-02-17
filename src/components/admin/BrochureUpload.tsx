@@ -11,9 +11,17 @@ interface BrochureUploadProps {
   onExtractionComplete: (extractedData: ExtractedData) => void;
 }
 
+export interface ExtractionMetadata {
+  models_found: string[];
+  target_model_found: boolean;
+  confidence: "high" | "medium" | "low";
+  warnings: string[];
+}
+
 export interface ExtractedData {
   equipment_columns: Record<string, unknown>;
   detailed_specs: Record<string, Record<string, unknown>>;
+  extraction_metadata?: ExtractionMetadata;
 }
 
 type UploadStatus = "idle" | "uploading" | "extracting" | "completed" | "error";
@@ -116,11 +124,20 @@ export function BrochureUpload({ equipment, onExtractionComplete }: BrochureUplo
       }
 
       setStatus("completed");
-      onExtractionComplete(extractionResult.data);
+      
+      // Merge extraction_metadata into the data for the review component
+      const dataWithMeta: ExtractedData = {
+        ...extractionResult.data,
+        extraction_metadata: extractionResult.extraction_metadata || undefined,
+      };
+      onExtractionComplete(dataWithMeta);
 
       toast({
         title: "Andmed ekstraheeritud!",
-        description: "Vaata üle ja kinnita ekstraheeritud andmed.",
+        description: extractionResult.extraction_metadata?.target_model_found === false
+          ? "Mudelit ei leitud otse brošüürist — kontrolli andmeid hoolikalt!"
+          : "Vaata üle ja kinnita ekstraheeritud andmed.",
+        variant: extractionResult.extraction_metadata?.target_model_found === false ? "destructive" : "default",
       });
     } catch (error) {
       console.error("Brochure processing error:", error);
