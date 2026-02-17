@@ -10,6 +10,7 @@ import type { Equipment } from "@/types/equipment";
 import type { ExtractedData, ExtractionMetadata } from "./BrochureUpload";
 import { getFieldsForEquipmentType } from "@/lib/equipmentTypeFields";
 import { getCategoryOrderForType, getCategoryNamesForType, getFieldNamesForType } from "@/lib/pdfSpecsHelpers";
+import { getColumnToSpecsMapping, getSpecsToColumnMapping } from "@/lib/fieldSyncMapping";
 
 interface BrochureDataReviewProps {
   equipment: Equipment;
@@ -79,6 +80,10 @@ export function BrochureDataReview({
     };
   }, [equipmentTypeName]);
 
+  // Sync mappings
+  const columnToSpecs = useMemo(() => getColumnToSpecsMapping(equipmentTypeName), [equipmentTypeName]);
+  const specsToColumn = useMemo(() => getSpecsToColumnMapping(equipmentTypeName), [equipmentTypeName]);
+
   // Filter extracted data to only allowed fields, filling missing with null
   const filteredData = useMemo(() => {
     // Filter equipment_columns
@@ -125,26 +130,54 @@ export function BrochureDataReview({
   };
 
   const updateColumnValue = (key: string, value: string) => {
-    setEditedData((prev) => ({
-      ...prev,
-      equipment_columns: {
-        ...prev.equipment_columns,
-        [key]: value === "" ? null : isNaN(Number(value)) ? value : Number(value),
-      },
-    }));
+    const parsed = value === "" ? null : isNaN(Number(value)) ? value : Number(value);
+    setEditedData((prev) => {
+      const updated = {
+        ...prev,
+        equipment_columns: {
+          ...prev.equipment_columns,
+          [key]: parsed,
+        },
+      };
+      // Sync to detailed_specs if mapping exists
+      const loc = columnToSpecs[key];
+      if (loc) {
+        updated.detailed_specs = {
+          ...updated.detailed_specs,
+          [loc.category]: {
+            ...((updated.detailed_specs?.[loc.category] as Record<string, unknown>) || {}),
+            [loc.field]: parsed,
+          },
+        };
+      }
+      return updated;
+    });
   };
 
   const updateDetailedSpecValue = (category: string, field: string, value: string) => {
-    setEditedData((prev) => ({
-      ...prev,
-      detailed_specs: {
-        ...prev.detailed_specs,
-        [category]: {
-          ...(prev.detailed_specs?.[category] || {}),
-          [field]: value === "" ? null : isNaN(Number(value)) ? value : Number(value),
+    const parsed = value === "" ? null : isNaN(Number(value)) ? value : Number(value);
+    setEditedData((prev) => {
+      const updated = {
+        ...prev,
+        detailed_specs: {
+          ...prev.detailed_specs,
+          [category]: {
+            ...(prev.detailed_specs?.[category] || {}),
+            [field]: parsed,
+          },
         },
-      },
-    }));
+      };
+      // Sync to equipment_columns if mapping exists
+      const colKey = `${category}.${field}`;
+      const columnName = specsToColumn[colKey];
+      if (columnName && columnName in (updated.equipment_columns || {})) {
+        updated.equipment_columns = {
+          ...updated.equipment_columns,
+          [columnName]: parsed,
+        };
+      }
+      return updated;
+    });
   };
 
   // Count extracted vs empty values
