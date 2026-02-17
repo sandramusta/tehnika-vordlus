@@ -10,10 +10,10 @@ import Comparison from "./pages/Comparison";
 import Myths from "./pages/Myths";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
-// TODO: Taasta ProtectedRoute kui sisu on valmis
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -26,7 +26,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/comparison" element={<Comparison />} />
             <Route path="/myths" element={<Myths />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
+                <Admin />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
