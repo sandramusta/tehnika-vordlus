@@ -1,71 +1,66 @@
 
 
-## Brošüüri üleslaadimise ja salvestamise "jääb laadima" probleemide parandamine
+## "Salvestan..." ja "Laen..." probleemide lahendamine
 
-### Tuvastatud probleemid
+### Juurprobleem
 
-1. **Brošüüri üleslaadimine jääb laadima**: Edge function kutsel puudub timeout. Kui AI analüüs vottab kaua aega (suurte PDF-ide puhul), jääb brauser lihtsalt ootama -- lõpmatuseni. Samuti on kliendipoolne PDF teksti lugemine (`readPdfAsText`) vigane -- see ei suuda kaasaegseid tihendatud PDF-e lugeda ja saadab AI-le binaarseid jäätmeid.
+1. **"Salvestan..." nupp jääb kinni**: `Admin.tsx` (rida 506) kasutab `createEquipment.isPending || updateEquipment.isPending` -- need mutation hook'id elavad paremas komponentis (`Admin`) ja kui eelmine salvestamine jäi pooleli (aeglane vastus, vorguviga), jääb `isPending` trueks ka järgmise dialoogi avamisel.
 
-2. **Salvesta nupp jääb "Salvestan..." peale**: Kui eelmine mutation ebaonnestub (nt vorguviga), siis React Query `isPending` olek voib jääda kinni. Vaja on paremat veakäsitlust.
+2. **"Laen..." brošüüridel**: `EquipmentBrochuresList` fetch voib jääda rippuma kui Supabase on aeglane.
 
-3. **Brošüüride laadimise lõputu spinner**: `EquipmentBrochuresList` komponendi fetch voib vaikselt ebaonnestuda ja loading olek jääb trueks.
+### Lahendus
 
-4. **React ref hoiatus**: `BrochureUpload` komponent saab Radix Dialog'ilt ref'i, aga ei kasuta `forwardRef`'i. See tekitab konsooli hoiatuse ja voib põhjustada renderdamisprobleeme.
-
-### Lahendusplaan
-
-**Fail 1: `src/components/admin/BrochureUpload.tsx`**
-- Lisa edge function kutsele 120-sekundiline timeout (`AbortController`)
-- Kui timeout saabub, sea staatus "error" ja kuva selge veateade
-- Lisa `forwardRef` wrapper, et Radix Dialog ref-hoiatus kaoks
-- Paranda `readPdfAsText` -- kui teksti ei suudeta lugeda, saada AI-le ausalt teada, et tekst on minimaalne
+**Fail 1: `src/pages/Admin.tsx`**
+- Lisa lokaalne `isSavingEquipment` state muutuja (rida ~91)
+- Kasuta seda `handleEquipmentFormSubmit` funktsioonis manuaalselt (try alguses `true`, finally plokis `false`)
+- Muuda rida 506: `isSubmitting={isSavingEquipment}` selle asemel, et kasutada `isPending`
 
 **Fail 2: `src/components/admin/EquipmentBrochuresList.tsx`**
-- Lisa veakäsitlus `catch` plokki, et loading olek läheks alati false'iks
-- Lisa ka timeout fetch'ile, et see ei jääks igavesti laadima
+- Lisa fetch'ile timeout (10 sekundit), et see ei jääks igavesti ootama
+- Lisa `AbortController`, mis katkestab aegunud päringu
 
-**Fail 3: `src/pages/Admin.tsx`**
-- Paranda `handleEquipmentFormSubmit` veakäsitlust, et mutation kindlasti lahti lastaks ka ootamatute vigade puhul (nt vorgukatkestus)
+### Tehniline detail
 
-### Tehniline detailid
-
-**Timeout lisamine edge function kutsele:**
 ```typescript
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 120000);
+// Admin.tsx — lokaalne salvestamise olek
+const [isSavingEquipment, setIsSavingEquipment] = useState(false);
 
-try {
-  const { data, error } = await supabase.functions.invoke(
-    "extract-brochure-specs",
-    { body: { ... }, signal: controller.signal }
-  );
-  clearTimeout(timeoutId);
-} catch (err) {
-  clearTimeout(timeoutId);
-  if (err.name === 'AbortError') {
-    throw new Error('Ekstraheerimine aegus. Proovi väiksema PDF-iga.');
+const handleEquipmentFormSubmit = useCallback(async (...) => {
+  setIsSavingEquipment(true);
+  try {
+    // ... existing save logic
+  } catch (error) {
+    // ... error handling
+  } finally {
+    setIsSavingEquipment(false);
   }
-  throw err;
-}
+}, [...]);
+
+// Rida 506:
+isSubmitting={isSavingEquipment}
 ```
 
-**forwardRef lisamine BrochureUpload-ile:**
 ```typescript
-export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
-  function BrochureUpload({ equipment, onExtractionComplete }, ref) {
-    // ... existing code
-    return <div ref={ref} className="space-y-3">...</div>;
-  }
-);
-```
-
-**EquipmentBrochuresList vigade käsitlus:**
-```typescript
-} catch (error) {
-  console.error("Failed to fetch brochures:", error);
-  setBrochures([]);  // ensure empty state shown
-} finally {
-  setIsLoading(false);  // already there, but ensure it runs
-}
+// EquipmentBrochuresList.tsx — timeout
+useEffect(() => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  
+  const fetchBrochures = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("equipment_brochures")
+        .select("*")
+        .eq("equipment_id", equipment.id)
+        .abortSignal(controller.signal)
+        .order("created_at", { ascending: false });
+      // ...
+    } catch { setBrochures([]); }
+    finally { setIsLoading(false); clearTimeout(timeoutId); }
+  };
+  
+  fetchBrochures();
+  return () => { controller.abort(); clearTimeout(timeoutId); };
+}, [equipment.id]);
 ```
 
