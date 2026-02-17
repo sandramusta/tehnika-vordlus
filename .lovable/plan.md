@@ -1,66 +1,44 @@
 
 
-## "Salvestan..." ja "Laen..." probleemide lahendamine
+## Brošüüri üleslaadimise timeout'i parandamine
 
 ### Juurprobleem
 
-1. **"Salvestan..." nupp jääb kinni**: `Admin.tsx` (rida 506) kasutab `createEquipment.isPending || updateEquipment.isPending` -- need mutation hook'id elavad paremas komponentis (`Admin`) ja kui eelmine salvestamine jäi pooleli (aeglane vastus, vorguviga), jääb `isPending` trueks ka järgmise dialoogi avamisel.
+`BrochureUpload.tsx` ridadel 103-129 on `AbortController` loodud ja 120-sekundiline timeout seatud, **AGA signal ei ole kunagi ühendatud `supabase.functions.invoke` kutsega**. See tähendab:
 
-2. **"Laen..." brošüüridel**: `EquipmentBrochuresList` fetch voib jääda rippuma kui Supabase on aeglane.
+1. Timer tikub 120 sekundit ja kutsub `controller.abort()`
+2. Aga kuna signal ei ole invoke'ile edastatud, siis HTTP päring **ei katke kunagi**
+3. `supabase.functions.invoke` ei viska viga (ta tagastab `{ data, error }` objekti), seega `catch` plokk rida 123 ei käivitu kunagi
+4. UI jääb igavesti "Ekstraheerin andmeid..." olekusse
 
 ### Lahendus
 
-**Fail 1: `src/pages/Admin.tsx`**
-- Lisa lokaalne `isSavingEquipment` state muutuja (rida ~91)
-- Kasuta seda `handleEquipmentFormSubmit` funktsioonis manuaalselt (try alguses `true`, finally plokis `false`)
-- Muuda rida 506: `isSubmitting={isSavingEquipment}` selle asemel, et kasutada `isPending`
+**Fail: `src/components/admin/BrochureUpload.tsx` (read 102-130)**
 
-**Fail 2: `src/components/admin/EquipmentBrochuresList.tsx`**
-- Lisa fetch'ile timeout (10 sekundit), et see ei jääks igavesti ootama
-- Lisa `AbortController`, mis katkestab aegunud päringu
-
-### Tehniline detail
+Asendame praeguse katkise AbortController loogika **`Promise.race`** mustriga, mis tegelikult töötab:
 
 ```typescript
-// Admin.tsx — lokaalne salvestamise olek
-const [isSavingEquipment, setIsSavingEquipment] = useState(false);
+// Step 4: Call edge function with 120s timeout using Promise.race
+const timeoutPromise = new Promise<never>((_, reject) => {
+  setTimeout(() => reject(new Error("Ekstraheerimine aegus (2 min). Proovi väiksema PDF-iga.")), 120000);
+});
 
-const handleEquipmentFormSubmit = useCallback(async (...) => {
-  setIsSavingEquipment(true);
-  try {
-    // ... existing save logic
-  } catch (error) {
-    // ... error handling
-  } finally {
-    setIsSavingEquipment(false);
+const invokePromise = supabase.functions.invoke(
+  "extract-brochure-specs",
+  {
+    body: {
+      brochure_id: brochureRecord.id,
+      pdf_content: pdfContent,
+      model_name: equipment.model_name,
+      equipment_type: equipment.equipment_type?.name || "combine",
+    },
   }
-}, [...]);
+);
 
-// Rida 506:
-isSubmitting={isSavingEquipment}
+const response = await Promise.race([invokePromise, timeoutPromise]);
+const extractionResult = response.data;
+const extractionError = response.error;
 ```
 
-```typescript
-// EquipmentBrochuresList.tsx — timeout
-useEffect(() => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-  
-  const fetchBrochures = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("equipment_brochures")
-        .select("*")
-        .eq("equipment_id", equipment.id)
-        .abortSignal(controller.signal)
-        .order("created_at", { ascending: false });
-      // ...
-    } catch { setBrochures([]); }
-    finally { setIsLoading(false); clearTimeout(timeoutId); }
-  };
-  
-  fetchBrochures();
-  return () => { controller.abort(); clearTimeout(timeoutId); };
-}, [equipment.id]);
-```
+See tagab, et kui edge function ei vasta 120 sekundi jooksul, visatakse viga ja UI näitab veateadet "Ekstraheerimine aegus" selle asemel, et jääda igavesti laadima.
 
