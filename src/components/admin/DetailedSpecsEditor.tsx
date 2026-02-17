@@ -238,7 +238,7 @@ export function DetailedSpecsEditor({
                           <Input
                             id={`${categoryKey}-${fieldKey}`}
                             value={fieldValue}
-                            onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value)}
+                            onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value.replace(/,/g, "."))}
                             placeholder="—"
                             className={cn(
                               "h-8 text-sm",

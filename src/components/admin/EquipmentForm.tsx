@@ -209,7 +209,7 @@ import { cn } from "@/lib/utils";
               step={field.step}
               placeholder={field.placeholder}
               value={controlledValue ?? ""}
-              onChange={(e) => handleFormFieldChange(field.name, e.target.value)}
+              onChange={(e) => handleFormFieldChange(field.name, e.target.value.replace(/,/g, "."))}
             />
           ) : (
             <Input
