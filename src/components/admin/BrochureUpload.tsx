@@ -5,6 +5,13 @@ import { Upload, FileText, Loader2, Check, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Equipment } from "@/types/equipment";
+import * as pdfjsLib from "pdfjs-dist";
+
+// Set up pdf.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 
 interface BrochureUploadProps {
   equipment: Equipment;
@@ -157,48 +164,28 @@ export const BrochureUpload = forwardRef<HTMLDivElement, BrochureUploadProps>(
     };
 
     const readPdfAsText = async (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const arrayBuffer = reader.result as ArrayBuffer;
-            const bytes = new Uint8Array(arrayBuffer);
-            const decoder = new TextDecoder("utf-8", { fatal: false });
-            const content = decoder.decode(bytes);
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pages: string[] = [];
 
-            // Extract text from PDF text objects (BT...ET blocks)
-            let text = "";
-            const textMatches = content.match(/BT[\s\S]*?ET/g) || [];
-            for (const match of textMatches) {
-              const tjMatches = match.match(/\((.*?)\)\s*Tj/g) || [];
-              const textParts = tjMatches.map((m) => {
-                const textMatch = m.match(/\((.*?)\)/);
-                return textMatch ? textMatch[1] : "";
-              });
-              text += textParts.join(" ") + "\n";
-            }
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .map((item: unknown) => (item as { str: string }).str)
+          .join(" ");
+        if (pageText.trim()) {
+          pages.push(pageText);
+        }
+      }
 
-            const plainTextMatches = content.match(/\/Contents\s*\(([\s\S]*?)\)/g) || [];
-            for (const match of plainTextMatches) {
-              const textMatch = match.match(/\(([\s\S]*?)\)/);
-              if (textMatch) {
-                text += textMatch[1] + "\n";
-              }
-            }
+      const text = pages.join("\n\n");
 
-            // If we couldn't extract meaningful text, tell the AI honestly
-            if (text.trim().length < 100) {
-              text = `[PDF teksti ei õnnestunud kliendipoolselt ekstraheerida. Fail: ${file.name}, suurus: ${file.size} baiti. Palun kasuta brošüüri URL-i andmete saamiseks.]`;
-            }
+      if (text.trim().length < 50) {
+        return `[PDF teksti ei õnnestunud ekstraheerida. Fail: ${file.name}, suurus: ${file.size} baiti. PDF võib sisaldada ainult pilte.]`;
+      }
 
-            resolve(text);
-          } catch (error) {
-            reject(error);
-          }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsArrayBuffer(file);
-      });
+      return text;
     };
 
     const getStatusIcon = () => {
