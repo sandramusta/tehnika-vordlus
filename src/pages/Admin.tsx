@@ -287,11 +287,26 @@ function getCategoryLabel(category: string): string {
 
       setIsSavingBrochureData(true);
       try {
+        // Integer columns in the equipment table - values must be rounded
+        const integerColumns = new Set([
+          "engine_power_hp", "grain_tank_liters", "weight_kg", "price_eur",
+          "annual_maintenance_eur", "expected_lifespan_years", "fuel_tank_liters",
+          "rotor_diameter_mm", "engine_cylinders", "max_torque_nm", "feeder_width_mm",
+          "rasp_bar_count", "threshing_drum_diameter_mm", "threshing_drum_width_mm",
+          "rotor_length_mm", "straw_walker_count", "chopper_width_mm", "max_slope_percent",
+          "transport_width_mm", "transport_height_mm", "transport_length_mm",
+          "max_lift_capacity_kg", "hydraulic_pump_lpm", "unloading_rate_ls",
+        ]);
+
         const columnUpdates: Record<string, unknown> = {};
         if (data.equipment_columns) {
           Object.entries(data.equipment_columns).forEach(([key, value]) => {
             if (value !== null && value !== undefined && value !== "") {
-              columnUpdates[key] = value;
+              if (integerColumns.has(key) && typeof value === "number") {
+                columnUpdates[key] = Math.round(value);
+              } else {
+                columnUpdates[key] = value;
+              }
             }
           });
         }
