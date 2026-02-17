@@ -56,7 +56,7 @@
     --fendt: 0 0% 0%;
     
     /* Telehandler brand colors (HSL from HEX) */
-    --kramer: 96 46% 41%;
+    --kramer: 152 32% 38%;
     --manitou: 0 100% 42%;
     --jcb: 42 95% 49%;
     --merlo: 96 46% 41%;
@@ -106,7 +106,7 @@
     --warning-foreground: 0 0% 100%;
     
     /* Telehandler brand colors (same in dark mode) */
-    --kramer: 96 46% 41%;
+    --kramer: 152 32% 38%;
     --manitou: 0 100% 42%;
     --jcb: 42 95% 49%;
     --merlo: 96 46% 41%;
