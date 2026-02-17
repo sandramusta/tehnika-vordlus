@@ -159,7 +159,7 @@ import { cn } from "@/lib/utils";
 
     // Smart filtering: Get brands that have equipment of the selected type
     const filteredBrands = useMemo(() => {
-      if (!selectedTypeId || equipment) {
+      if (!selectedTypeId) {
         return brands;
       }
       const brandIdsWithType = new Set(
@@ -171,7 +171,7 @@ import { cn } from "@/lib/utils";
         return brands;
       }
       return brands.filter((b) => brandIdsWithType.has(b.id));
-    }, [brands, selectedTypeId, allEquipment, equipment]);
+    }, [brands, selectedTypeId, allEquipment]);
 
     // Get dynamic fields based on selected type
     // Only show COMMON_FIELDS (Põhiandmed + Majandusandmed), not type-specific fields
