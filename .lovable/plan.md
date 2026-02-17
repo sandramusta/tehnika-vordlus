@@ -1,48 +1,35 @@
 
-# Lehekülje numbrite asukoha muutmine PDF jaluses
 
 ## Probleem
-Praegu kuvatakse lehekülje number PDF-i jaluses **keskel** lehe allosas. Kasutaja soovib, et number oleks **paremal pool** panga info all, nagu näidatud pildil.
+
+Rakenduse admin-leht on avatud ilma autentimiseta (arenduse lihtsustamiseks), kuid andmebaasi turvareeglid (RLS) nõuavad endiselt sisselogitud kasutajat kirjutamisoperatsioonide jaoks. See tähendab, et:
+- Tehnika andmete uuendamine ebaõnnestub
+- Brošüüride üleslaadimine ebaõnnestub
+- Kõik muud salvestamisoperatsioonid ebaõnnestuvad
 
 ## Lahendus
 
-Muudan `src/lib/pdfHelpers.ts` failis `addPDFFooter` funktsiooni:
+Taastame admin-lehe jaoks autentimise nõude, nii et kasutaja peab olema sisse logitud enne admin-lehele pääsemist.
 
-### Muudatus
-Lehekülje number liigutatakse parempoolsesse veergu, panga info alla:
+### Muudatused
 
-**Praegune asukoht:**
-```
-WIHURI OÜ                    Reg. Nr: 14866275
-Tehnika 9, Türi vald...      KMKR Nr: EE102238673
-72213                        SEB Pank: EE1010220283192220
+**1. `src/App.tsx`** — Taastame ProtectedRoute admin-lehe jaoks
 
-              3 / 3  (keskel)
-```
+- Impordime `ProtectedRoute` komponendi
+- Mähime `/admin` marsruudi `ProtectedRoute` sisse, mis nõuab `product_manager` või `admin` rolli
+- Teised lehed (võrdlus, müüdid, avaleht) jäävad avalikuks, kuna need on ainult lugemiseks
 
-**Uus asukoht:**
-```
-WIHURI OÜ                    Reg. Nr: 14866275
-Tehnika 9, Türi vald...      KMKR Nr: EE102238673
-72213                        SEB Pank: EE1010220283192220
-                             3 / 3  (paremal, panga all)
+```text
+/admin → ProtectedRoute (rollid: product_manager, admin)
+/comparison → avalik (ainult lugemine)
+/myths → avalik (ainult lugemine)
+/ → avalik
 ```
 
-## Tehniline muudatus
+### Tehniline detail
 
-Failis `src/lib/pdfHelpers.ts`, read 173-178:
+- `ProtectedRoute` komponent on juba olemas (`src/components/auth/ProtectedRoute.tsx`)
+- Admin-kasutaja on juba andmebaasis olemas (sandraude@gmail.com, roll: admin)
+- Sisselogimisleht on juba olemas (`/auth`)
+- Muudatus puudutab ainult ühte faili
 
-```typescript
-// Praegu (keskel):
-doc.text(`${pageNum} / ${totalPages}`, pageWidth / 2, pageHeight - 8, {
-  align: "center",
-});
-
-// Uus (paremal, panga info all):
-doc.text(`${pageNum} / ${totalPages}`, rightCol, footerY + 12);
-```
-
-Lehekülje number paigutatakse:
-- X-positsioon: `rightCol` (sama mis registreerimisnumbrid, ~lehe keskpunkt)
-- Y-positsioon: `footerY + 12` (4mm allpool panga infot)
-- Joondus: vasakule (sama mis ülejäänud paremal pool olev info)
