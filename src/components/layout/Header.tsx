@@ -55,7 +55,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <img src={wihuriLogo} alt="Wihuri Agri" className="h-10 w-auto" />
-          <span className="text-lg font-bold text-foreground hidden sm:inline">
+          <span className="text-lg font-bold text-foreground">
             Tehnika võrdlus
           </span>
         </Link>
