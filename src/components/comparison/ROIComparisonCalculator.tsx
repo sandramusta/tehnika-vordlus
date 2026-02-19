@@ -355,14 +355,14 @@ export function ROIComparisonCalculator() {
             <h4 className="font-medium mb-4">TCO võrdlus ({newInputs.expectedLifespan} aastat)</h4>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tcoChartData} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
+                <BarChart data={tcoChartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                   <XAxis 
                     type="number" 
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k €`}
                     domain={[0, 'auto']}
                   />
-                  <YAxis type="category" dataKey="name" width={110} />
+                  <YAxis type="category" dataKey="name" width={100} />
                   <Tooltip 
                     formatter={(value: number) => formatCurrency(value)}
                     labelStyle={{ fontWeight: 'bold' }}
