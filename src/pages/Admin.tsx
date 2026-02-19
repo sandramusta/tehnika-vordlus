@@ -481,8 +481,8 @@ function getCategoryLabel(category: string): string {
           </div>
  
          <Tabs defaultValue="equipment" className="space-y-6">
-            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-              <TabsList className="w-auto inline-flex">
+            <div className="flex flex-wrap gap-2">
+              <TabsList className="w-auto">
                 <TabsTrigger value="equipment" className="gap-2">
                   <Tractor className="h-4 w-4" />
                   Tehnika
@@ -491,6 +491,8 @@ function getCategoryLabel(category: string): string {
                   <MessageSquare className="h-4 w-4" />
                   Argumendid
                 </TabsTrigger>
+              </TabsList>
+              <TabsList className="w-auto">
                 <TabsTrigger value="myths" className="gap-2">
                   <MessageSquareWarning className="h-4 w-4" />
                   Müüdid
