@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { Equipment } from "@/types/equipment";
 
 const HP_RANGE = 50;
-const LIFT_HEIGHT_RANGE_M = 1; // ±1m for telehandler matching
-const LIFT_CAPACITY_RANGE_KG = 500; // ±500kg for telehandler matching
+const LIFT_HEIGHT_RANGE_M = 0.5; // ±0.5m for telehandler matching
+const LIFT_CAPACITY_RANGE_KG = 400; // ±400kg for telehandler matching
 
 // Check if equipment type is telehandler
 function isTelehandler(equipment: Equipment): boolean {
