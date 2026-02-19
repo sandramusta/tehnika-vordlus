@@ -6,8 +6,10 @@ import { EditableValueCell, EditableCell } from "./EditableCell";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
 import { toast } from "sonner";
- import { getBrandTextColor, getBrandBgClass } from "@/lib/brandColors";
+import { getBrandTextColor, getBrandBgClass } from "@/lib/brandColors";
 import { ComparisonMode } from "./ComparisonModeSelector";
+import { MobileComparisonCards } from "./MobileComparisonCards";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MultiModelComparisonProps {
   selectedModels: Equipment[];
@@ -112,6 +114,7 @@ const COST_ROWS: SpecRowConfig[] = [
 
 export function MultiModelComparison({ selectedModels, equipmentTypeName, comparisonMode }: MultiModelComparisonProps) {
   const { data: specLabels = {} } = useSpecLabels();
+  const isMobile = useIsMobile();
   const inlineEdit = useInlineEdit({
     onSuccess: () => toast.success("Salvestatud"),
     onError: (error) => toast.error(`Viga: ${error.message}`),
@@ -236,6 +239,27 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
       </tr>
     );
   };
+
+  const specRows = getSpecRowsForEquipmentType(equipmentTypeName);
+
+  if (isMobile) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-4">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+          <Trophy className="h-5 w-5 text-primary" />
+          Võrdlustabel ({selectedModels.length} mudelit)
+        </h3>
+        <MobileComparisonCards
+          selectedModels={selectedModels}
+          specRows={specRows}
+          costRows={COST_ROWS}
+          calculateBestValue={calculateBestValue}
+          calculateTCO={calculateTCO}
+          bestTCO={bestTCO}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
