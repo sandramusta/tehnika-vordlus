@@ -7,10 +7,12 @@ import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
 import { toast } from "sonner";
  import { getBrandTextColor, getBrandBgClass } from "@/lib/brandColors";
+import { ComparisonMode } from "./ComparisonModeSelector";
 
 interface MultiModelComparisonProps {
   selectedModels: Equipment[];
   equipmentTypeName?: string;
+  comparisonMode?: ComparisonMode;
 }
 
 function formatNumber(num: number | null): string {
@@ -108,7 +110,7 @@ const COST_ROWS: SpecRowConfig[] = [
   { key: "expected_lifespan_years", labelKey: "expected_lifespan_years", defaultLabel: "Eeldatav eluiga", suffix: " aastat", bestType: "max" },
 ];
 
-export function MultiModelComparison({ selectedModels, equipmentTypeName }: MultiModelComparisonProps) {
+export function MultiModelComparison({ selectedModels, equipmentTypeName, comparisonMode }: MultiModelComparisonProps) {
   const { data: specLabels = {} } = useSpecLabels();
   const inlineEdit = useInlineEdit({
     onSuccess: () => toast.success("Salvestatud"),
@@ -123,7 +125,10 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName }: Mult
           Vali mudelid võrdluseks
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Vali tehnika tüüp ja seejärel 1–3 mudelit, mida soovid võrrelda.
+          {comparisonMode === "auto"
+            ? "Vali tehnika tüüp ja süsteem leiab automaatselt konkurendid."
+            : "Vali tehnika tüüp ja seejärel 1–3 mudelit, mida soovid võrrelda."
+          }
         </p>
       </div>
     );
