@@ -8,6 +8,32 @@ export interface StaffUser {
   email: string;
   is_active: boolean;
   created_at: string;
+  role?: AppRole;
+  auth_user_id?: string;
+}
+
+async function enrichWithRoles(users: StaffUser[]): Promise<StaffUser[]> {
+  // Get all profiles to map email -> auth user id
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, email");
+
+  // Get all roles
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("user_id, role");
+
+  const emailToAuthId = new Map(profiles?.map((p) => [p.email, p.id]) || []);
+  const authIdToRole = new Map(roles?.map((r) => [r.user_id, r.role as AppRole]) || []);
+
+  return users.map((u) => {
+    const authId = emailToAuthId.get(u.email);
+    return {
+      ...u,
+      auth_user_id: authId || undefined,
+      role: authId ? authIdToRole.get(authId) || "user" : undefined,
+    };
+  });
 }
 
 export function useStaffUsers() {
@@ -20,7 +46,7 @@ export function useStaffUsers() {
         .eq("is_active", true)
         .order("full_name");
       if (error) throw error;
-      return data as StaffUser[];
+      return enrichWithRoles(data as StaffUser[]);
     },
   });
 }
@@ -34,7 +60,7 @@ export function useAllStaffUsers() {
         .select("*")
         .order("full_name");
       if (error) throw error;
-      return data as StaffUser[];
+      return enrichWithRoles(data as StaffUser[]);
     },
   });
 }
@@ -110,6 +136,31 @@ export function useDeleteStaffUser() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("staff_users").delete().eq("id", id);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff-users"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-users-all"] });
+    },
+  });
+}
+
+export function useUpdateStaffUserRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ authUserId, role }: { authUserId: string; role: AppRole }) => {
+      // Delete existing role
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", authUserId);
+      if (deleteError) throw deleteError;
+
+      // Insert new role
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: authUserId, role });
+      if (insertError) throw insertError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staff-users"] });
