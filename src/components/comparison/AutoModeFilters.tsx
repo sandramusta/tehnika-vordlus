@@ -158,7 +158,7 @@ export function AutoModeFilters({
       {!isModelSelected && isTypeSelected && (
         <div className="text-sm text-muted-foreground">
           {isTelehandler 
-            ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±1.5m) ja kandevõime (±1000kg) vahemikus."
+            ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±0.5m) ja kandevõime (±400kg) vahemikus."
             : "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest."
           }
         </div>
