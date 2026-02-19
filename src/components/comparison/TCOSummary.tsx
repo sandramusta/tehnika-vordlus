@@ -184,7 +184,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
 
             {/* TCO */}
             <tr className="border-b border-border bg-muted/30">
-              <td className="sticky left-0 z-10 bg-muted/30 p-3 text-sm font-semibold text-foreground">
+              <td className="sticky left-0 z-10 bg-muted p-3 text-sm font-semibold text-foreground">
                 <div className="flex items-center gap-2">
                   <TrendingDown className="h-4 w-4 shrink-0" />
                   Omamiskogukulu
