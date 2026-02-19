@@ -294,7 +294,7 @@ export function MobileComparisonCards({
                   )}
                   onClick={() => toggleCategory(categoryKey)}
                 >
-                  <td className={cn("sticky left-0 z-10 p-2 text-[11px] font-semibold text-foreground", isExpanded ? "bg-primary/10" : "bg-muted")}>
+                  <td className={cn("sticky left-0 z-10 p-2 text-[11px] font-semibold text-foreground")} style={{ backgroundColor: isExpanded ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--muted))' }}>
                     <div className="flex items-center gap-1">
                       {isExpanded ? <ChevronDown className="h-3 w-3 text-primary shrink-0" /> : <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />}
                       <span className={cn("leading-tight", isExpanded && "text-primary")}>{categoryName}</span>
