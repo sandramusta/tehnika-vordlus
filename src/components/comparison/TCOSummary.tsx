@@ -82,7 +82,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-border">
-              <th className="p-3 text-left text-sm font-medium text-muted-foreground">Näitaja</th>
+              <th className="sticky left-0 z-10 bg-card p-3 text-left text-sm font-medium text-muted-foreground">Näitaja</th>
               {allModels.map((model) => (
                 <th 
                   key={model.id} 
@@ -104,9 +104,11 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
           <tbody>
             {/* Price */}
             <tr className="border-b border-border/50">
-              <td className="p-3 text-sm text-muted-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Ostuhind
+              <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 shrink-0" />
+                  Ostuhind
+                </div>
               </td>
               {allModels.map((model) => (
                 <td 
@@ -123,9 +125,11 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
 
             {/* Annual Maintenance */}
             <tr className="border-b border-border/50">
-              <td className="p-3 text-sm text-muted-foreground flex items-center gap-2">
-                <Wrench className="h-4 w-4" />
-                Hooldus/aasta
+              <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Wrench className="h-4 w-4 shrink-0" />
+                  Hooldus/aasta
+                </div>
               </td>
               {allModels.map((model) => {
                 const isBest = model.annual_maintenance_eur === lowestMaintenance;
@@ -150,9 +154,11 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
 
             {/* Lifespan */}
             <tr className="border-b border-border/50">
-              <td className="p-3 text-sm text-muted-foreground flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Eeldatav eluiga
+              <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 shrink-0" />
+                  Eeldatav eluiga
+                </div>
               </td>
               {allModels.map((model) => {
                 const lifespan = model.expected_lifespan_years || 10;
@@ -178,9 +184,11 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
 
             {/* TCO */}
             <tr className="border-b border-border bg-muted/30">
-              <td className="p-3 text-sm font-semibold text-foreground flex items-center gap-2">
-                <TrendingDown className="h-4 w-4" />
-                Omamiskogukulu
+              <td className="sticky left-0 z-10 bg-muted/30 p-3 text-sm font-semibold text-foreground">
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4 shrink-0" />
+                  Omamiskogukulu
+                </div>
               </td>
               {allModels.map((model) => {
                 const tco = calculateTCO(model);
@@ -208,7 +216,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
 
             {/* Savings compared to selected */}
             <tr>
-              <td className="p-3 text-sm text-muted-foreground">
+              <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground whitespace-nowrap">
                 Sääst/lisakulu vs valitud
               </td>
               {allModels.map((model) => {
