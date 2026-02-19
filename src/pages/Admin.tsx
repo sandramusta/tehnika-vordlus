@@ -871,7 +871,7 @@ function getCategoryLabel(category: string): string {
                              <div className="space-y-2">
                                <div>
                                  <span className="text-xs font-medium text-destructive">MÜÜT:</span>
-                                 <p className="text-sm">{myth.myth}</p>
+                                 <p className="text-sm font-semibold">{myth.myth}</p>
                                </div>
                                <div>
                                  <span className="text-xs font-medium text-primary">TEGELIKKUS:</span>
