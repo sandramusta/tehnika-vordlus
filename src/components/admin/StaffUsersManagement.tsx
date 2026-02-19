@@ -244,23 +244,104 @@ export function StaffUsersManagement() {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nimi</TableHead>
-                <TableHead>E-post</TableHead>
-                <TableHead className="w-40">Roll</TableHead>
-                <TableHead className="w-24">Staatus</TableHead>
-                <TableHead className="w-32 text-right">Tegevused</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {staffUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.full_name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nimi</TableHead>
+                  <TableHead>E-post</TableHead>
+                  <TableHead className="w-40">Roll</TableHead>
+                  <TableHead className="w-24">Staatus</TableHead>
+                  <TableHead className="w-32 text-right">Tegevused</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {staffUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      {user.auth_user_id ? (
+                        <Select
+                          value={user.role || "user"}
+                          onValueChange={async (value) => {
+                            try {
+                              await updateRole.mutateAsync({
+                                authUserId: user.auth_user_id!,
+                                role: value as AppRole,
+                              });
+                              toast({ title: "Roll uuendatud!" });
+                            } catch {
+                              toast({
+                                title: "Viga",
+                                description: "Rolli muutmine ebaõnnestus",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-36">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">Kasutaja</SelectItem>
+                            <SelectItem value="product_manager">Tootejuht</SelectItem>
+                            <SelectItem value="admin">Administraator</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">Ootel</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={user.is_active}
+                          onCheckedChange={() => handleToggleActive(user)}
+                        />
+                        <Badge variant={user.is_active ? "default" : "secondary"}>
+                          {user.is_active ? "Aktiivne" : "Mitteaktiivne"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(user)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(user.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {staffUsers.map((user) => (
+              <div key={user.id} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{user.full_name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditDialog(user)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(user.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
                     {user.auth_user_id ? (
                       <Select
                         value={user.role || "user"}
@@ -280,7 +361,7 @@ export function StaffUsersManagement() {
                           }
                         }}
                       >
-                        <SelectTrigger className="h-8 w-36">
+                        <SelectTrigger className="h-7 text-xs w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -292,41 +373,22 @@ export function StaffUsersManagement() {
                     ) : (
                       <Badge variant="outline" className="text-xs">Ootel</Badge>
                     )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={user.is_active}
-                        onCheckedChange={() => handleToggleActive(user)}
-                      />
-                      <Badge variant={user.is_active ? "default" : "secondary"}>
-                        {user.is_active ? "Aktiivne" : "Mitteaktiivne"}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(user)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Switch
+                      checked={user.is_active}
+                      onCheckedChange={() => handleToggleActive(user)}
+                      className="scale-90"
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {user.is_active ? "Aktiivne" : "Mitteakt."}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
