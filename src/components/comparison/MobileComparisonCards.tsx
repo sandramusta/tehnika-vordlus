@@ -199,7 +199,7 @@ export function MobileComparisonCards({
   const availableCategories = getAvailableCategories(selectedModels, isCombine);
 
   return (
-    <div className="overflow-x-auto -mx-4 px-0">
+    <div className="overflow-auto -mx-4 px-0 max-h-[70vh]">
       <table className="w-full border-collapse text-sm" style={{ minWidth: `${120 + selectedModels.length * 120}px` }}>
         {/* Header */}
         <thead className="sticky top-0 z-10">
