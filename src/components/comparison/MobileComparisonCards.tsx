@@ -204,7 +204,7 @@ export function MobileComparisonCards({
         {/* Header */}
         <thead className="sticky top-0 z-10" style={{ boxShadow: '0 1px 0 hsl(var(--border))' }}>
           <tr style={{ backgroundColor: 'hsl(var(--card))' }}>
-            <th className="sticky left-0 z-20 p-2 min-w-[100px] max-w-[120px]" style={{ backgroundColor: 'hsl(var(--card))' }} />
+            <th className="sticky left-0 top-0 z-30 p-2 min-w-[100px] max-w-[120px]" style={{ backgroundColor: 'hsl(var(--card))' }} />
             {selectedModels.map((model, i) => (
               <th key={model.id} className={cn("p-2 text-center", modelColWidth, i === 0 ? "bg-primary/5" : "bg-card")}>
                 {model.image_url && (
