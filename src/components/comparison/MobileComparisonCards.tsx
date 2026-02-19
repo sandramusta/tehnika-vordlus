@@ -202,11 +202,11 @@ export function MobileComparisonCards({
     <div className="overflow-auto -mx-4 px-0 max-h-[70vh]">
       <table className="w-full border-collapse text-sm" style={{ minWidth: `${120 + selectedModels.length * 120}px`, borderSpacing: 0 }}>
         {/* Header */}
-        <thead className="sticky top-0 z-10" style={{ boxShadow: '0 1px 0 hsl(var(--border))' }}>
-          <tr style={{ backgroundColor: 'hsl(var(--card))' }}>
-            <th className="sticky left-0 top-0 z-30 p-2 min-w-[100px] max-w-[120px]" style={{ backgroundColor: 'hsl(var(--card))' }} />
+        <thead className="sticky top-0 z-20" style={{ backgroundColor: 'white' }}>
+          <tr style={{ backgroundColor: 'white' }}>
+            <th className="sticky left-0 z-30 p-2 min-w-[100px] max-w-[120px]" style={{ backgroundColor: 'white' }} />
             {selectedModels.map((model, i) => (
-              <th key={model.id} className={cn("p-2 text-center", modelColWidth, i === 0 ? "bg-primary/5" : "bg-card")}>
+              <th key={model.id} className={cn("p-2 text-center", modelColWidth, i === 0 ? "bg-primary/5" : "")} style={{ backgroundColor: i === 0 ? undefined : 'white' }}>
                 {model.image_url && (
                   <img src={model.image_url} alt={model.model_name} className="h-12 w-full rounded object-contain bg-white mx-auto mb-1" />
                 )}
