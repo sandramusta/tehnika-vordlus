@@ -62,6 +62,7 @@
     --merlo: 96 46% 41%;
     --weidemann: 2 46% 46%;
     --claas-scorpion: 67 78% 42%;
+    --deutz-fahr: 105 58% 42%;
 
     /* Sidebar */
     --sidebar-background: 120 15% 97%;
@@ -112,6 +113,7 @@
     --merlo: 96 46% 41%;
     --weidemann: 2 46% 46%;
     --claas-scorpion: 67 78% 42%;
+    --deutz-fahr: 105 58% 42%;
 
     --border: 150 10% 20%;
     --input: 150 10% 20%;
@@ -204,6 +206,10 @@
   .text-claas-scorpion {
     color: hsl(var(--claas-scorpion));
   }
+  
+  .text-deutz-fahr {
+    color: hsl(var(--deutz-fahr));
+  }
 
   /* Telehandler brand background colors */
   .brand-kramer {
@@ -234,6 +240,11 @@
   .brand-claas-scorpion {
     background-color: hsl(var(--claas-scorpion));
     color: black;
+  }
+  
+  .brand-deutz-fahr {
+    background-color: hsl(var(--deutz-fahr));
+    color: white;
   }
 
   .comparison-card {
