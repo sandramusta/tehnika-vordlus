@@ -200,10 +200,10 @@ export function MobileComparisonCards({
 
   return (
     <div className="overflow-auto -mx-4 px-0 max-h-[70vh]">
-      <table className="w-full border-collapse text-sm" style={{ minWidth: `${120 + selectedModels.length * 120}px` }}>
+      <table className="w-full border-collapse text-sm" style={{ minWidth: `${120 + selectedModels.length * 120}px`, borderSpacing: 0 }}>
         {/* Header */}
-        <thead className="sticky top-0 z-10">
-          <tr className="bg-card">
+        <thead className="sticky top-0 z-10" style={{ boxShadow: '0 1px 0 hsl(var(--border))' }}>
+          <tr style={{ backgroundColor: 'hsl(var(--card))' }}>
             <th className="sticky left-0 z-20 bg-card p-2 min-w-[100px] max-w-[120px]" />
             {selectedModels.map((model, i) => (
               <th key={model.id} className={cn("p-2 text-center", modelColWidth, i === 0 ? "bg-primary/5" : "bg-card")}>
