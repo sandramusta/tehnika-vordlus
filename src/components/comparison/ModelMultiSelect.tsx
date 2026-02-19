@@ -101,12 +101,12 @@ export function ModelMultiSelect({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
         {/* Type Selector */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
           <Select value={selectedType} onValueChange={handleTypeChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Vali tüüp" />
             </SelectTrigger>
             <SelectContent className="bg-popover">
@@ -121,7 +121,7 @@ export function ModelMultiSelect({
         </div>
 
         {/* Model Multi-Select */}
-        <div className="flex flex-col gap-1.5 flex-1 min-w-[300px]">
+        <div className="flex flex-col gap-1.5 w-full sm:flex-1 sm:min-w-[300px]">
           <label className="text-sm font-medium text-muted-foreground">
             Mudelid võrdluseks (max {maxModels})
           </label>
