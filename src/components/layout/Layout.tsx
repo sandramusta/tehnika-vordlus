@@ -6,9 +6,9 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
-      <main className="container py-8">{children}</main>
+      <main className="container py-8 px-4 sm:px-8">{children}</main>
     </div>
   );
 }
