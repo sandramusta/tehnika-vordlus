@@ -28,6 +28,12 @@
         return "text-claas-scorpion";
       case "Deutz-Fahr":
         return "text-deutz-fahr";
+      case "Kubota":
+        return "text-kubota";
+      case "Massey Ferguson":
+        return "text-massey-ferguson";
+      case "Valtra":
+        return "text-valtra";
       default:
        return "text-foreground";
    }
@@ -61,6 +67,12 @@
         return "brand-claas-scorpion";
       case "Deutz-Fahr":
         return "brand-deutz-fahr";
+      case "Kubota":
+        return "brand-kubota";
+      case "Massey Ferguson":
+        return "brand-massey-ferguson";
+      case "Valtra":
+        return "brand-valtra";
       default:
        return "bg-muted text-foreground";
    }
@@ -69,16 +81,16 @@
  // Get HEX color for brand (useful for inline styles, charts, etc.)
  export function getBrandHexColor(brandName: string): string {
    switch (brandName) {
-     case "John Deere":
-       return "#367c2b";
-     case "Claas":
-       return "#ff4d4d";
-     case "Case IH":
-       return "#a50000";
-     case "New Holland":
-       return "#1e56a0";
-     case "Fendt":
-       return "#000000";
+      case "John Deere":
+        return "#367c2b";
+      case "Claas":
+        return "#84B917";
+      case "Case IH":
+        return "#D0202E";
+      case "New Holland":
+        return "#003087";
+      case "Fendt":
+        return "#345A36";
      // Telehandler brands
      case "Kramer":
       return "#42805E";
@@ -93,16 +105,22 @@
       case "Claas Scorpion":
         return "#B3C517";
       case "Deutz-Fahr":
-        return "#4BA82E";
+        return "#75B626";
+      case "Kubota":
+        return "#FF6600";
+      case "Massey Ferguson":
+        return "#C8102E";
+      case "Valtra":
+        return "#C41230";
       default:
        return "#6b7280";
    }
  }
  
  // Determine if brand color is light (needs dark text)
- export function isBrandColorLight(brandName: string): boolean {
-   return ["JCB", "Claas Scorpion"].includes(brandName);
- }
+  export function isBrandColorLight(brandName: string): boolean {
+    return ["JCB", "Claas Scorpion", "Claas", "Kubota"].includes(brandName);
+  }
  
  // Get badge classes for "vs Brand" display
  export function getBrandBadgeClasses(brandName: string): string {
