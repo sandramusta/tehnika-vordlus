@@ -24,9 +24,11 @@
        return "text-merlo";
      case "Weidemann":
        return "text-weidemann";
-     case "Claas Scorpion":
-       return "text-claas-scorpion";
-     default:
+      case "Claas Scorpion":
+        return "text-claas-scorpion";
+      case "Deutz-Fahr":
+        return "text-deutz-fahr";
+      default:
        return "text-foreground";
    }
  }
@@ -55,9 +57,11 @@
        return "brand-merlo";
      case "Weidemann":
        return "brand-weidemann";
-     case "Claas Scorpion":
-       return "brand-claas-scorpion";
-     default:
+      case "Claas Scorpion":
+        return "brand-claas-scorpion";
+      case "Deutz-Fahr":
+        return "brand-deutz-fahr";
+      default:
        return "bg-muted text-foreground";
    }
  }
@@ -86,9 +90,11 @@
        return "#609839";
      case "Weidemann":
        return "#A9423F";
-     case "Claas Scorpion":
-       return "#B3C517";
-     default:
+      case "Claas Scorpion":
+        return "#B3C517";
+      case "Deutz-Fahr":
+        return "#4BA82E";
+      default:
        return "#6b7280";
    }
  }

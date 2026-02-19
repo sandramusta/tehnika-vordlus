@@ -66,6 +66,7 @@ export default {
         "merlo": "hsl(var(--merlo))",
         "weidemann": "hsl(var(--weidemann))",
         "claas-scorpion": "hsl(var(--claas-scorpion))",
+        "deutz-fahr": "hsl(var(--deutz-fahr))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
