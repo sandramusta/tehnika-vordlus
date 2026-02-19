@@ -33,6 +33,7 @@ import {
   useInviteStaffUser,
   useUpdateStaffUser,
   useDeleteStaffUser,
+  useUpdateStaffUserRole,
   type StaffUser,
 } from "@/hooks/useStaffUsers";
 import type { AppRole } from "@/hooks/useAuth";
@@ -53,6 +54,7 @@ export function StaffUsersManagement() {
   const inviteUser = useInviteStaffUser();
   const updateUser = useUpdateStaffUser();
   const deleteUser = useDeleteStaffUser();
+  const updateRole = useUpdateStaffUserRole();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -248,6 +250,7 @@ export function StaffUsersManagement() {
               <TableRow>
                 <TableHead>Nimi</TableHead>
                 <TableHead>E-post</TableHead>
+                <TableHead className="w-40">Roll</TableHead>
                 <TableHead className="w-24">Staatus</TableHead>
                 <TableHead className="w-32 text-right">Tegevused</TableHead>
               </TableRow>
@@ -257,6 +260,39 @@ export function StaffUsersManagement() {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.full_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    {user.auth_user_id ? (
+                      <Select
+                        value={user.role || "user"}
+                        onValueChange={async (value) => {
+                          try {
+                            await updateRole.mutateAsync({
+                              authUserId: user.auth_user_id!,
+                              role: value as AppRole,
+                            });
+                            toast({ title: "Roll uuendatud!" });
+                          } catch {
+                            toast({
+                              title: "Viga",
+                              description: "Rolli muutmine ebaõnnestus",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Kasutaja</SelectItem>
+                          <SelectItem value="product_manager">Tootejuht</SelectItem>
+                          <SelectItem value="admin">Administraator</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">Ootel</Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Switch
