@@ -481,7 +481,7 @@ function getCategoryLabel(category: string): string {
           </div>
  
          <Tabs defaultValue="equipment" className="space-y-6">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <TabsList className="w-auto">
                 <TabsTrigger value="equipment" className="gap-2">
                   <Tractor className="h-4 w-4" />
@@ -491,13 +491,13 @@ function getCategoryLabel(category: string): string {
                   <MessageSquare className="h-4 w-4" />
                   Argumendid
                 </TabsTrigger>
-              </TabsList>
-              <TabsList className="w-auto">
                 <TabsTrigger value="myths" className="gap-2">
                   <MessageSquareWarning className="h-4 w-4" />
                   Müüdid
                 </TabsTrigger>
-                {canManageUsers && (
+              </TabsList>
+              {canManageUsers && (
+                <TabsList className="w-auto bg-primary/10">
                   <TabsTrigger 
                     value="users" 
                     className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -505,8 +505,8 @@ function getCategoryLabel(category: string): string {
                     <Users className="h-4 w-4" />
                     Kasutajad
                   </TabsTrigger>
-                )}
-              </TabsList>
+                </TabsList>
+              )}
             </div>
  
            {/* Equipment Tab */}
