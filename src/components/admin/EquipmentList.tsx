@@ -62,10 +62,10 @@ import { BrochurePopover } from "./BrochurePopover";
        const typeEquipment = equipment.filter((e) => e.equipment_type_id === type.id);
        if (typeEquipment.length === 0) return null;
  
-       // Sort brands: John Deere first, then others
-       const johnDeereBrand = brands.find((b) => b.name === "John Deere");
-       const otherBrands = brands.filter((b) => b.name !== "John Deere");
-       const sortedBrands = johnDeereBrand ? [johnDeereBrand, ...otherBrands] : otherBrands;
+        // Sort brands: primary brands first, then others
+        const primaryBrands = brands.filter((b) => b.is_primary);
+        const otherBrands = brands.filter((b) => !b.is_primary);
+        const sortedBrands = [...primaryBrands, ...otherBrands];
  
        const byBrand = sortedBrands
          .map((brand) => ({
