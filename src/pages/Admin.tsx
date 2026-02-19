@@ -37,7 +37,7 @@
    useUpdateMyth,
    useDeleteMyth,
  } from "@/hooks/useEquipmentData";
- import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp, Users } from "lucide-react";
+ import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp, Users, ChevronRight } from "lucide-react";
  import { StaffUsersManagement } from "@/components/admin/StaffUsersManagement";
  import { useToast } from "@/hooks/use-toast";
  import { Badge } from "@/components/ui/badge";
@@ -93,6 +93,7 @@ function getCategoryLabel(category: string): string {
   const [isSavingBrochureData, setIsSavingBrochureData] = useState(false);
   const [argumentTypeFilter, setArgumentTypeFilter] = useState<string>("all");
   const [isSavingEquipment, setIsSavingEquipment] = useState(false);
+  const [openArgBrands, setOpenArgBrands] = useState<Set<string>>(new Set());
  
    const { data: equipment = [] } = useEquipment();
    const { data: brands = [] } = useBrands();
@@ -708,19 +709,31 @@ function getCategoryLabel(category: string): string {
                             <Badge variant="outline" className="ml-auto">{typeArgs.length} argumenti</Badge>
                           </div>
 
-                          {/* Group by competitor brand within each type */}
+                          {/* Group by competitor brand within each type - collapsible */}
                           {competitorBrands.map((brand) => {
                             const brandArgs = typeArgs.filter((arg) => arg.competitor_brand_id === brand.id);
                             if (brandArgs.length === 0) return null;
+                            const brandKey = `${type.id}-${brand.id}`;
+                            const isBrandOpen = openArgBrands.has(brandKey);
 
                             return (
-                              <div key={brand.id} className="space-y-3 pl-4 border-l-2 border-muted">
-                                <div className="flex items-center gap-2">
+                              <div key={brand.id} className="space-y-2 pl-4 border-l-2 border-muted">
+                                <button
+                                  className="flex w-full items-center gap-2 text-left hover:bg-accent/30 rounded-md p-2 transition-colors"
+                                  onClick={() => setOpenArgBrands((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(brandKey)) next.delete(brandKey);
+                                    else next.add(brandKey);
+                                    return next;
+                                  })}
+                                >
+                                  <ChevronRight className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isBrandOpen ? "rotate-90" : ""}`} />
                                   <h4 className="font-medium">vs <span className={getBrandTextColor(brand.name)}>{brand.name}</span></h4>
                                   <Badge variant="secondary" className="text-xs">{brandArgs.length}</Badge>
-                                </div>
+                                </button>
 
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {isBrandOpen && (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-2">
                                   {brandArgs.map((arg) => (
                                     <div key={arg.id} className="rounded-lg border border-border bg-card p-4 relative group">
                                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
@@ -749,6 +762,7 @@ function getCategoryLabel(category: string): string {
                                     </div>
                                   ))}
                                 </div>
+                                )}
                               </div>
                             );
                           })}
