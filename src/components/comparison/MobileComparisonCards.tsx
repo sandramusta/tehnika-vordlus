@@ -235,9 +235,12 @@ export function MobileComparisonCards({
 
           {/* Cost section header */}
           <tr className="bg-muted/50">
-            <td colSpan={selectedModels.length + 1} className="p-2 text-[11px] font-semibold text-foreground uppercase tracking-wide border-y border-border">
+            <td className="sticky left-0 z-10 p-2 text-[11px] font-semibold text-foreground uppercase tracking-wide border-y border-border" style={{ backgroundColor: 'hsl(var(--muted))' }}>
               Hinnad ja kulud
             </td>
+            {selectedModels.map((model, i) => (
+              <td key={model.id} className={cn("p-2 border-y border-border", i === 0 && "bg-primary/5")} />
+            ))}
           </tr>
 
           {/* Cost rows */}
