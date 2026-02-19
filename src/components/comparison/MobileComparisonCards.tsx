@@ -55,11 +55,7 @@ export function MobileComparisonCards({
     return specLabels[labelKey] || defaultLabel;
   };
 
-  const renderSpecValue = (
-    model: Equipment,
-    config: (typeof specRows)[0],
-    allModels: Equipment[]
-  ) => {
+  const renderValue = (model: Equipment, config: SpecRowConfig) => {
     const { key, format, suffix = "", bestType } = config;
     const value = model[key] as number | null;
     const bestValue = bestType ? calculateBestValue(key, bestType) : null;
@@ -74,14 +70,13 @@ export function MobileComparisonCards({
         : `${formatNumber(value)}${suffix}`;
 
     return (
-      <div className="flex items-center gap-1">
-        <span className={cn(isJohnDeere && "font-semibold")}>{displayValue}</span>
-        {isBest && allModels.length > 1 && <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />}
+      <div className="flex items-center justify-center gap-1">
+        <span className={cn("whitespace-nowrap", isJohnDeere && "font-semibold")}>{displayValue}</span>
+        {isBest && selectedModels.length > 1 && <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />}
       </div>
     );
   };
 
-  // Filter out conditional rows that have no values
   const visibleSpecRows = specRows.filter(
     (config) =>
       !config.conditional ||
@@ -90,97 +85,95 @@ export function MobileComparisonCards({
       )
   );
 
-  return (
-    <div className="space-y-4">
-      {selectedModels.map((model, modelIndex) => {
-        const isJohnDeere = model.brand?.name === "John Deere";
-        const tco = calculateTCO(model);
-        const isBestTCO = tco === bestTCO && tco !== null;
+  const modelColWidth = selectedModels.length === 1 ? "min-w-[140px]" : "min-w-[120px]";
 
-        return (
-          <div
-            key={model.id}
-            className={cn(
-              "rounded-lg border overflow-hidden",
-              modelIndex === 0
-                ? "border-primary/30 bg-primary/5"
-                : "border-border bg-card"
-            )}
-          >
-            {/* Card Header */}
-            <div className={cn(
-              "p-4 flex items-center gap-3",
-              modelIndex === 0 ? "bg-primary/10" : "bg-muted/30"
-            )}>
-              {model.image_url && (
-                <img
-                  src={model.image_url}
-                  alt={model.model_name}
-                  className="h-14 w-20 rounded object-contain bg-white shrink-0"
-                />
-              )}
-              <div className="min-w-0">
-                <span
-                  className={cn(
-                    "text-sm font-bold block",
-                    getBrandTextColor(model.brand?.name || "")
-                  )}
-                >
+  return (
+    <div className="overflow-x-auto -mx-4 px-0">
+      <table className="w-full border-collapse text-sm" style={{ minWidth: `${120 + selectedModels.length * 120}px` }}>
+        {/* Header: model images + names */}
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-card">
+            <th className="sticky left-0 z-20 bg-card p-2 min-w-[100px] max-w-[120px]" />
+            {selectedModels.map((model, i) => (
+              <th key={model.id} className={cn("p-2 text-center", modelColWidth, i === 0 && "bg-primary/5")}>
+                {model.image_url && (
+                  <img
+                    src={model.image_url}
+                    alt={model.model_name}
+                    className="h-12 w-full rounded object-contain bg-white mx-auto mb-1"
+                  />
+                )}
+                <span className={cn("text-[11px] font-bold block leading-tight", getBrandTextColor(model.brand?.name || ""))}>
                   {model.brand?.name}
                 </span>
-                <div className="text-base font-semibold text-foreground truncate">
+                <div className="text-[11px] font-medium text-foreground leading-tight truncate">
                   {model.model_name}
                 </div>
-              </div>
-            </div>
-
-            {/* Specs */}
-            <div className="divide-y divide-border/50">
-              {visibleSpecRows.map((config) => (
-                <div
-                  key={String(config.key)}
-                  className="flex items-center justify-between px-4 py-2.5 text-sm"
-                >
-                  <span className="text-muted-foreground">
-                    {getLabel(config.labelKey, config.defaultLabel)}
-                  </span>
-                  {renderSpecValue(model, config, selectedModels)}
-                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {/* Spec rows */}
+          {visibleSpecRows.map((config) => (
+            <tr key={String(config.key)} className="border-t border-border/30">
+              <td className="sticky left-0 z-10 bg-card p-2 text-[11px] text-muted-foreground font-medium leading-tight">
+                {getLabel(config.labelKey, config.defaultLabel)}
+              </td>
+              {selectedModels.map((model, i) => (
+                <td key={model.id} className={cn("p-2 text-center text-[12px]", i === 0 && "bg-primary/5")}>
+                  {renderValue(model, config)}
+                </td>
               ))}
+            </tr>
+          ))}
 
-              {/* Cost section separator */}
-              <div className="px-4 py-2 bg-muted/50 text-xs font-semibold text-foreground uppercase tracking-wide">
-                Hinnad ja kulud
-              </div>
+          {/* Cost section header */}
+          <tr className="bg-muted/50">
+            <td colSpan={selectedModels.length + 1} className="p-2 text-[11px] font-semibold text-foreground uppercase tracking-wide border-y border-border">
+              Hinnad ja kulud
+            </td>
+          </tr>
 
-              {costRows.map((config) => (
-                <div
-                  key={String(config.key)}
-                  className="flex items-center justify-between px-4 py-2.5 text-sm"
-                >
-                  <span className="text-muted-foreground">
-                    {getLabel(config.labelKey, config.defaultLabel)}
-                  </span>
-                  {renderSpecValue(model, config, selectedModels)}
-                </div>
+          {/* Cost rows */}
+          {costRows.map((config) => (
+            <tr key={String(config.key)} className="border-t border-border/30">
+              <td className="sticky left-0 z-10 bg-card p-2 text-[11px] text-muted-foreground font-medium leading-tight">
+                {getLabel(config.labelKey, config.defaultLabel)}
+              </td>
+              {selectedModels.map((model, i) => (
+                <td key={model.id} className={cn("p-2 text-center text-[12px]", i === 0 && "bg-primary/5")}>
+                  {renderValue(model, config)}
+                </td>
               ))}
+            </tr>
+          ))}
 
-              {/* TCO */}
-              <div className="flex items-center justify-between px-4 py-2.5 text-sm font-semibold bg-muted/30">
-                <span className="text-foreground">TCO (Kogukulu)</span>
-                <div className="flex items-center gap-1">
-                  <span className={cn(isJohnDeere && "font-semibold")}>
-                    {tco !== null ? formatCurrency(tco) : "—"}
-                  </span>
-                  {isBestTCO && selectedModels.length > 1 && (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+          {/* TCO row */}
+          <tr className="border-t border-border bg-muted/30">
+            <td className="sticky left-0 z-10 bg-muted/30 p-2 text-[11px] font-semibold text-foreground leading-tight">
+              TCO (Kogukulu)
+            </td>
+            {selectedModels.map((model, i) => {
+              const tco = calculateTCO(model);
+              const isBestTCO = tco === bestTCO && tco !== null;
+              const isJohnDeere = model.brand?.name === "John Deere";
+              return (
+                <td key={model.id} className={cn("p-2 text-center text-[12px] font-semibold", i === 0 && "bg-primary/5")}>
+                  <div className="flex items-center justify-center gap-1">
+                    <span className={cn("whitespace-nowrap", isJohnDeere && "font-semibold")}>
+                      {tco !== null ? formatCurrency(tco) : "—"}
+                    </span>
+                    {isBestTCO && selectedModels.length > 1 && (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                    )}
+                  </div>
+                </td>
+              );
+            })}
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
