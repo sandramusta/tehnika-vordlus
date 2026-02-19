@@ -122,23 +122,23 @@ export default function Comparison() {
     <Layout>
       <div className="space-y-8">
         {/* Hero Section */}
-        <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
-          <h1 className="text-3xl font-bold">Tehnika võrdlus</h1>
-          <p className="mt-2 text-primary-foreground/80">
+        <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-6 sm:p-8 text-primary-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Tehnika võrdlus</h1>
+          <p className="mt-2 text-sm sm:text-base text-primary-foreground/80">
             Vali tehnika tüüp ja kasuta automaatset konkurentide võrdlust või vali ise kuni 3 mudelit.
           </p>
         </div>
 
         {/* Filters & PDF Export */}
-        <div className="rounded-lg border border-border bg-card p-6 space-y-6">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-6 overflow-hidden">
           {/* Mode Selector */}
           <ComparisonModeSelector
             mode={comparisonMode}
             onModeChange={handleModeChange}
           />
 
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
               <h2 className="mb-4 text-lg font-semibold">
                 {comparisonMode === "auto" 
                   ? "Automaatne konkurentide võrdlus" 

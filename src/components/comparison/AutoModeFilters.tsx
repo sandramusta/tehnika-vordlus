@@ -66,12 +66,12 @@ export function AutoModeFilters({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
         {/* Type Selector */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
           <Select value={selectedType} onValueChange={onTypeChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Vali tüüp" />
             </SelectTrigger>
             <SelectContent className="bg-popover">
@@ -86,14 +86,14 @@ export function AutoModeFilters({
         </div>
 
         {/* Brand Selector */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-sm font-medium text-muted-foreground">Bränd</label>
           <Select 
             value={selectedBrand} 
             onValueChange={onBrandChange}
             disabled={!isTypeSelected}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder={isTypeSelected ? "Vali bränd" : "Vali esmalt tüüp"} />
             </SelectTrigger>
             <SelectContent className="bg-popover">
@@ -108,14 +108,14 @@ export function AutoModeFilters({
         </div>
 
         {/* Model Selector */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-sm font-medium text-muted-foreground">Mudel</label>
           <Select 
             value={selectedModelId} 
             onValueChange={onModelChange}
             disabled={!isBrandSelected}
           >
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger className="w-full sm:w-[220px]">
               <SelectValue placeholder={isBrandSelected ? "Vali mudel" : "Vali esmalt bränd"} />
             </SelectTrigger>
             <SelectContent className="bg-popover">
