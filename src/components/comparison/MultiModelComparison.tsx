@@ -256,6 +256,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
           calculateBestValue={calculateBestValue}
           calculateTCO={calculateTCO}
           bestTCO={bestTCO}
+          equipmentTypeName={equipmentTypeName}
         />
       </div>
     );
@@ -350,8 +351,8 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
               {COST_ROWS.map((config) => renderSpecRow(config))}
 
               {/* TCO (Calculated - Read Only) */}
-              <tr className="border-b border-border bg-muted/30">
-                <td className="sticky left-0 z-10 bg-muted/30 p-3 text-sm font-semibold text-foreground border-r border-border">
+              <tr className="border-b border-border bg-muted">
+                <td className="sticky left-0 z-10 bg-muted p-3 text-sm font-semibold text-foreground border-r border-border">
                   TCO (Kogukulu)
                 </td>
                 {selectedModels.map((model, index) => {
