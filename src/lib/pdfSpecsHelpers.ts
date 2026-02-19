@@ -376,35 +376,118 @@ export const TRAILED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>>
 };
 
 // ============================================================================
-// ROUND BALER (Ruloonpress) - 3 categories
+// ROUND BALER (Ruloonpress) - 16 categories
 // ============================================================================
 export const ROUND_BALER_CATEGORY_ORDER = [
-  "ruloonid",
-  "nõuded",
+  "rulooni_mõõtmed",
+  "kogur",
+  "rootorsöötmine",
+  "rullikamber",
+  "võrksidumine",
+  "kilesse_mähkimine",
+  "rulli_väljastamine",
+  "jõuvõtuvõll",
+  "mähkimissüsteem",
   "mõõtmed",
+  "rehvid",
+  "minimaalne_võimsustarve",
+  "hooldus",
+  "isobus",
+  "ekraanid",
+  "kasutusotstarve",
 ] as const;
 
 export const ROUND_BALER_CATEGORY_NAMES: Record<string, string> = {
-  ruloonid: "RULOONID",
-  nõuded: "NÕUDED",
+  rulooni_mõõtmed: "RULOONI MÕÕTMED",
+  kogur: "KOGUR",
+  rootorsöötmine: "ROOTORSÖÖTMINE",
+  rullikamber: "RULLIKAMBER",
+  võrksidumine: "VÕRKSIDUMINE",
+  kilesse_mähkimine: "KILESSE MÄHKIMINE",
+  rulli_väljastamine: "RULLI VÄLJASTAMINE",
+  jõuvõtuvõll: "JÕUVÕTUVÕLL",
+  mähkimissüsteem: "MÄHKIMISSÜSTEEM",
   mõõtmed: "MÕÕTMED",
+  rehvid: "REHVID",
+  minimaalne_võimsustarve: "MINIMAALNE VÕIMSUSTARVE",
+  hooldus: "HOOLDUS",
+  isobus: "ISOBUS",
+  ekraanid: "EKRAANID",
+  kasutusotstarve: "KASUTUSOTSTARVE",
 };
 
 export const ROUND_BALER_FIELD_NAMES: Record<string, Record<string, string>> = {
-  ruloonid: {
-    rulooni_läbimõõt_mm: "Rulooni läbimõõt (mm)",
-    rulooni_laius_mm: "Rulooni laius (mm)",
-    sidumine: "Sidumine",
+  rulooni_mõõtmed: {
+    läbimõõt_m: "Läbimõõt (m)",
+    laius_m: "Laius (m)",
   },
-  nõuded: {
-    min_võimsus_hj: "Min võimsus (hj)",
-    kardaanivõlli_pöörded: "Kardaanivõlli pöörded (1/min)",
+  kogur: {
+    laius_m: "Laius (m)",
+    laius_m_din: "Laius (m DIN)",
+    piilat: "Piilat",
+    vaalusurverull: "Vaalusurverull",
+    kopeerrattad: "Kopeerrattad",
+  },
+  rootorsöötmine: {
+    tüüp_terade_arv: "Tüüp / terade arv",
+    terade_komplekt: "Terade komplekt vastavalt terade jaotisele",
+    ummistuste_eemaldamine: "Ummistuste eemaldamise süsteem",
+  },
+  rullikamber: {
+    rulli_moodustamine: "Rulli moodustamine",
+    tiheduse_ja_läbimõõdu_seadistamine: "Tiheduse ja rulli läbimõõdu seadistamine",
+  },
+  võrksidumine: {
+    võrgusüsteem: "Võrgusüsteem",
+    mahutavus: "Mahutavus",
+  },
+  kilesse_mähkimine: {
+    kilesse_mähkimine: "Kilesse mähkimine",
+    mahutavus: "Mahutavus",
+  },
+  rulli_väljastamine: {
+    rulli_mahapanek: "Rulli mahapanek",
+    rullipresside_automaatika: "Rullipresside automaatika",
+  },
+  jõuvõtuvõll: {
+    jvv_turvalisus: "JVV turvalisus",
+    pöörlemissagedus_ja_võimsus: "Jõuvõtuvõlli pöörlemissagedus ja võimsus",
+  },
+  mähkimissüsteem: {
+    rulli_edastamine: "Rulli edastamine",
+    kiletaja_hoovad: "Kiletaja hoovad",
+    mahapanek_režiim: "Mahapanek režiim",
+    kile_mahutavus: "Kile mahutavus",
   },
   mõõtmed: {
     kaal_kg: "Kaal (kg)",
     laius_mm: "Laius (mm)",
     kõrgus_mm: "Kõrgus (mm)",
     pikkus_mm: "Pikkus (mm)",
+  },
+  rehvid: {
+    rehvide_suurus: "Rehvide suurus",
+  },
+  minimaalne_võimsustarve: {
+    kw_hj: "kW/hj",
+  },
+  hooldus: {
+    keti_automaatne_määrimine: "Keti automaatne määrimine",
+    automaatne_määrimissüsteem: "Automaatne määrimissüsteem",
+    pikendatud_määrimisintervalliga_jvv: "Pikendatud määrimisintervalliga JVV",
+  },
+  isobus: {
+    tüüp: "Tüüp",
+  },
+  ekraanid: {
+    tüüp: "Tüüp",
+  },
+  kasutusotstarve: {
+    hein_silo_põhk: "Hein / Silo / Põhk",
+    tööandmete_kogumine: "Tööandmete kogumine / Dokumenteerimine",
+    automatiseeritus: "Automatiseeritus",
+    niiskuse_andur: "Niiskuse andur",
+    kaalusüsteem: "Kaalusüsteem",
   },
 };
 

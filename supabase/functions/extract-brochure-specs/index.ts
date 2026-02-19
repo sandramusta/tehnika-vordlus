@@ -478,29 +478,83 @@ const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
   // ====================== ROUND BALER ======================
   round_baler: {
     equipment_columns: [
-      { key: "engine_power_hp", label: "Võimsus (hj)", type: "number" },
+      { key: "engine_power_hp", label: "Min võimsustarve (hj)", type: "number" },
       { key: "weight_kg", label: "Kaal (kg)", type: "number" },
-      { key: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number" },
-      { key: "header_width_m", label: "Korje laius (m)", type: "number" },
-      { key: "throughput_tons_h", label: "Tootlikkus (palli/h)", type: "number" },
+      { key: "header_width_m", label: "Rulooni läbimõõt (m)", type: "number" },
+      { key: "header_width_max_m", label: "Rulooni laius (m)", type: "number" },
+      { key: "header_width_min_m", label: "Koguri laius (m)", type: "number" },
       { key: "transport_width_mm", label: "Laius (mm)", type: "number" },
       { key: "transport_height_mm", label: "Kõrgus (mm)", type: "number" },
       { key: "transport_length_mm", label: "Pikkus (mm)", type: "number" },
     ],
     detailed_specs_categories: {
-      ruloonid: {
-        label: "RULOONID",
+      rulooni_mõõtmed: {
+        label: "RULOONI MÕÕTMED",
         fields: [
-          { key: "rulooni_läbimõõt_mm", label: "Rulooni läbimõõt (mm)", type: "number" },
-          { key: "rulooni_laius_mm", label: "Rulooni laius (mm)", type: "number" },
-          { key: "sidumine", label: "Sidumine", type: "string" },
+          { key: "läbimõõt_m", label: "Läbimõõt (m)", type: "string" },
+          { key: "laius_m", label: "Laius (m)", type: "string" },
         ]
       },
-      nõuded: {
-        label: "NÕUDED",
+      kogur: {
+        label: "KOGUR",
         fields: [
-          { key: "min_võimsus_hj", label: "Min võimsus (hj)", type: "number" },
-          { key: "kardaanivõlli_pöörded", label: "Kardaanivõlli pöörded (1/min)", type: "string" },
+          { key: "laius_m", label: "Laius (m)", type: "string" },
+          { key: "laius_m_din", label: "Laius (m DIN)", type: "string" },
+          { key: "piilat", label: "Piilat", type: "string" },
+          { key: "vaalusurverull", label: "Vaalusurverull", type: "string" },
+          { key: "kopeerrattad", label: "Kopeerrattad", type: "string" },
+        ]
+      },
+      rootorsöötmine: {
+        label: "ROOTORSÖÖTMINE",
+        fields: [
+          { key: "tüüp_terade_arv", label: "Tüüp / terade arv", type: "string" },
+          { key: "terade_komplekt", label: "Terade komplekt vastavalt terade jaotisele", type: "string" },
+          { key: "ummistuste_eemaldamine", label: "Ummistuste eemaldamise süsteem", type: "string" },
+        ]
+      },
+      rullikamber: {
+        label: "RULLIKAMBER",
+        fields: [
+          { key: "rulli_moodustamine", label: "Rulli moodustamine", type: "string" },
+          { key: "tiheduse_ja_läbimõõdu_seadistamine", label: "Tiheduse ja rulli läbimõõdu seadistamine", type: "string" },
+        ]
+      },
+      võrksidumine: {
+        label: "VÕRKSIDUMINE",
+        fields: [
+          { key: "võrgusüsteem", label: "Võrgusüsteem", type: "string" },
+          { key: "mahutavus", label: "Mahutavus", type: "string" },
+        ]
+      },
+      kilesse_mähkimine: {
+        label: "KILESSE MÄHKIMINE",
+        fields: [
+          { key: "kilesse_mähkimine", label: "Kilesse mähkimine", type: "string" },
+          { key: "mahutavus", label: "Mahutavus", type: "string" },
+        ]
+      },
+      rulli_väljastamine: {
+        label: "RULLI VÄLJASTAMINE",
+        fields: [
+          { key: "rulli_mahapanek", label: "Rulli mahapanek", type: "string" },
+          { key: "rullipresside_automaatika", label: "Rullipresside automaatika", type: "string" },
+        ]
+      },
+      jõuvõtuvõll: {
+        label: "JÕUVÕTUVÕLL",
+        fields: [
+          { key: "jvv_turvalisus", label: "JVV turvalisus", type: "string" },
+          { key: "pöörlemissagedus_ja_võimsus", label: "Jõuvõtuvõlli pöörlemissagedus ja võimsus", type: "string" },
+        ]
+      },
+      mähkimissüsteem: {
+        label: "MÄHKIMISSÜSTEEM",
+        fields: [
+          { key: "rulli_edastamine", label: "Rulli edastamine", type: "string" },
+          { key: "kiletaja_hoovad", label: "Kiletaja hoovad", type: "string" },
+          { key: "mahapanek_režiim", label: "Mahapanek režiim", type: "string" },
+          { key: "kile_mahutavus", label: "Kile mahutavus", type: "string" },
         ]
       },
       mõõtmed: {
@@ -510,6 +564,48 @@ const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
           { key: "laius_mm", label: "Laius (mm)", type: "number" },
           { key: "kõrgus_mm", label: "Kõrgus (mm)", type: "number" },
           { key: "pikkus_mm", label: "Pikkus (mm)", type: "number" },
+        ]
+      },
+      rehvid: {
+        label: "REHVID",
+        fields: [
+          { key: "rehvide_suurus", label: "Rehvide suurus", type: "string" },
+        ]
+      },
+      minimaalne_võimsustarve: {
+        label: "MINIMAALNE VÕIMSUSTARVE",
+        fields: [
+          { key: "kw_hj", label: "kW/hj", type: "string" },
+        ]
+      },
+      hooldus: {
+        label: "HOOLDUS",
+        fields: [
+          { key: "keti_automaatne_määrimine", label: "Keti automaatne määrimine", type: "string" },
+          { key: "automaatne_määrimissüsteem", label: "Automaatne määrimissüsteem", type: "string" },
+          { key: "pikendatud_määrimisintervalliga_jvv", label: "Pikendatud määrimisintervalliga JVV", type: "string" },
+        ]
+      },
+      isobus: {
+        label: "ISOBUS",
+        fields: [
+          { key: "tüüp", label: "Tüüp", type: "string" },
+        ]
+      },
+      ekraanid: {
+        label: "EKRAANID",
+        fields: [
+          { key: "tüüp", label: "Tüüp", type: "string" },
+        ]
+      },
+      kasutusotstarve: {
+        label: "KASUTUSOTSTARVE",
+        fields: [
+          { key: "hein_silo_põhk", label: "Hein / Silo / Põhk", type: "string" },
+          { key: "tööandmete_kogumine", label: "Tööandmete kogumine / Dokumenteerimine", type: "string" },
+          { key: "automatiseeritus", label: "Automatiseeritus", type: "string" },
+          { key: "niiskuse_andur", label: "Niiskuse andur", type: "string" },
+          { key: "kaalusüsteem", label: "Kaalusüsteem", type: "string" },
         ]
       },
     }

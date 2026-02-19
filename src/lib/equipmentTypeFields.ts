@@ -230,23 +230,31 @@
        ],
      },
    ],
-   "round_baler": [
-     {
-       title: "Pallid",
-       fields: [
-         { name: "header_width_m", label: "Korje laius (m)", type: "number", step: "0.1", placeholder: "2.2" },
-         { name: "throughput_tons_h", label: "Tootlikkus (palli/h)", type: "number", placeholder: "70" },
-       ],
-     },
-     {
-       title: "Mõõtmed",
-       fields: [
-         { name: "transport_width_mm", label: "Laius (mm)", type: "number", placeholder: "2900" },
-         { name: "transport_height_mm", label: "Kõrgus (mm)", type: "number", placeholder: "2800" },
-         { name: "transport_length_mm", label: "Pikkus (mm)", type: "number", placeholder: "5200" },
-       ],
-     },
-   ],
+  "round_baler": [
+    {
+      title: "Rulooni mõõtmed",
+      fields: [
+        { name: "header_width_m", label: "Rulooni läbimõõt (m)", type: "number", step: "0.01", placeholder: "1.25" },
+        { name: "header_width_max_m", label: "Rulooni laius (m)", type: "number", step: "0.01", placeholder: "1.22" },
+      ],
+    },
+    {
+      title: "Kogur ja söötmine",
+      fields: [
+        { name: "header_width_min_m", label: "Koguri laius (m)", type: "number", step: "0.01", placeholder: "2.20" },
+      ],
+    },
+    {
+      title: "Võimsustarve ja mõõtmed",
+      fields: [
+        { name: "engine_power_hp", label: "Min võimsustarve (hj)", type: "number", placeholder: "60" },
+        { name: "weight_kg", label: "Kaal (kg)", type: "number", placeholder: "3200" },
+        { name: "transport_width_mm", label: "Laius (mm)", type: "number", placeholder: "2900" },
+        { name: "transport_height_mm", label: "Kõrgus (mm)", type: "number", placeholder: "2800" },
+        { name: "transport_length_mm", label: "Pikkus (mm)", type: "number", placeholder: "5200" },
+      ],
+    },
+  ],
  };
  
  // Get fields for a specific equipment type
