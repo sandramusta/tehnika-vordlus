@@ -45,9 +45,6 @@ export default function Comparison() {
     selectedType !== "all" ? selectedType : undefined
   );
   const { data: brands = [] } = useBrands();
-  const { data: competitiveArgs = [] } = useCompetitiveArguments(
-    selectedType !== "all" ? selectedType : undefined
-  );
 
   // Get the current equipment type object
   const currentEquipmentType = useMemo(() => {
@@ -74,6 +71,15 @@ export default function Comparison() {
       return selectedModels;
     }
   }, [comparisonMode, selectedModel, competitors, selectedModels]);
+
+  // Derive equipment type for competitive arguments from displayed models
+  const effectiveTypeId = useMemo(() => {
+    if (selectedType !== "all") return selectedType;
+    if (displayModels.length > 0) return displayModels[0].equipment_type_id;
+    return undefined;
+  }, [selectedType, displayModels]);
+
+  const { data: competitiveArgs = [] } = useCompetitiveArguments(effectiveTypeId);
 
   // Handle mode change - reset selections
   const handleModeChange = (mode: ComparisonMode) => {
