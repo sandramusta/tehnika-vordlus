@@ -292,7 +292,7 @@ export function ROIComparisonCalculator() {
           </h3>
           
           {/* Key Comparison Metrics */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
             <div className={`rounded-lg p-4 ${comparison.tcoSavings > 0 ? "bg-green-500/10" : "bg-destructive/10"}`}>
               <div className={`flex items-center gap-2 mb-2 ${comparison.tcoSavings > 0 ? "text-green-600" : "text-destructive"}`}>
                 <TrendingUp className="h-4 w-4" />
