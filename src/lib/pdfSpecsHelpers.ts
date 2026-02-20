@@ -536,19 +536,19 @@ export function getCategoryOrderForType(typeName?: string): readonly string[] {
   if (normalizedType === "traktor" || normalizedType === "tractor") {
     return TRACTOR_CATEGORY_ORDER;
   }
-  if (normalizedType === "hekseldi" || normalizedType === "forage harvester") {
+  if (normalizedType === "hekseldi" || normalizedType === "forage harvester" || normalizedType === "forage_harvester") {
     return FORAGE_HARVESTER_CATEGORY_ORDER;
   }
-  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader") {
+  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader" || normalizedType === "wheel_loader") {
     return WHEEL_LOADER_CATEGORY_ORDER;
   }
-  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer") {
+  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer" || normalizedType === "self_propelled_sprayer") {
     return SELF_PROPELLED_SPRAYER_CATEGORY_ORDER;
   }
-  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer") {
+  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer" || normalizedType === "trailed_sprayer") {
     return TRAILED_SPRAYER_CATEGORY_ORDER;
   }
-  if (normalizedType === "ruloonpress" || normalizedType === "round baler") {
+  if (normalizedType === "ruloonpress" || normalizedType === "round baler" || normalizedType === "round_baler") {
     return ROUND_BALER_CATEGORY_ORDER;
   }
   
@@ -573,19 +573,19 @@ export function getCategoryNamesForType(typeName?: string): Record<string, strin
   if (normalizedType === "traktor" || normalizedType === "tractor") {
     return TRACTOR_CATEGORY_NAMES;
   }
-  if (normalizedType === "hekseldi" || normalizedType === "forage harvester") {
+  if (normalizedType === "hekseldi" || normalizedType === "forage harvester" || normalizedType === "forage_harvester") {
     return FORAGE_HARVESTER_CATEGORY_NAMES;
   }
-  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader") {
+  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader" || normalizedType === "wheel_loader") {
     return WHEEL_LOADER_CATEGORY_NAMES;
   }
-  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer") {
+  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer" || normalizedType === "self_propelled_sprayer") {
     return SELF_PROPELLED_SPRAYER_CATEGORY_NAMES;
   }
-  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer") {
+  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer" || normalizedType === "trailed_sprayer") {
     return TRAILED_SPRAYER_CATEGORY_NAMES;
   }
-  if (normalizedType === "ruloonpress" || normalizedType === "round baler") {
+  if (normalizedType === "ruloonpress" || normalizedType === "round baler" || normalizedType === "round_baler") {
     return ROUND_BALER_CATEGORY_NAMES;
   }
   
@@ -609,19 +609,19 @@ export function getFieldNamesForType(typeName?: string): Record<string, Record<s
   if (normalizedType === "traktor" || normalizedType === "tractor") {
     return TRACTOR_FIELD_NAMES;
   }
-  if (normalizedType === "hekseldi" || normalizedType === "forage harvester") {
+  if (normalizedType === "hekseldi" || normalizedType === "forage harvester" || normalizedType === "forage_harvester") {
     return FORAGE_HARVESTER_FIELD_NAMES;
   }
-  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader") {
+  if (normalizedType === "rataslaadur" || normalizedType === "wheel loader" || normalizedType === "wheel_loader") {
     return WHEEL_LOADER_FIELD_NAMES;
   }
-  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer") {
+  if (normalizedType === "iseliikuv taimekaitseprits" || normalizedType === "self-propelled sprayer" || normalizedType === "self_propelled_sprayer") {
     return SELF_PROPELLED_SPRAYER_FIELD_NAMES;
   }
-  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer") {
+  if (normalizedType === "järelveetav taimekaitseprits" || normalizedType === "trailed sprayer" || normalizedType === "trailed_sprayer") {
     return TRAILED_SPRAYER_FIELD_NAMES;
   }
-  if (normalizedType === "ruloonpress" || normalizedType === "round baler") {
+  if (normalizedType === "ruloonpress" || normalizedType === "round baler" || normalizedType === "round_baler") {
     return ROUND_BALER_FIELD_NAMES;
   }
   
