@@ -69,7 +69,7 @@ export default function Stats() {
         <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-6 sm:p-8 text-primary-foreground">
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
             <Trophy className="h-8 w-8" />
-            Statistika ja Edetabel
+            Statistika ja edetabel
           </h1>
           <p className="mt-2 text-sm sm:text-base text-primary-foreground/80">
             Jälgi müügimeeste aktiivsust ja vaata, kes on kõige produktiivsem.
