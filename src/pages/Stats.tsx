@@ -30,7 +30,12 @@ export default function Stats() {
   const { data: stats, isLoading: loadingStats } = useDashboardStats();
   const [sortBy, setSortBy] = useState<SortField>("total_points");
 
-  const sortedLeaderboard = [...leaderboard].sort((a, b) => b[sortBy] - a[sortBy]);
+  const sortedLeaderboard = [...leaderboard].sort((a, b) => {
+    if (sortBy === "pdf_count") {
+      return (b.pdf_count + b.comparison_count) - (a.pdf_count + a.comparison_count);
+    }
+    return b[sortBy] - a[sortBy];
+  });
 
   const getTrophyIcon = (position: number) => {
     switch (position) {
@@ -159,16 +164,7 @@ export default function Stats() {
                   className="gap-1"
                 >
                   <ArrowUpDown className="h-3 w-3" />
-                  PDF-id
-                </Button>
-                <Button
-                  variant={sortBy === "comparison_count" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSortBy("comparison_count")}
-                  className="gap-1"
-                >
-                  <ArrowUpDown className="h-3 w-3" />
-                  Võrdlused
+                  PDF-raportid
                 </Button>
               </div>
             </div>
@@ -193,8 +189,7 @@ export default function Stats() {
                       <TableHead className="w-16">Koht</TableHead>
                       <TableHead>Nimi</TableHead>
                       <TableHead>Viimati aktiivne</TableHead>
-                      <TableHead className="text-center">PDF-id</TableHead>
-                      <TableHead className="text-center">Võrdlused</TableHead>
+                      <TableHead className="text-center">PDF-raportid</TableHead>
                       <TableHead className="text-center">ROI</TableHead>
                       <TableHead className="text-center">Punktid</TableHead>
                     </TableRow>
@@ -223,12 +218,7 @@ export default function Stats() {
                             : "—"}
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant="secondary">{entry.pdf_count}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">
-                            {entry.comparison_count}
-                          </Badge>
+                          <Badge variant="secondary">{entry.pdf_count + entry.comparison_count}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary">{entry.roi_count}</Badge>
