@@ -254,7 +254,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
   // Category label for display
   const categoryLabel = useMemo(() => {
     switch (equipmentCategory) {
-      case "combine": return "Kombain / Hekseldaja";
+      case "combine": return "Kombain / Hekseldi";
       case "sprayer": return "Taimekaitseprits";
       case "baler": return "Ruloonpress";
       case "none": return "Traktor / Laadur";
@@ -269,7 +269,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
           ROI võrdluskalkulaator
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Võrdle olemasolevat ja uut masinat, et näha, milline on soodsam valik.
+          Võrdle olemasolevat ja uut masinat, et näha, milline on targem valik.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -282,14 +282,14 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="combine">Kombain / Hekseldaja</SelectItem>
+                <SelectItem value="combine">Kombain / Hekseldi</SelectItem>
                 <SelectItem value="sprayer">Taimekaitseprits</SelectItem>
                 <SelectItem value="baler">Ruloonpress</SelectItem>
                 <SelectItem value="none">Traktor / Laadur / Teleskooplaadur</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Tüüp määrab, millised kvaliteedi/säästu väljad kuvatakse ({categoryLabel})
+              Tüüp määrab, milliseid näitajaid kuvatakse kalkulaatoris
             </p>
           </div>
         )}
