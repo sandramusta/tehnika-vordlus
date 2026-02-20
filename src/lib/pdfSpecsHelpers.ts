@@ -405,7 +405,7 @@ export const ROUND_BALER_CATEGORY_NAMES: Record<string, string> = {
   rulooni_mõõtmed: "RULOONI MÕÕTMED",
   kogur: "KOGUR",
   rootorsöötmine: "ROOTORSÖÖTMINE",
-  rullikamber: "RULLIKAMBER",
+  rullikamber: "PRESSKAMBER",
   võrksidumine: "VÕRKSIDUMINE",
   kilesse_mähkimine: "KILESSE MÄHKIMINE",
   rulli_väljastamine: "RULLI VÄLJASTAMINE",
