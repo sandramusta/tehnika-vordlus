@@ -241,7 +241,7 @@ const EQUIPMENT_TYPE_SCHEMAS: Record<string, {
       käigukast: {
         label: "KÄIGUKAST",
         fields: [
-          { key: "tüüp", label: "Käigukasti tüüp (valikud: PowrQuad™ Plus, AutoQuad™ Plus, AutoQuad™ Plus EcoShift, CommandQuad™ Plus, CommandQuad™ Plus EcoShift, AutoPowr™, e23, eAutoPowr™, e18, e21)", type: "string" },
+          { key: "tüüp", label: "Käigukasti tüüp (nt astmevaba/CVT, robotiseeritud, manuaal, powershift jne. John Deere mudelite puhul: PowrQuad™ Plus, AutoQuad™ Plus, AutoQuad™ Plus EcoShift, CommandQuad™ Plus, CommandQuad™ Plus EcoShift, AutoPowr™, e23, eAutoPowr™, e18, e21)", type: "string" },
         ]
       },
       hüdrosüsteem: {
