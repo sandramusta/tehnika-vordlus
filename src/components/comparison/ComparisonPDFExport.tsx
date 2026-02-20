@@ -30,6 +30,9 @@ interface ComparisonPDFExportProps {
 
 type PDFType = "comparison" | "comparison-tco" | "roi" | "full";
 
+// Max model columns per landscape page (label column + 5 models)
+const MAX_MODELS_PER_PAGE = 5;
+
 // Formatting helpers
 function formatNumber(num: number | null): string {
   if (num === null) return "—";
@@ -65,6 +68,21 @@ const COST_ROWS: CostRow[] = [
   { key: "expected_lifespan_years", label: "Eeldatav eluiga", suffix: " aastat" },
 ];
 
+// Common autoTable styles to prevent word-breaking
+const commonHeadStyles = {
+  fillColor: [34, 87, 46] as [number, number, number],
+  fontSize: 8,
+  cellPadding: 3,
+  overflow: 'linebreak' as const,
+  minCellWidth: 30,
+};
+
+const commonBodyStyles = {
+  fontSize: 7.5,
+  cellPadding: 2,
+  overflow: 'linebreak' as const,
+};
+
 // Build table body with all detailed specs
 function buildFullSpecBody(
   selectedModels: Equipment[],
@@ -86,6 +104,110 @@ function buildFullSpecBody(
   return body;
 }
 
+/**
+ * Split models into chunks of MAX_MODELS_PER_PAGE and render each chunk
+ * as a separate autoTable on its own page(s), repeating the label (first) column.
+ */
+function renderChunkedTable(
+  doc: jsPDF,
+  startY: number,
+  allHeaders: string[],
+  allBody: string[][],
+  categoryNames: string[],
+  pageWidth: number,
+  userInfo: { name: string; email: string },
+  title: string,
+  isFirstChunkFirstPage: boolean
+): void {
+  // allHeaders[0] = "Näitaja", rest are model headers
+  const labelHeader = allHeaders[0];
+  const modelHeaders = allHeaders.slice(1);
+
+  // If 5 or fewer models, no chunking needed
+  const totalModels = modelHeaders.length;
+  const chunks: number[][] = [];
+  for (let i = 0; i < totalModels; i += MAX_MODELS_PER_PAGE) {
+    const end = Math.min(i + MAX_MODELS_PER_PAGE, totalModels);
+    const indices: number[] = [];
+    for (let j = i; j < end; j++) indices.push(j);
+    chunks.push(indices);
+  }
+
+  let currentPage = doc.getCurrentPageInfo().pageNumber;
+
+  chunks.forEach((chunkIndices, chunkIdx) => {
+    // For chunks after the first, add a new page
+    if (chunkIdx > 0) {
+      doc.addPage("landscape");
+      const headerY = addPDFHeader(doc, pageWidth, {
+        title,
+        generatorName: userInfo.name,
+        generatorEmail: userInfo.email,
+      }, false);
+      startY = headerY + 8;
+
+      // Add chunk indicator
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(
+        `(jätk – masinad ${chunkIndices[0] + 1}–${chunkIndices[chunkIndices.length - 1] + 1} / ${totalModels})`,
+        pageWidth / 2,
+        startY - 2,
+        { align: "center" }
+      );
+    }
+
+    // Build chunk headers
+    const chunkHeaders = [labelHeader, ...chunkIndices.map(i => modelHeaders[i])];
+
+    // Build chunk body – label column + only the chunk's model columns
+    const chunkBody = allBody.map(row => {
+      const label = row[0];
+      const values = chunkIndices.map(i => row[i + 1]); // +1 because row[0] is label
+      return [label, ...values];
+    });
+
+    // Calculate label column width based on available space
+    const labelColWidth = 60;
+
+    autoTable(doc, {
+      startY,
+      head: [chunkHeaders],
+      body: chunkBody,
+      theme: "striped",
+      headStyles: commonHeadStyles,
+      bodyStyles: commonBodyStyles,
+      columnStyles: {
+        0: { cellWidth: labelColWidth },
+      },
+      styles: {
+        overflow: 'linebreak',
+      },
+      margin: { top: 28, bottom: 30, left: 14, right: 14 },
+      didParseCell: (data) => {
+        if (data.section === "body" && data.column.index === 0) {
+          const text = data.cell.text[0];
+          if (categoryNames.includes(text)) {
+            data.cell.styles.fontStyle = "bold";
+            data.cell.styles.fillColor = [230, 240, 230];
+          }
+        }
+      },
+      didDrawPage: (data) => {
+        const pageNum = doc.getCurrentPageInfo().pageNumber;
+        if (pageNum > currentPage) {
+          currentPage = pageNum;
+          addPDFHeader(doc, pageWidth, {
+            title,
+            generatorName: userInfo.name,
+            generatorEmail: userInfo.email,
+          }, false);
+        }
+      },
+    });
+  });
+}
+
 // Generate Comparison Table PDF (with all detailed specs)
 async function generateComparisonTablePDF(
   selectedModels: Equipment[],
@@ -94,7 +216,7 @@ async function generateComparisonTablePDF(
 ): Promise<void> {
   await initializePDFGeneration();
   
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
 
@@ -138,43 +260,12 @@ async function generateComparisonTablePDF(
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
-  // Generate table with category header styling
   const categoryNames = Object.values(CATEGORY_NAMES);
-  let currentPage = 1;
 
-  autoTable(doc, {
-    startY: tableStartY,
-    head: [headers],
-    body: specBody,
-    theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 8 },
-    columnStyles: {
-      0: { cellWidth: 55 },
-    },
-    margin: { top: 28, bottom: 30 }, // Space for header and footer on subsequent pages
-    didParseCell: (data) => {
-      if (data.section === "body" && data.column.index === 0) {
-        const text = data.cell.text[0];
-        if (categoryNames.includes(text)) {
-          data.cell.styles.fontStyle = "bold";
-          data.cell.styles.fillColor = [230, 240, 230];
-        }
-      }
-    },
-    didDrawPage: (data) => {
-      const pageNum = doc.getCurrentPageInfo().pageNumber;
-      // Add header on new pages (not first page, already added)
-      if (pageNum > 1 && currentPage !== pageNum) {
-        currentPage = pageNum;
-        addPDFHeader(doc, pageWidth, {
-          title: "Tehnika võrdlustabel",
-          generatorName: userInfo.name,
-          generatorEmail: userInfo.email,
-        }, false);
-      }
-    },
-  });
+  renderChunkedTable(
+    doc, tableStartY, headers, specBody, categoryNames,
+    pageWidth, userInfo, "Tehnika võrdlustabel", true
+  );
 
   // Add footers to all pages
   const totalPages = doc.getNumberOfPages();
@@ -194,7 +285,7 @@ async function generateComparisonWithTCOPDF(
 ): Promise<void> {
   await initializePDFGeneration();
   
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
 
@@ -220,28 +311,13 @@ async function generateComparisonWithTCOPDF(
   const specBody = buildFullSpecBody(selectedModels, isCombine);
   const categoryNames = Object.values(CATEGORY_NAMES);
 
-  autoTable(doc, {
-    startY: yPos + 8,
-    head: [headers],
-    body: specBody,
-    theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 8 },
-    columnStyles: { 0: { cellWidth: 55 } },
-    margin: { top: 28, bottom: 30 },
-    didParseCell: (data) => {
-      if (data.section === "body" && data.column.index === 0) {
-        const text = data.cell.text[0];
-        if (categoryNames.includes(text)) {
-          data.cell.styles.fontStyle = "bold";
-          data.cell.styles.fillColor = [230, 240, 230];
-        }
-      }
-    },
-  });
+  renderChunkedTable(
+    doc, yPos + 8, headers, specBody, categoryNames,
+    pageWidth, userInfo, "Tehnika võrdlustabel + TCO analüüs", true
+  );
 
   // Add new page for TCO Analysis
-  doc.addPage();
+  doc.addPage("landscape");
   yPos = addPDFHeader(doc, pageWidth, {
     title: "Omamiskogukulu (TCO) analüüs",
     selectedModels,
@@ -290,9 +366,10 @@ async function generateComparisonWithTCOPDF(
     ],
     body: tcoBody,
     theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
-    columnStyles: { 0: { cellWidth: 50 } },
+    headStyles: commonHeadStyles,
+    bodyStyles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: { 0: { cellWidth: 60 } },
+    styles: { overflow: 'linebreak' },
     margin: { bottom: 30 },
   });
 
@@ -351,7 +428,7 @@ async function generateROIPDF(
 ): Promise<void> {
   await initializePDFGeneration();
   
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   const existingCalc = calculateROI(existingInputs);
@@ -422,7 +499,9 @@ async function generateROIPDF(
       ],
     ],
     theme: "striped",
-    headStyles: { fillColor: [34, 87, 46] },
+    headStyles: commonHeadStyles,
+    bodyStyles: { fontSize: 9, cellPadding: 3 },
+    styles: { overflow: 'linebreak' },
     margin: { bottom: 30 },
   });
 
@@ -462,12 +541,18 @@ async function generateROIPDF(
       ],
     ],
     theme: "striped",
-    headStyles: { fillColor: [34, 87, 46] },
+    headStyles: commonHeadStyles,
+    bodyStyles: { fontSize: 9, cellPadding: 3 },
+    styles: { overflow: 'linebreak' },
     margin: { bottom: 30 },
   });
 
   // Footer
-  addPDFFooter(doc, pageWidth, 1, 1);
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addPDFFooter(doc, pageWidth, i, totalPages);
+  }
 
   doc.save("roi-vordlusraport.pdf");
 }
@@ -482,7 +567,7 @@ async function generateFullReportPDF(
 ): Promise<void> {
   await initializePDFGeneration();
   
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const isCombine = equipmentType?.name === "combine";
 
@@ -527,28 +612,13 @@ async function generateFullReportPDF(
 
   const categoryNames = Object.values(CATEGORY_NAMES);
 
-  autoTable(doc, {
-    startY: yPos + 8,
-    head: [headers],
-    body: specBody,
-    theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 8 },
-    columnStyles: { 0: { cellWidth: 55 } },
-    margin: { top: 28, bottom: 30 },
-    didParseCell: (data) => {
-      if (data.section === "body" && data.column.index === 0) {
-        const text = data.cell.text[0];
-        if (categoryNames.includes(text)) {
-          data.cell.styles.fontStyle = "bold";
-          data.cell.styles.fillColor = [230, 240, 230];
-        }
-      }
-    },
-  });
+  renderChunkedTable(
+    doc, yPos + 8, headers, specBody, categoryNames,
+    pageWidth, userInfo, "Täisraport - Tehnika võrdlus", true
+  );
 
   // ========== TCO Analysis Page ==========
-  doc.addPage();
+  doc.addPage("landscape");
   yPos = addPDFHeader(doc, pageWidth, {
     title: "Omamiskogukulu (TCO) analüüs",
     selectedModels,
@@ -597,14 +667,15 @@ async function generateFullReportPDF(
     ],
     body: tcoBody,
     theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
-    columnStyles: { 0: { cellWidth: 50 } },
+    headStyles: commonHeadStyles,
+    bodyStyles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: { 0: { cellWidth: 60 } },
+    styles: { overflow: 'linebreak' },
     margin: { bottom: 30 },
   });
 
   // ========== ROI Analysis Page ==========
-  doc.addPage();
+  doc.addPage("landscape");
   yPos = addPDFHeader(doc, pageWidth, {
     title: "ROI Kalkulaator",
     generatorName: userInfo.name,
@@ -663,8 +734,9 @@ async function generateFullReportPDF(
       ],
     ],
     theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
+    headStyles: commonHeadStyles,
+    bodyStyles: { fontSize: 9, cellPadding: 3 },
+    styles: { overflow: 'linebreak' },
     margin: { bottom: 30 },
   });
 
@@ -704,8 +776,9 @@ async function generateFullReportPDF(
       ],
     ],
     theme: "striped",
-    headStyles: { fillColor: [34, 87, 46], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
+    headStyles: commonHeadStyles,
+    bodyStyles: { fontSize: 9, cellPadding: 3 },
+    styles: { overflow: 'linebreak' },
     margin: { bottom: 30 },
   });
 
