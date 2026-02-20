@@ -192,7 +192,7 @@ export default function Stats() {
                     <TableRow>
                       <TableHead className="w-16">Koht</TableHead>
                       <TableHead>Nimi</TableHead>
-                      <TableHead className="hidden sm:table-cell">Viimati aktiivne</TableHead>
+                      <TableHead>Viimati aktiivne</TableHead>
                       <TableHead className="text-center">PDF-id</TableHead>
                       <TableHead className="text-center">Võrdlused</TableHead>
                       <TableHead className="text-center">ROI</TableHead>
@@ -214,7 +214,7 @@ export default function Stats() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
+                        <TableCell className="text-muted-foreground text-sm">
                           {entry.last_active
                             ? formatDistanceToNow(new Date(entry.last_active), {
                                 addSuffix: true,
