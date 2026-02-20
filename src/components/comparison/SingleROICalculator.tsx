@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DollarSign, Tractor, Fuel, Cog, Wheat, PiggyBank, TrendingUp } from "lucide-react";
+import { DollarSign, Tractor, Fuel, Cog, Wheat, PiggyBank, TrendingUp, Droplets, Circle } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -9,6 +9,19 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+
+// Equipment type category for ROI quality section
+export type ROIEquipmentCategory = "combine" | "sprayer" | "baler" | "none";
+
+export function getROIEquipmentCategory(equipmentTypeName?: string): ROIEquipmentCategory {
+  if (!equipmentTypeName) return "combine"; // default
+  const name = equipmentTypeName.toLowerCase().replace(/_/g, " ");
+  if (name.includes("combine") || name.includes("kombain") || name.includes("forage") || name.includes("heksel")) return "combine";
+  if (name.includes("sprayer") || name.includes("prits") || name.includes("taimekait")) return "sprayer";
+  if (name.includes("baler") || name.includes("ruloon") || name.includes("press")) return "baler";
+  // tractor, telehandler, wheel loader → no quality section
+  return "none";
+}
 
 export interface ROIInputs {
   // Machine name
@@ -32,8 +45,19 @@ export interface ROIInputs {
   annualMaintenance: number;
   maintenanceSavingsPercent: number;
   
-  // Harvest quality
+  // Harvest quality (combine)
   grainLossReduction: number;
+  
+  // Sprayer fields
+  chemicalCostPerHa: number;
+  overlapPercent: number;
+  sprayAreaHa: number;
+  
+  // Baler fields
+  balesPerYear: number;
+  wrapCostPerBale: number;
+  handlingCostPerBale: number;
+  densityIncreasePercent: number;
   
   // Labor
   operatorHourlyCost: number;
@@ -46,6 +70,8 @@ export interface ROICalculations {
   grainLossSavings: number;
   fuelSavings: number;
   maintenanceSavings: number;
+  qualitySavings: number; // dynamic section savings
+  qualitySavingsLabel: string;
   totalAnnualBenefits: number;
   baseFuelCost: number;
   actualFuelCost: number;
@@ -79,6 +105,15 @@ export const defaultInputsExisting: ROIInputs = {
   annualMaintenance: 18000,
   maintenanceSavingsPercent: 0,
   grainLossReduction: 0,
+  // Sprayer defaults
+  chemicalCostPerHa: 50,
+  overlapPercent: 10,
+  sprayAreaHa: 2000,
+  // Baler defaults
+  balesPerYear: 5000,
+  wrapCostPerBale: 3,
+  handlingCostPerBale: 5,
+  densityIncreasePercent: 0,
   operatorHourlyCost: 25,
   revenuePerHectare: 150,
 };
@@ -96,18 +131,48 @@ export const defaultInputsNew: ROIInputs = {
   annualMaintenance: 12000,
   maintenanceSavingsPercent: 25,
   grainLossReduction: 3,
+  // Sprayer defaults
+  chemicalCostPerHa: 50,
+  overlapPercent: 2,
+  sprayAreaHa: 2000,
+  // Baler defaults
+  balesPerYear: 5000,
+  wrapCostPerBale: 3,
+  handlingCostPerBale: 5,
+  densityIncreasePercent: 15,
   operatorHourlyCost: 25,
   revenuePerHectare: 150,
 };
 
-export function calculateROI(inputs: ROIInputs): ROICalculations {
+export function calculateROI(inputs: ROIInputs, category: ROIEquipmentCategory = "combine"): ROICalculations {
   const baseFuelCost = inputs.annualWorkHours * inputs.fuelConsumption * inputs.fuelPrice;
   const baseMaintenanceCost = inputs.annualMaintenance;
   
-  const grainLossSavings = inputs.grainLossReduction * inputs.annualHectares;
   const fuelSavings = baseFuelCost * (inputs.fuelSavingsPercent / 100);
   const maintenanceSavings = baseMaintenanceCost * (inputs.maintenanceSavingsPercent / 100);
-  const totalAnnualBenefits = grainLossSavings + fuelSavings + maintenanceSavings;
+  
+  // Quality/type-specific savings
+  let qualitySavings = 0;
+  let qualitySavingsLabel = "";
+  
+  if (category === "combine") {
+    qualitySavings = inputs.grainLossReduction * inputs.annualHectares;
+    qualitySavingsLabel = "Terakadudelt";
+  } else if (category === "sprayer") {
+    // No comparison between machines - just this machine's overlap waste
+    qualitySavings = inputs.sprayAreaHa * inputs.chemicalCostPerHa * (inputs.overlapPercent / 100);
+    // For comparison, the difference is handled by comparing two calculators
+    qualitySavingsLabel = "Keemialt (ülekate)";
+  } else if (category === "baler") {
+    const fewerBales = inputs.balesPerYear * (inputs.densityIncreasePercent / 100);
+    qualitySavings = fewerBales * (inputs.wrapCostPerBale + inputs.handlingCostPerBale);
+    qualitySavingsLabel = "Tiheduselt";
+  }
+  
+  // For "none" category, grainLossSavings stays 0
+  const grainLossSavings = qualitySavings; // backward compat
+  
+  const totalAnnualBenefits = fuelSavings + maintenanceSavings + qualitySavings;
   
   const actualFuelCost = baseFuelCost - fuelSavings;
   const actualMaintenanceCost = baseMaintenanceCost - maintenanceSavings;
@@ -137,6 +202,8 @@ export function calculateROI(inputs: ROIInputs): ROICalculations {
     grainLossSavings,
     fuelSavings,
     maintenanceSavings,
+    qualitySavings,
+    qualitySavingsLabel,
     totalAnnualBenefits,
     baseFuelCost,
     actualFuelCost,
@@ -163,13 +230,15 @@ interface SingleROICalculatorProps {
   onInputChange: (key: keyof ROIInputs, value: string | number) => void;
   variant: "existing" | "new";
   title: string;
+  equipmentCategory?: ROIEquipmentCategory;
 }
 
 export function SingleROICalculator({ 
   inputs, 
   onInputChange, 
   variant,
-  title 
+  title,
+  equipmentCategory = "combine",
 }: SingleROICalculatorProps) {
   const [openSections, setOpenSections] = useState({
     purchase: true,
@@ -180,7 +249,7 @@ export function SingleROICalculator({
     revenue: false,
   });
 
-  const calculations = useMemo(() => calculateROI(inputs), [inputs]);
+  const calculations = useMemo(() => calculateROI(inputs, equipmentCategory), [inputs, equipmentCategory]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("et-EE", {
@@ -199,9 +268,164 @@ export function SingleROICalculator({
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Smart residual value defaults based on machine name
+  useEffect(() => {
+    const name = inputs.machineName.toLowerCase();
+    if (variant === "new" && name.includes("john deere")) {
+      if (inputs.residualValuePercent !== 52) {
+        onInputChange("residualValuePercent", 52);
+      }
+    } else if (variant === "existing" && !name.includes("john deere") && name !== "olemasolev masin" && name.length > 3) {
+      if (inputs.residualValuePercent !== 40 && inputs.residualValuePercent === defaultInputsExisting.residualValuePercent) {
+        // Only auto-set if still at default
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputs.machineName]);
+
   const accentColor = variant === "new" ? "text-primary" : "text-muted-foreground";
   const accentBg = variant === "new" ? "bg-primary/10" : "bg-muted";
   const borderColor = variant === "new" ? "border-primary/30" : "border-border";
+
+  // Quality section config based on equipment category
+  const qualitySectionConfig = useMemo(() => {
+    switch (equipmentCategory) {
+      case "combine":
+        return {
+          title: "Koristuse kvaliteet",
+          icon: Wheat,
+          visible: true,
+        };
+      case "sprayer":
+        return {
+          title: "Pritsimise täpsus ja keemia",
+          icon: Droplets,
+          visible: true,
+        };
+      case "baler":
+        return {
+          title: "Rulli tihedus ja materjalikulu",
+          icon: Circle,
+          visible: true,
+        };
+      case "none":
+      default:
+        return {
+          title: "",
+          icon: Wheat,
+          visible: false,
+        };
+    }
+  }, [equipmentCategory]);
+
+  const renderQualityFields = () => {
+    if (equipmentCategory === "combine") {
+      return (
+        <div className="space-y-1">
+          <Label htmlFor={`${variant}-grainLossReduction`} className="text-xs">Terakadude vähenemine (€/ha)</Label>
+          <Input
+            id={`${variant}-grainLossReduction`}
+            type="number"
+            step="0.5"
+            value={inputs.grainLossReduction}
+            onChange={(e) => onInputChange("grainLossReduction", e.target.value)}
+            className="h-8 text-sm"
+          />
+        </div>
+      );
+    }
+    
+    if (equipmentCategory === "sprayer") {
+      return (
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label htmlFor={`${variant}-chemicalCostPerHa`} className="text-xs">Keemia kulu (€/ha)</Label>
+            <Input
+              id={`${variant}-chemicalCostPerHa`}
+              type="number"
+              value={inputs.chemicalCostPerHa}
+              onChange={(e) => onInputChange("chemicalCostPerHa", e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`${variant}-overlapPercent`} className="text-xs">Ülekate (%)</Label>
+            <Input
+              id={`${variant}-overlapPercent`}
+              type="number"
+              step="0.5"
+              value={inputs.overlapPercent}
+              onChange={(e) => onInputChange("overlapPercent", e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`${variant}-sprayAreaHa`} className="text-xs">Pritsitav pind aastas (ha)</Label>
+            <Input
+              id={`${variant}-sprayAreaHa`}
+              type="number"
+              value={inputs.sprayAreaHa}
+              onChange={(e) => onInputChange("sprayAreaHa", e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    if (equipmentCategory === "baler") {
+      return (
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label htmlFor={`${variant}-balesPerYear`} className="text-xs">Rullide arv aastas (tk)</Label>
+            <Input
+              id={`${variant}-balesPerYear`}
+              type="number"
+              value={inputs.balesPerYear}
+              onChange={(e) => onInputChange("balesPerYear", e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor={`${variant}-wrapCostPerBale`} className="text-xs">Kile/võrgu kulu (€/rull)</Label>
+              <Input
+                id={`${variant}-wrapCostPerBale`}
+                type="number"
+                step="0.5"
+                value={inputs.wrapCostPerBale}
+                onChange={(e) => onInputChange("wrapCostPerBale", e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`${variant}-handlingCostPerBale`} className="text-xs">Transpordi kulu (€/rull)</Label>
+              <Input
+                id={`${variant}-handlingCostPerBale`}
+                type="number"
+                step="0.5"
+                value={inputs.handlingCostPerBale}
+                onChange={(e) => onInputChange("handlingCostPerBale", e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`${variant}-densityIncreasePercent`} className="text-xs">Tiheduse suurenemine (%)</Label>
+            <Input
+              id={`${variant}-densityIncreasePercent`}
+              type="number"
+              value={inputs.densityIncreasePercent}
+              onChange={(e) => onInputChange("densityIncreasePercent", e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
+  };
 
   return (
     <div className={`rounded-xl border-2 ${borderColor} p-4 space-y-4`}>
@@ -399,29 +623,21 @@ export function SingleROICalculator({
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Section 5: Koristuse kvaliteet */}
-        <Collapsible open={openSections.quality} onOpenChange={() => toggleSection("quality")}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-            <span className="flex items-center gap-2 text-sm font-medium">
-              <Wheat className="h-4 w-4" />
-              Koristuse kvaliteet
-            </span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${openSections.quality ? "rotate-180" : ""}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor={`${variant}-grainLossReduction`} className="text-xs">Terakadude vähenemine (€/ha)</Label>
-              <Input
-                id={`${variant}-grainLossReduction`}
-                type="number"
-                step="0.5"
-                value={inputs.grainLossReduction}
-                onChange={(e) => onInputChange("grainLossReduction", e.target.value)}
-                className="h-8 text-sm"
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+        {/* Section 5: Dynamic Quality Section */}
+        {qualitySectionConfig.visible && (
+          <Collapsible open={openSections.quality} onOpenChange={() => toggleSection("quality")}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+              <span className="flex items-center gap-2 text-sm font-medium">
+                <qualitySectionConfig.icon className="h-4 w-4" />
+                {qualitySectionConfig.title}
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${openSections.quality ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-2 space-y-2">
+              {renderQualityFields()}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
 
         {/* Section 6: Tulu */}
         <Collapsible open={openSections.revenue} onOpenChange={() => toggleSection("revenue")}>
@@ -476,6 +692,24 @@ export function SingleROICalculator({
         <div className="pt-2 border-t border-border/50">
           <span className="text-muted-foreground text-xs">Aastane kogusääst</span>
           <div className="font-bold text-green-600">+{formatCurrency(calculations.totalAnnualBenefits)}</div>
+          {/* Savings breakdown */}
+          <div className="mt-1 space-y-0.5">
+            {calculations.fuelSavings > 0 && (
+              <div className="text-xs text-muted-foreground">
+                Kütuselt: {formatCurrency(calculations.fuelSavings)}
+              </div>
+            )}
+            {calculations.maintenanceSavings > 0 && (
+              <div className="text-xs text-muted-foreground">
+                Hoolduselt: {formatCurrency(calculations.maintenanceSavings)}
+              </div>
+            )}
+            {calculations.qualitySavings > 0 && calculations.qualitySavingsLabel && (
+              <div className="text-xs text-muted-foreground">
+                {calculations.qualitySavingsLabel}: {formatCurrency(calculations.qualitySavings)}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

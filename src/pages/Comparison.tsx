@@ -215,7 +215,7 @@ export default function Comparison() {
             )}
 
             {/* ROI Comparison Calculator - always visible */}
-            <ROIComparisonCalculator />
+            <ROIComparisonCalculator equipmentTypeName={currentEquipmentType?.name} />
           </div>
         )}
       </div>
