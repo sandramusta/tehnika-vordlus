@@ -231,7 +231,7 @@ export function DetailedSpecsEditor({
                     {fields.map(([fieldKey, fieldLabel]) => {
                       const fieldValue = getFieldValue(categoryKey, fieldKey);
                       const hasValue = fieldValue !== "";
-                      const isTransmissionSelect = categoryKey === "käigukast" && fieldKey === "tüüp" && equipmentTypeName?.toLowerCase().includes("tractor");
+                      const isTransmissionSelect = categoryKey === "käigukast" && fieldKey === "tüüp" && equipmentTypeName?.toLowerCase().includes("tractor") && equipment?.brand?.is_primary === true;
                       
                       return (
                         <div key={fieldKey} className="space-y-1">
