@@ -1,36 +1,26 @@
 
 
-## Konkurentsieeliste tehnikatüübipõhine kuvamine
+## Probleem
 
-### Probleem
-Praegu kuvab konkurentsieeliste sektsioon alati "John Deere konkurentsieelised" ja staatilise konkurentide nimekirja, soltumata valitud tehnika tuubist. Tegelikult on eelised andmebaasis seotud konkreetse tehnikatuubiga (equipment_type_id) ja need peavad kuvama ainult meie brändide (John Deere, Kramer) eeliseid vastava tehnikatuubi kontekstis.
+Andmebaasis on ruloonpressi tehnikatüübi nimi `round_baler` (alakriipsuga), aga koodis kontrollitakse ainult `"round baler"` (tühikuga) ja `"ruloonpress"`. Kuna vaste puudub, tagastatakse vaikimisi **kombaini** skeem. Sama probleem esineb ka teistel tüüpidel: `forage_harvester`, `self_propelled_sprayer`, `trailed_sprayer`, `wheel_loader`.
 
-### Lahendus
-Muuta `CompetitiveAdvantages` komponenti nii, et:
-1. Tuvastatakse automaatselt, milline meie brand (John Deere voi Kramer) on vorlustabelis valitud, kasutades `is_primary` lippu andmebaasis
-2. Kuvatakse ainult valitud tehnikatuubile vastavaid argumente (see juba toimib labi `useCompetitiveArguments` hooki)
-3. Konkurentide nimekiri filtreeritakse dunaamiliselt - kuvatakse ainult neid konkurente, kellele on selle tehnikatuubi jaoks argumente lisatud
-4. Pealkiri muutub dunaamiliselt vastavalt meie brandile (nt "John Deere konkurentsieelised" voi "Kramer konkurentsieelised")
+## Lahendus
 
-### Tehniline plaan
+Lisada alakriipsuga variandid kõigisse kolme funktsiooni (`getCategoryOrderForType`, `getCategoryNamesForType`, `getFieldNamesForType`) failis `src/lib/pdfSpecsHelpers.ts`.
 
-**Fail: `src/components/comparison/CompetitiveAdvantages.tsx`**
+## Tehnilised detailid
 
-- Eemaldada staatilise `COMPETITOR_BRANDS` massiiv
-- Lisada loogika, mis tuvastab meie brandi nime `selectedModel.brand?.is_primary` jargi
-- Pealkirja tekst muutub dunaamiliselt: `{ourBrandName} konkurentsieelised`
-- Konkurentide rippmenuu naitab ainult neid brande, kellel on argumente selle tehnikatuubi jaoks (filtreerides `args` massiivi jargi)
-- Kui valitud mudel EI OLE meie brand, siis kuvada meie brandi eelised selle konkurendi vastu (praegune loogika juba teeb seda osaliselt)
+Muudetav fail: `src/lib/pdfSpecsHelpers.ts`
 
-**Fail: `src/pages/Comparison.tsx`**
+Igas kolmes funktsioonis lisatakse puuduvad alakriipsuga variandid:
 
-- Veenduda, et `effectiveTypeId` edastatakse korrektselt `useCompetitiveArguments` hookile (juba toimib)
-- Tagada, et `CompetitiveAdvantages` saab korrektsed argumendid vastavalt tehnikatuubile
+| Andmebaasi nimi | Praegu kontrollitakse | Lisatakse |
+|---|---|---|
+| `round_baler` | `"ruloonpress"`, `"round baler"` | `"round_baler"` |
+| `forage_harvester` | `"hekseldi"`, `"forage harvester"` | `"forage_harvester"` |
+| `wheel_loader` | `"rataslaadur"`, `"wheel loader"` | `"wheel_loader"` |
+| `self_propelled_sprayer` | `"iseliikuv taimekaitseprits"`, `"self-propelled sprayer"` | `"self_propelled_sprayer"` |
+| `trailed_sprayer` | `"järelveetav taimekaitseprits"`, `"trailed sprayer"` | `"trailed_sprayer"` |
 
-### Muudatuste kokkuvote
+Samuti kontrollitakse `src/lib/fieldSyncMapping.ts` — seal on juba alakriipsuga variandid olemas, seega seda faili muutma ei pea.
 
-| Fail | Muudatus |
-|------|----------|
-| `src/components/comparison/CompetitiveAdvantages.tsx` | Dunaamiline brandi tuvastus, dunaamiline pealkiri, konkurentide filtreerimine argumentide jargi |
-
-Muudatus on umberiselt 15-20 rida koodi ja ei nua andmebaasi muudatusi, kuna struktuur juba toetab tehnikatuubipohist filtreerimist.
