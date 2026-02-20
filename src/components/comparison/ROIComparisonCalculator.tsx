@@ -19,6 +19,7 @@ import {
 } from "./SingleROICalculator";
 import { addPDFHeader, addPDFFooter } from "@/lib/pdfHelpers";
 import { useAuth } from "@/hooks/useAuth";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { useEquipmentTypes } from "@/hooks/useEquipmentData";
 
 interface ROIComparisonCalculatorProps {
@@ -29,6 +30,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
   const [existingInputs, setExistingInputs] = useState<ROIInputs>(defaultInputsExisting);
   const [newInputs, setNewInputs] = useState<ROIInputs>(defaultInputsNew);
   const [selectedTypeId, setSelectedTypeId] = useState<string>("combine");
+  const { logActivity } = useActivityLog();
   
   const { data: equipmentTypes } = useEquipmentTypes();
 
@@ -249,6 +251,12 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     addPDFFooter(doc, pageWidth, 1, 1);
     
     doc.save("roi-vordlusraport.pdf");
+    
+    // Log ROI calculation activity
+    logActivity("ROI_CALCULATED", {
+      existing: existingInputs.machineName,
+      new: newInputs.machineName,
+    });
   };
 
   // Category label for display

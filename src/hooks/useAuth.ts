@@ -92,10 +92,22 @@ export function useAuth() {
   }, [fetchUserProfile]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    // Log login activity
+    if (!error && data?.user) {
+      try {
+        await (supabase as any).from("user_activity_logs").insert({
+          user_id: data.user.id,
+          action_type: "USER_LOGIN",
+          details: {},
+        });
+      } catch (e) {
+        console.error("Failed to log login:", e);
+      }
+    }
     return { error };
   };
 

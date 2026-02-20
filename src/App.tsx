@@ -11,6 +11,7 @@ import Myths from "./pages/Myths";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
+import Stats from "./pages/Stats";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,11 @@ const App = () => (
             <Route path="/admin" element={
               <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
                 <Admin />
+              </ProtectedRoute>
+            } />
+            <Route path="/stats" element={
+              <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
+                <Stats />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

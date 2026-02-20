@@ -17,6 +17,7 @@ import {
 } from "@/lib/pdfSpecsHelpers";
 import { addPDFHeader, addPDFFooter, initializePDFGeneration } from "@/lib/pdfHelpers";
 import { useAuth } from "@/hooks/useAuth";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { useState } from "react";
 
 interface ComparisonPDFExportProps {
@@ -726,6 +727,7 @@ export function ComparisonPDFExport({
   newInputs,
 }: ComparisonPDFExportProps) {
   const { profile } = useAuth();
+  const { logActivity } = useActivityLog();
   const [isGenerating, setIsGenerating] = useState(false);
   
   const hasModels = selectedModels.length > 0;
@@ -763,6 +765,11 @@ export function ComparisonPDFExport({
           }
           break;
       }
+      // Log the activity
+      logActivity("PDF_GENERATED", {
+        type: pdfType,
+        models: selectedModels.map((m) => `${m.brand?.name} ${m.model_name}`),
+      });
     } finally {
       setIsGenerating(false);
     }

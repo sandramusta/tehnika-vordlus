@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, MessageSquareWarning, Settings, LogOut, User, Menu } from "lucide-react";
+import { BarChart3, MessageSquareWarning, Settings, LogOut, User, Menu, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -27,10 +27,11 @@ const roleLabels: Record<string, string> = {
   admin: "Admin",
 };
 
-const navItems = [
+const getNavItems = (canEdit: boolean) => [
   { href: "/", label: "Võrdlus", icon: BarChart3, show: true },
   { href: "/myths", label: "Müüdid", icon: MessageSquareWarning, show: true },
-  { href: "/admin", label: "Admin", icon: Settings, show: true },
+  { href: "/stats", label: "Statistika", icon: Trophy, show: canEdit },
+  { href: "/admin", label: "Admin", icon: Settings, show: canEdit },
 ];
 
 export function Header() {
@@ -38,6 +39,7 @@ export function Header() {
   const navigate = useNavigate();
   const { profile, signOut, canEdit, isAdmin } = useAuthContext();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navItems = getNavItems(canEdit);
 
   const handleSignOut = async () => {
     await signOut();

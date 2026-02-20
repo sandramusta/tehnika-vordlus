@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { ComparisonModeSelector, ComparisonMode } from "@/components/comparison/ComparisonModeSelector";
 import { AutoModeFilters } from "@/components/comparison/AutoModeFilters";
@@ -21,8 +21,10 @@ import {
   defaultInputsExisting, 
   defaultInputsNew 
 } from "@/components/comparison/SingleROICalculator";
+import { useActivityLog } from "@/hooks/useActivityLog";
 
 export default function Comparison() {
+  const { logActivity } = useActivityLog();
   // Shared state
   const [comparisonMode, setComparisonMode] = useState<ComparisonMode>("auto");
   const [selectedType, setSelectedType] = useState<string>("all");
@@ -72,7 +74,21 @@ export default function Comparison() {
     }
   }, [comparisonMode, selectedModel, competitors, selectedModels]);
 
-  // Derive equipment type for competitive arguments from displayed models
+  // Log comparison activity when 2+ models are displayed
+  const lastLoggedModelsRef = useRef<string>("");
+  useEffect(() => {
+    if (displayModels.length >= 2) {
+      const key = displayModels.map((m) => m.id).sort().join(",");
+      if (key !== lastLoggedModelsRef.current) {
+        lastLoggedModelsRef.current = key;
+        logActivity("COMPARISON_MADE", {
+          models: displayModels.map((m) => `${m.brand?.name} ${m.model_name}`),
+        });
+      }
+    }
+  }, [displayModels, logActivity]);
+
+
   const effectiveTypeId = useMemo(() => {
     if (selectedType !== "all") return selectedType;
     if (displayModels.length > 0) return displayModels[0].equipment_type_id;
