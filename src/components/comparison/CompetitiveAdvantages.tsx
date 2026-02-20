@@ -206,6 +206,7 @@ export function CompetitiveAdvantages({
                   key={arg.id}
                   argument={arg}
                   competitorBrandName={selectedBrandName}
+                  primaryBrandName={ourBrandName}
                 />
               ))}
             </div>

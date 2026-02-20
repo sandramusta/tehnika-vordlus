@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 interface AdvantageCardProps {
   argument: CompetitiveArgument;
   competitorBrandName?: string;
+  primaryBrandName?: string;
 }
 
 // Category display names in Estonian
@@ -42,7 +43,7 @@ function getIconByName(iconName: string | null): LucideIcon {
   return Lightbulb;
 }
 
-export function AdvantageCard({ argument, competitorBrandName }: AdvantageCardProps) {
+export function AdvantageCard({ argument, competitorBrandName, primaryBrandName = "John Deere" }: AdvantageCardProps) {
   const Icon = getIconByName(argument.icon_name);
   
   // Fallback: if only argument_description exists, show it as solution
@@ -107,7 +108,7 @@ export function AdvantageCard({ argument, competitorBrandName }: AdvantageCardPr
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-primary">
-                John Deere lahendus
+                {primaryBrandName} lahendus
               </p>
               <p className="mt-0.5 text-sm text-foreground">
                 {solutionText}
