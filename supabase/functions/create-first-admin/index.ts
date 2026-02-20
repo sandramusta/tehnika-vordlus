@@ -29,13 +29,23 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    // Simple secret check - this function should only be called once
-    const expectedSecret = Deno.env.get("FIRST_ADMIN_SECRET") || "create-first-admin-2024";
+    // Require FIRST_ADMIN_SECRET to be configured - no default fallback
+    const expectedSecret = Deno.env.get("FIRST_ADMIN_SECRET");
+    if (!expectedSecret) {
+      console.error("FIRST_ADMIN_SECRET environment variable is not configured");
+      return new Response(
+        JSON.stringify({ error: "Operation failed. Please try again." }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     const { email, full_name, admin_secret }: CreateFirstAdminRequest = await req.json();
 
-    if (admin_secret !== expectedSecret) {
-      throw new Error("Invalid admin secret");
+    if (!admin_secret || admin_secret !== expectedSecret) {
+      return new Response(
+        JSON.stringify({ error: "Operation failed. Please try again." }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     if (!email || !full_name) {
@@ -57,7 +67,10 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("role", "admin");
 
     if (existingAdmins && existingAdmins.length > 0) {
-      throw new Error("An admin user already exists. Use the regular invite flow.");
+      return new Response(
+        JSON.stringify({ error: "Operation failed. Please try again." }),
+        { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     console.log(`Creating first admin user: ${email}`);
@@ -73,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (createError) {
       console.error("Error creating user:", createError);
-      throw new Error(`Failed to create user: ${createError.message}`);
+      throw new Error("User creation failed");
     }
 
     console.log(`User created with ID: ${newUser.user.id}`);
@@ -101,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (roleError) {
       console.error("Error assigning role:", roleError);
-      throw new Error(`Failed to assign role: ${roleError.message}`);
+      throw new Error("Role assignment failed");
     }
 
     // Update staff_users table
@@ -121,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (resetError) {
       console.error("Error generating reset link:", resetError);
-      throw new Error(`Failed to generate password reset link: ${resetError.message}`);
+      throw new Error("Password reset link generation failed");
     }
 
     // Send invitation email
@@ -174,7 +187,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (emailError) {
       console.error("Error sending email:", emailError);
-      throw new Error(`Failed to send invitation email: ${emailError.message}`);
+      throw new Error("Email sending failed");
     }
 
     console.log(`First admin invitation email sent to ${email}`);
