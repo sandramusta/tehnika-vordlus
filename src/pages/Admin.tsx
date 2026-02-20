@@ -183,8 +183,10 @@ function getCategoryLabel(category: string): string {
             await createEquipment.mutateAsync({ ...equipmentData, features: [] });
             toast({ title: "Tehnika lisatud!" });
           }
+          const scrollY = window.scrollY;
           setEquipmentDialogOpen(false);
           setEditingEquipment(null);
+          requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
        } catch (error) {
          console.error("Equipment save error:", error);
          toast({
@@ -228,8 +230,10 @@ function getCategoryLabel(category: string): string {
          await createArgument.mutateAsync(argumentData);
          toast({ title: "Argument lisatud!" });
        }
-       setArgumentDialogOpen(false);
-       setEditingArgument(null);
+        const scrollY = window.scrollY;
+        setArgumentDialogOpen(false);
+        setEditingArgument(null);
+        requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
      } catch (error) {
        toast({
          title: "Viga",
@@ -254,20 +258,26 @@ function getCategoryLabel(category: string): string {
      setMythDialogOpen(true);
    };
  
-   const closeEquipmentDialog = () => {
-     setEquipmentDialogOpen(false);
-     setEditingEquipment(null);
-   };
- 
-   const closeArgumentDialog = () => {
-     setArgumentDialogOpen(false);
-     setEditingArgument(null);
-   };
- 
-   const closeMythDialog = () => {
-     setMythDialogOpen(false);
-     setEditingMyth(null);
-   };
+  const closeEquipmentDialog = () => {
+    const scrollY = window.scrollY;
+    setEquipmentDialogOpen(false);
+    setEditingEquipment(null);
+    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
+  };
+
+  const closeArgumentDialog = () => {
+    const scrollY = window.scrollY;
+    setArgumentDialogOpen(false);
+    setEditingArgument(null);
+    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
+  };
+
+  const closeMythDialog = () => {
+    const scrollY = window.scrollY;
+    setMythDialogOpen(false);
+    setEditingMyth(null);
+    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
+  };
  
    const openBrochureDialog = (item: Equipment) => {
      setBrochureEquipment(item);
@@ -275,12 +285,14 @@ function getCategoryLabel(category: string): string {
      setBrochureDialogOpen(true);
    };
  
-   const closeBrochureDialog = () => {
+  const closeBrochureDialog = () => {
+    const scrollY = window.scrollY;
     setBrochureDialogOpen(false);
     setBrochureEquipment(null);
     setExtractedData(null);
     setPendingBrochureUrl("");
     setPendingBrochureFilename("");
+    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
   };
  
   const handleExtractionComplete = (data: ExtractedData, brochureUrl: string, originalFilename: string) => {
