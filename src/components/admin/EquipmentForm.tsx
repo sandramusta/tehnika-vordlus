@@ -176,8 +176,16 @@ import { cn } from "@/lib/utils";
     // Get dynamic fields based on selected type
     // Only show COMMON_FIELDS (Põhiandmed + Majandusandmed), not type-specific fields
     const fieldGroups = useMemo(() => {
+      if (selectedType?.name === "round_baler") {
+        // Hide engine_power_hp and fuel_consumption_lh for round balers
+        const hiddenFields = new Set(["engine_power_hp", "fuel_consumption_lh"]);
+        return COMMON_FIELDS.map(group => ({
+          ...group,
+          fields: group.fields.filter(f => !hiddenFields.has(f.name)),
+        })).filter(group => group.fields.length > 0);
+      }
       return COMMON_FIELDS;
-    }, []);
+    }, [selectedType?.name]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
      e.preventDefault();
@@ -283,7 +291,7 @@ import { cn } from "@/lib/utils";
              defaultValue={equipment?.model_name || ""}
            />
          </div>
-          {selectedType?.name !== "telehandler" && (
+          {selectedType?.name !== "telehandler" && selectedType?.name !== "round_baler" && (
             <div className="space-y-2">
               <Label htmlFor="power_class_id">Jõuklass</Label>
               <Select
