@@ -33,8 +33,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   general: "Üldine",
 };
 
-// All competitor brands that should be in dropdown
-const COMPETITOR_BRANDS = ["Claas", "Case IH", "Fendt", "New Holland", "Kramer", "Manitou", "JCB", "Merlo", "Weidemann", "Claas Scorpion"];
 
 const TOP_COUNT = 3;
 
@@ -44,14 +42,17 @@ export function CompetitiveAdvantages({
   arguments: args,
   brands,
 }: CompetitiveAdvantagesProps) {
-  const isJohnDeere = selectedModel.brand?.name === "John Deere";
+  const isPrimaryBrand = selectedModel.brand?.is_primary === true;
+  const ourBrandName = isPrimaryBrand ? selectedModel.brand!.name : 
+    brands.find(b => b.is_primary)?.name || "John Deere";
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCompetitorBrandId, setSelectedCompetitorBrandId] = useState<string>("");
   
-  // Get all competitor brands (Claas, Case IH, Fendt, New Holland) - exclude John Deere
+  // Dynamically get competitor brands that have arguments for this equipment type
   const availableCompetitorBrands = useMemo(() => {
-    return brands.filter(b => COMPETITOR_BRANDS.includes(b.name));
-  }, [brands]);
+    const brandIdsWithArgs = new Set(args.map(a => a.competitor_brand_id));
+    return brands.filter(b => brandIdsWithArgs.has(b.id));
+  }, [brands, args]);
 
   // Get the selected brand name for display
   const selectedBrandName = useMemo(() => {
@@ -63,14 +64,12 @@ export function CompetitiveAdvantages({
   const filteredArguments = useMemo(() => {
     if (!selectedCompetitorBrandId) return [];
     
-    if (isJohnDeere) {
-      // JD selected: show arguments for the selected competitor brand
+    if (isPrimaryBrand) {
       return args.filter(arg => arg.competitor_brand_id === selectedCompetitorBrandId);
     } else {
-      // Competitor selected: show JD arguments against that specific brand
       return args.filter(arg => arg.competitor_brand_id === selectedModel.brand_id);
     }
-  }, [args, isJohnDeere, selectedCompetitorBrandId, selectedModel.brand_id]);
+  }, [args, isPrimaryBrand, selectedCompetitorBrandId, selectedModel.brand_id]);
 
   // Group arguments by category
   const argumentsByCategory = useMemo(() => {
@@ -119,7 +118,7 @@ export function CompetitiveAdvantages({
           <div>
             <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
               <Trophy className="h-5 w-5 text-primary" />
-              John Deere konkurentsieelised
+              {ourBrandName} konkurentsieelised
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Vali bränd, et näha eeliseid
@@ -162,7 +161,7 @@ export function CompetitiveAdvantages({
         <div className="rounded-lg border border-border bg-card p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <p className="mt-4 text-muted-foreground">
-            Vali rippmenüüst bränd, et näha John Deere konkurentsieeliseid.
+            Vali rippmenüüst bränd, et näha {ourBrandName} konkurentsieeliseid.
           </p>
         </div>
       )}
