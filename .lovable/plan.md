@@ -1,52 +1,36 @@
 
 
-## Brošüüri ekstraheerimise skeemi sünkroniseerimine admin/võrdlustabeli väljadega
+## Konkurentsieeliste tehnikatüübipõhine kuvamine
 
 ### Probleem
+Praegu kuvab konkurentsieeliste sektsioon alati "John Deere konkurentsieelised" ja staatilise konkurentide nimekirja, soltumata valitud tehnika tuubist. Tegelikult on eelised andmebaasis seotud konkreetse tehnikatuubiga (equipment_type_id) ja need peavad kuvama ainult meie brändide (John Deere, Kramer) eeliseid vastava tehnikatuubi kontekstis.
 
-Edge function'i (`extract-brochure-specs`) ekstraheerimise skeem ei ühti täpselt admin vormi ja võrdlustabeli väljadega. See põhjustab:
-- Puuduvad väljad: mõned olulised näitajad (nt `transport_length_mm`, `header_width_m`, `fuel_consumption_lh`) jäävad ekstraheerimata, sest neid pole edge function'i skeemis
-- Üleliigsed väljad: mõned väljad on skeemis, aga neid ei kasutata kusagil
+### Lahendus
+Muuta `CompetitiveAdvantages` komponenti nii, et:
+1. Tuvastatakse automaatselt, milline meie brand (John Deere voi Kramer) on vorlustabelis valitud, kasutades `is_primary` lippu andmebaasis
+2. Kuvatakse ainult valitud tehnikatuubile vastavaid argumente (see juba toimib labi `useCompetitiveArguments` hooki)
+3. Konkurentide nimekiri filtreeritakse dunaamiliselt - kuvatakse ainult neid konkurente, kellele on selle tehnikatuubi jaoks argumente lisatud
+4. Pealkiri muutub dunaamiliselt vastavalt meie brandile (nt "John Deere konkurentsieelised" voi "Kramer konkurentsieelised")
 
-### Muudatuste plaan
+### Tehniline plaan
 
-**Fail 1: `supabase/functions/extract-brochure-specs/index.ts`**
+**Fail: `src/components/comparison/CompetitiveAdvantages.tsx`**
 
-Sünkroniseerida `EQUIPMENT_TYPE_SCHEMAS` nii, et:
+- Eemaldada staatilise `COMPETITOR_BRANDS` massiiv
+- Lisada loogika, mis tuvastab meie brandi nime `selectedModel.brand?.is_primary` jargi
+- Pealkirja tekst muutub dunaamiliselt: `{ourBrandName} konkurentsieelised`
+- Konkurentide rippmenuu naitab ainult neid brande, kellel on argumente selle tehnikatuubi jaoks (filtreerides `args` massiivi jargi)
+- Kui valitud mudel EI OLE meie brand, siis kuvada meie brandi eelised selle konkurendi vastu (praegune loogika juba teeb seda osaliselt)
 
-a) **equipment_columns** vastaks täpselt `equipmentTypeFields.ts` väljadele (v.a majandusandmed nagu hind ja hoolduskulu, mida brošüürist ei saa):
+**Fail: `src/pages/Comparison.tsx`**
 
-Puuduvad väljad, mida lisada:
-- Combine: `transport_length_mm`, `header_width_m`, `fuel_consumption_lh`  
-- Telehandler: `transport_length_mm`
-- Tractor: puudub `fuel_consumption_lh`
-- Forage harvester: `fuel_tank_liters`, `max_torque_nm`, `transport_length_mm`
-- Wheel loader: puudub `fuel_tank_liters`, `fuel_consumption_lh`
-- Self-propelled sprayer: puudub `fuel_consumption_lh`
-- Round baler: puudub `fuel_consumption_lh`
+- Veenduda, et `effectiveTypeId` edastatakse korrektselt `useCompetitiveArguments` hookile (juba toimib)
+- Tagada, et `CompetitiveAdvantages` saab korrektsed argumendid vastavalt tehnikatuubile
 
-b) **detailed_specs_categories** vastaks täpselt `pdfSpecsHelpers.ts` väljadele (need on juba suures osas sünkroonis, aga mõned erinevused):
+### Muudatuste kokkuvote
 
-- Telehandler: edge function'il on laiendatud väljad (nt `tõstevõime_max_kõrgusel_kg`, `tõsteaeg_s`, `kallutusjõud_kN`, `teljevahe_mm`, `kliirens_mm`, `pöörderaadius_m`) mida `pdfSpecsHelpers.ts` ei kasuta -- need tuleb eemaldada
-- Tractor: edge function'il on `töömaht_l` asemel `töömahu_liitrid` ja puudub `tõstevõime_kg` -- parandada
-- Forage harvester: edge function'il on ainult `mootor` kategooria, aga `pdfSpecsHelpers.ts` defineerib ka `lõikur`, `tõstuk`, `mõõtmed` -- need tuleb lisada
+| Fail | Muudatus |
+|------|----------|
+| `src/components/comparison/CompetitiveAdvantages.tsx` | Dunaamiline brandi tuvastus, dunaamiline pealkiri, konkurentide filtreerimine argumentide jargi |
 
-**Fail 2: `src/components/admin/BrochureDataReview.tsx`**
-
-Praegu kuvab see komponent kõik AI poolt tagastatud väljad. Tuleb:
-- Filtreerida kuvamine nii, et näidatakse ainult neid `equipment_columns` võtmeid, mis on defineeritud `equipmentTypeFields.ts` failis (selle masina tüübi jaoks)
-- Filtreerida `detailed_specs` kategooriad/väljad nii, et näidatakse ainult neid, mis on `pdfSpecsHelpers.ts` failis defineeritud
-- Kasutada silte `equipmentTypeFields.ts` ja `pdfSpecsHelpers.ts` failidest selle asemel, et kasutada oma `COLUMN_LABELS` ja `CATEGORY_LABELS` sõnastikke (eemaldada duplikaadid)
-
-### Tehniline detail
-
-```text
-equipmentTypeFields.ts       --> equipment_columns skeem (edge function)
-pdfSpecsHelpers.ts           --> detailed_specs skeem (edge function)
-BrochureDataReview.tsx       --> filtreerib kuvamise nende kahe alusel
-```
-
-Peale seda muudatust:
-1. AI ekstraheerib ainult neid välju, mida süsteem tegelikult kasutab
-2. Ülevaatuse ekraanil kuvatakse ainult relevantseid välju
-3. Puuduvad väljad lisatakse skeemi, nii et AI proovib neid ka täita
+Muudatus on umberiselt 15-20 rida koodi ja ei nua andmebaasi muudatusi, kuna struktuur juba toetab tehnikatuubipohist filtreerimist.
