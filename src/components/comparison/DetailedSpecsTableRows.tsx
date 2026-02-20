@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { EditableCell, EditableValueCell } from "./EditableCell";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
+import { formatFieldKey } from "@/lib/pdfSpecsHelpers";
 import { toast } from "sonner";
 
 interface DetailedSpecsTableRowsProps {
@@ -120,24 +121,6 @@ const FIELD_NAMES: Record<string, Record<string, string>> = {
   },
 };
 
-// Known unit suffixes to format in parentheses
-const UNIT_SUFFIXES = ["mm", "m", "m2", "m²", "kg", "l", "hj", "kW", "Nm", "km/h", "l/s", "l/h", "t/h", "kW/hj", "bar", "cm3", "cm"];
-
-function formatFieldKey(key: string): string {
-  let label = key.replace(/_/g, " ");
-  
-  // Try to extract and format unit at the end
-  for (const unit of UNIT_SUFFIXES) {
-    const regex = new RegExp(`\\s+${unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
-    if (regex.test(label)) {
-      label = label.replace(regex, ` (${unit})`);
-      break;
-    }
-  }
-  
-  // Capitalize first letter
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "—";
