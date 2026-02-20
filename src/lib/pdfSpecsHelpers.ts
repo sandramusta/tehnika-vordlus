@@ -387,14 +387,18 @@ export const ROUND_BALER_CATEGORY_ORDER = [
   "kilesse_mähkimine",
   "rulli_väljastamine",
   "jõuvõtuvõll",
+  "isobus",
+  "ekraanid",
+  "hooldus",
   "mähkimissüsteem",
   "mõõtmed",
   "rehvid",
   "minimaalne_võimsustarve",
-  "hooldus",
-  "isobus",
-  "ekraanid",
   "kasutusotstarve",
+  "tööandmete_kogumine",
+  "automatiseeritus",
+  "niiskuse_andur",
+  "kaalusüsteem",
 ] as const;
 
 export const ROUND_BALER_CATEGORY_NAMES: Record<string, string> = {
@@ -406,14 +410,18 @@ export const ROUND_BALER_CATEGORY_NAMES: Record<string, string> = {
   kilesse_mähkimine: "KILESSE MÄHKIMINE",
   rulli_väljastamine: "RULLI VÄLJASTAMINE",
   jõuvõtuvõll: "JÕUVÕTUVÕLL",
+  isobus: "ISOBUS",
+  ekraanid: "EKRAANID",
+  hooldus: "HOOLDUS",
   mähkimissüsteem: "MÄHKIMISSÜSTEEM",
   mõõtmed: "MÕÕTMED",
   rehvid: "REHVID",
   minimaalne_võimsustarve: "MINIMAALNE VÕIMSUSTARVE",
-  hooldus: "HOOLDUS",
-  isobus: "ISOBUS",
-  ekraanid: "EKRAANID",
   kasutusotstarve: "KASUTUSOTSTARVE",
+  tööandmete_kogumine: "TÖÖANDMETE KOGUMINE / DOKUMENTEERIMINE",
+  automatiseeritus: "AUTOMATISEERITUS",
+  niiskuse_andur: "NIISKUSE ANDUR",
+  kaalusüsteem: "KAALUSÜSTEEM",
 };
 
 export const ROUND_BALER_FIELD_NAMES: Record<string, Record<string, string>> = {
@@ -434,6 +442,7 @@ export const ROUND_BALER_FIELD_NAMES: Record<string, Record<string, string>> = {
     ummistuste_eemaldamine: "Ummistuste eemaldamise süsteem",
   },
   rullikamber: {
+    kambri_tüüp: "Kambri tüüp",
     rulli_moodustamine: "Rulli moodustamine",
     tiheduse_ja_läbimõõdu_seadistamine: "Tiheduse ja rulli läbimõõdu seadistamine",
   },
@@ -453,10 +462,21 @@ export const ROUND_BALER_FIELD_NAMES: Record<string, Record<string, string>> = {
     jvv_turvalisus: "JVV turvalisus",
     pöörlemissagedus_ja_võimsus: "Jõuvõtuvõlli pöörlemissagedus ja võimsus",
   },
+  isobus: {
+    tüüp: "Tüüp",
+  },
+  ekraanid: {
+    tüüp: "Tüüp",
+  },
+  hooldus: {
+    keti_automaatne_määrimine: "Keti automaatne määrimine",
+    automaatne_määrimissüsteem: "Automaatne määrimissüsteem",
+    pikendatud_määrimisintervalliga_jvv: "Pikendatud määrimisintervalliga JVV",
+  },
   mähkimissüsteem: {
     rulli_edastamine: "Rulli edastamine",
     kiletaja_hoovad: "Kiletaja hoovad",
-    mahapanek_režiim: "Mahapanek režiim",
+    mahapanek_režiim: "Mahapaneku režiim",
     kile_mahutavus: "Kile mahutavus",
   },
   mõõtmed: {
@@ -471,23 +491,20 @@ export const ROUND_BALER_FIELD_NAMES: Record<string, Record<string, string>> = {
   minimaalne_võimsustarve: {
     kw_hj: "kW/hj",
   },
-  hooldus: {
-    keti_automaatne_määrimine: "Keti automaatne määrimine",
-    automaatne_määrimissüsteem: "Automaatne määrimissüsteem",
-    pikendatud_määrimisintervalliga_jvv: "Pikendatud määrimisintervalliga JVV",
-  },
-  isobus: {
-    tüüp: "Tüüp",
-  },
-  ekraanid: {
-    tüüp: "Tüüp",
-  },
   kasutusotstarve: {
     hein_silo_põhk: "Hein / Silo / Põhk",
-    tööandmete_kogumine: "Tööandmete kogumine / Dokumenteerimine",
-    automatiseeritus: "Automatiseeritus",
-    niiskuse_andur: "Niiskuse andur",
-    kaalusüsteem: "Kaalusüsteem",
+  },
+  tööandmete_kogumine: {
+    tüüp: "Tüüp",
+  },
+  automatiseeritus: {
+    tüüp: "Tüüp",
+  },
+  niiskuse_andur: {
+    tüüp: "Tüüp",
+  },
+  kaalusüsteem: {
+    tüüp: "Tüüp",
   },
 };
 
