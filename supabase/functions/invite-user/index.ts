@@ -212,10 +212,11 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Error in invite-user function:", error);
+    const isAuthError = error.message?.includes("Unauthorized") || error.message?.includes("No authorization");
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isAuthError ? "Authentication required" : "Operation failed. Please try again." }),
       {
-        status: error.message.includes("Unauthorized") ? 401 : 500,
+        status: isAuthError ? 401 : 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );

@@ -22,6 +22,39 @@ const handler = async (req: Request): Promise<Response> => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    // Verify requesting user is an authenticated admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Operation failed" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: requestingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    if (authError || !requestingUser) {
+      return new Response(JSON.stringify({ error: "Operation failed" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Verify admin role
+    const { data: adminRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", requestingUser.id)
+      .eq("role", "admin");
+
+    if (!adminRoles || adminRoles.length === 0) {
+      return new Response(JSON.stringify({ error: "Operation failed" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { email } = await req.json();
 
     // Get user info
@@ -106,7 +139,8 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("Error in resend-invite function:", error);
+    return new Response(JSON.stringify({ error: "Operation failed. Please try again." }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
