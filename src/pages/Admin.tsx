@@ -183,10 +183,8 @@ function getCategoryLabel(category: string): string {
             await createEquipment.mutateAsync({ ...equipmentData, features: [] });
             toast({ title: "Tehnika lisatud!" });
           }
-          const scrollY = window.scrollY;
           setEquipmentDialogOpen(false);
           setEditingEquipment(null);
-          requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
        } catch (error) {
          console.error("Equipment save error:", error);
          toast({
@@ -230,10 +228,8 @@ function getCategoryLabel(category: string): string {
          await createArgument.mutateAsync(argumentData);
          toast({ title: "Argument lisatud!" });
        }
-        const scrollY = window.scrollY;
         setArgumentDialogOpen(false);
         setEditingArgument(null);
-        requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
      } catch (error) {
        toast({
          title: "Viga",
@@ -259,24 +255,18 @@ function getCategoryLabel(category: string): string {
    };
  
   const closeEquipmentDialog = () => {
-    const scrollY = window.scrollY;
     setEquipmentDialogOpen(false);
     setEditingEquipment(null);
-    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
   };
 
   const closeArgumentDialog = () => {
-    const scrollY = window.scrollY;
     setArgumentDialogOpen(false);
     setEditingArgument(null);
-    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
   };
 
   const closeMythDialog = () => {
-    const scrollY = window.scrollY;
     setMythDialogOpen(false);
     setEditingMyth(null);
-    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
   };
  
    const openBrochureDialog = (item: Equipment) => {
@@ -286,13 +276,11 @@ function getCategoryLabel(category: string): string {
    };
  
   const closeBrochureDialog = () => {
-    const scrollY = window.scrollY;
     setBrochureDialogOpen(false);
     setBrochureEquipment(null);
     setExtractedData(null);
     setPendingBrochureUrl("");
     setPendingBrochureFilename("");
-    requestAnimationFrame(() => { window.scrollTo(0, scrollY); });
   };
  
   const handleExtractionComplete = (data: ExtractedData, brochureUrl: string, originalFilename: string) => {
@@ -535,7 +523,7 @@ function getCategoryLabel(category: string): string {
                      Lisa tehnika
                    </Button>
                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                  <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden" onCloseAutoFocus={(e) => e.preventDefault()}>
                     <DialogHeader>
                       <DialogTitle>
                         {editingEquipment ? "Muuda tehnikat" : "Lisa uus tehnika"}
@@ -580,7 +568,7 @@ function getCategoryLabel(category: string): string {
                      Lisa argument
                    </Button>
                  </DialogTrigger>
-                 <DialogContent>
+                  <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
                    <DialogHeader>
                      <DialogTitle>
                        {editingArgument ? "Muuda argumenti" : "Lisa uus argument"}
@@ -801,7 +789,7 @@ function getCategoryLabel(category: string): string {
                      Lisa müüt
                    </Button>
                  </DialogTrigger>
-                 <DialogContent>
+                 <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
                    <DialogHeader>
                      <DialogTitle>
                        {editingMyth ? "Muuda müüti" : "Lisa uus müüt"}
@@ -918,7 +906,7 @@ function getCategoryLabel(category: string): string {
          <Dialog open={brochureDialogOpen} onOpenChange={(open) => {
            if (!open) closeBrochureDialog();
          }}>
-           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onCloseAutoFocus={(e) => e.preventDefault()}>
              <DialogHeader>
                <DialogTitle>
                  Laadi üles brošüür: {brochureEquipment?.model_name}
