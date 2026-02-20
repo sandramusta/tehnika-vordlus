@@ -80,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (createError) {
       console.error("Error creating user:", createError);
-      throw new Error(`Failed to create user: ${createError.message}`);
+      throw new Error("User creation failed");
     }
 
     console.log(`User created with ID: ${newUser.user.id}`);
@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (roleError) {
       console.error("Error assigning role:", roleError);
-      throw new Error(`Failed to assign role: ${roleError.message}`);
+      throw new Error("Role assignment failed");
     }
 
     // Update staff_users table to link with auth user
@@ -133,7 +133,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (resetError) {
       console.error("Error generating reset link:", resetError);
-      throw new Error(`Failed to generate password reset link: ${resetError.message}`);
+      throw new Error("Password reset link generation failed");
     }
 
     console.log("Reset link generated successfully");
@@ -194,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (emailError) {
       console.error("Error sending email:", emailError);
-      throw new Error(`Failed to send invitation email: ${emailError.message}`);
+      throw new Error("Email sending failed");
     }
 
     console.log(`Invitation email sent to ${email}`);
