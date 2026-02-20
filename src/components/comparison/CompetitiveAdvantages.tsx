@@ -118,7 +118,7 @@ export function CompetitiveAdvantages({
           <div>
             <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
               <Trophy className="h-5 w-5 text-primary" />
-              {ourBrandName} konkurentsieelised
+              Meie konkurentsieelised
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Vali bränd, et näha eeliseid
