@@ -523,22 +523,24 @@ function getCategoryLabel(category: string): string {
                      Lisa tehnika
                    </Button>
                  </DialogTrigger>
-                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                   <DialogHeader>
-                     <DialogTitle>
-                       {editingEquipment ? "Muuda tehnikat" : "Lisa uus tehnika"}
-                     </DialogTitle>
-                   </DialogHeader>
-                   <EquipmentForm
-                     equipment={editingEquipment}
-                     brands={brands}
-                     powerClasses={powerClasses}
-                     types={types}
-                     allEquipment={equipment}
-                     onSubmit={handleEquipmentFormSubmit}
-                     isSubmitting={isSavingEquipment}
-                   />
-                 </DialogContent>
+                  <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingEquipment ? "Muuda tehnikat" : "Lisa uus tehnika"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="overflow-y-auto flex-1 -mx-6 px-6 pb-2">
+                      <EquipmentForm
+                        equipment={editingEquipment}
+                        brands={brands}
+                        powerClasses={powerClasses}
+                        types={types}
+                        allEquipment={equipment}
+                        onSubmit={handleEquipmentFormSubmit}
+                        isSubmitting={isSavingEquipment}
+                      />
+                    </div>
+                  </DialogContent>
                </Dialog>
              </div>
  
