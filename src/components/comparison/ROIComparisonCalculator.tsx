@@ -489,7 +489,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
               onClick={generatePDFReport}
             >
               <FileDown className="h-5 w-5" />
-              Genereeri võrdlus PDF-raport
+              Genereeri ROI võrdlus PDF-raport
             </Button>
           </div>
         </div>
