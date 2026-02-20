@@ -724,6 +724,45 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate and authorize the requesting user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Operation failed' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify user has product_manager or admin role
+    const { data: roles } = await supabaseAuth
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['product_manager', 'admin']);
+
+    if (!roles || roles.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Operation failed' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { brochure_id, pdf_content, model_name, equipment_type } = await req.json();
 
     if (!pdf_content || !model_name) {
