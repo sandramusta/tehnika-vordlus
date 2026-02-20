@@ -147,7 +147,7 @@ export function AutoModeFilters({
               <Info className="h-3.5 w-3.5" />
               {isTelehandler 
                 ? "Konkurente sarnase tõstekõrguse ja kandevõime vahemikus ei leitud"
-                : "Konkurente vahemikus ±50 hj ei leitud"
+                : `Konkurente vahemikus ±${equipmentTypeName === 'tractor' ? '10' : '50'} hj ei leitud`
               }
             </div>
           )}
@@ -159,7 +159,7 @@ export function AutoModeFilters({
         <div className="text-sm text-muted-foreground">
           {isTelehandler 
             ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±0.5m) ja kandevõime (±400kg) vahemikus."
-            : "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±50 hj vahemikus teistest brändidest."
+            : `Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±${equipmentTypeName === 'tractor' ? '10' : '50'} hj vahemikus teistest brändidest.`
           }
         </div>
       )}

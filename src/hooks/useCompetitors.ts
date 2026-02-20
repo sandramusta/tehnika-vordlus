@@ -1,13 +1,22 @@
 import { useMemo } from "react";
 import { Equipment } from "@/types/equipment";
 
-const HP_RANGE = 50;
+const HP_RANGE_DEFAULT = 50;
+const HP_RANGE_TRACTOR = 10;
 const LIFT_HEIGHT_RANGE_M = 0.5; // ±0.5m for telehandler matching
 const LIFT_CAPACITY_RANGE_KG = 400; // ±400kg for telehandler matching
 
 // Check if equipment type is telehandler
 function isTelehandler(equipment: Equipment): boolean {
   return equipment.equipment_type?.name === "telehandler";
+}
+
+function isTractor(equipment: Equipment): boolean {
+  return equipment.equipment_type?.name === "tractor";
+}
+
+function getHpRange(equipment: Equipment): number {
+  return isTractor(equipment) ? HP_RANGE_TRACTOR : HP_RANGE_DEFAULT;
 }
 
 export function useCompetitors(
@@ -52,7 +61,7 @@ export function useCompetitors(
       if (!eq.engine_power_hp) return false;
 
       const hpDifference = Math.abs(eq.engine_power_hp - selectedModel.engine_power_hp!);
-      return hpDifference <= HP_RANGE;
+      return hpDifference <= getHpRange(selectedModel);
     });
   }, [selectedModel, allEquipment]);
 }
@@ -73,5 +82,6 @@ export function getCompetitorSummary(
 
   // For other equipment, show HP info
   if (!selectedModel.engine_power_hp) return null;
-  return `Leitud ${competitors.length} konkurenti ±${HP_RANGE} hj vahemikus (valitud: ${selectedModel.engine_power_hp} hj)`;
+  const hpRange = getHpRange(selectedModel);
+  return `Leitud ${competitors.length} konkurenti ±${hpRange} hj vahemikus (valitud: ${selectedModel.engine_power_hp} hj)`;
 }
