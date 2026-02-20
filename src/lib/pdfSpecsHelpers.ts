@@ -632,6 +632,24 @@ export function getFieldNamesForType(typeName?: string): Record<string, Record<s
 // UTILITY FUNCTIONS
 // ============================================================================
 
+// Known unit suffixes to format in parentheses
+const UNIT_SUFFIXES = ["mm", "m2", "m²", "m3", "m³", "kg", "l", "hj", "kW", "Nm", "km/h", "l/s", "l/h", "t/h", "kW/hj", "bar", "cm3", "cm", "m", "pct"];
+
+// Format a raw field key into a human-readable label with unit in parentheses
+export function formatFieldKey(key: string): string {
+  let label = key.replace(/_/g, " ");
+  
+  for (const unit of UNIT_SUFFIXES) {
+    const regex = new RegExp(`\\s+${unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    if (regex.test(label)) {
+      label = label.replace(regex, ` (${unit})`);
+      break;
+    }
+  }
+  
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 // Format value for PDF display
 export function formatDetailedValue(value: unknown): string {
   if (value === null || value === undefined) return "—";
@@ -730,7 +748,7 @@ export function buildDetailedSpecRows(
 
     const rows: { label: string; values: string[] }[] = [];
     fields.forEach((fieldKey) => {
-      const label = fieldNames[fieldKey] || fieldKey.replace(/_/g, " ");
+      const label = fieldNames[fieldKey] || formatFieldKey(fieldKey);
       const values = selectedModels.map((model) => {
         const specs = model.detailed_specs;
         const categoryData =
