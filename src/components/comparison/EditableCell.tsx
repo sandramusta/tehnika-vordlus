@@ -71,7 +71,7 @@ export function EditableCell({
         ref={inputRef}
         type="text"
         value={editValue}
-        onChange={(e) => onValueChange(e.target.value.replace(/,/g, "."))}
+        onChange={(e) => onValueChange(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         className={cn(
@@ -171,7 +171,7 @@ export function EditableValueCell({
         ref={inputRef}
         type="text"
         value={editValue}
-        onChange={(e) => onValueChange(e.target.value.replace(/,/g, "."))}
+        onChange={(e) => onValueChange(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         className="w-full min-w-[60px] px-2 py-1 text-sm text-center border border-primary/50 rounded bg-background focus:outline-none focus:ring-1 focus:ring-primary"
