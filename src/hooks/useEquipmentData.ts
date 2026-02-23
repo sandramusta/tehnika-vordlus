@@ -9,7 +9,7 @@ export function useEquipmentTypes() {
       const { data, error } = await supabase
         .from("equipment_types")
         .select("*")
-        .order("name");
+        .order("name_et");
       if (error) throw error;
       return data as EquipmentType[];
     },
