@@ -84,12 +84,18 @@ export function BrochureDataReview({
   const columnToSpecs = useMemo(() => getColumnToSpecsMapping(equipmentTypeName), [equipmentTypeName]);
   const specsToColumn = useMemo(() => getSpecsToColumnMapping(equipmentTypeName), [equipmentTypeName]);
 
-  // Filter extracted data to only allowed fields, filling missing with null
+  // Filter extracted data to only allowed fields, filling missing with null.
+  // RULE: If a field already has a value on the equipment, keep it (don't overwrite).
+  // Only fill fields that are currently empty/null.
   const filteredData = useMemo(() => {
     // Filter equipment_columns
     const filteredColumns: Record<string, unknown> = {};
     for (const key of allowedColumnKeys) {
-      filteredColumns[key] = extractedData.equipment_columns?.[key] ?? null;
+      const currentVal = getCurrentValue(equipment, key);
+      const extractedVal = extractedData.equipment_columns?.[key] ?? null;
+      // If current value exists, keep it; otherwise use extracted
+      const hasCurrentValue = currentVal !== null && currentVal !== undefined && currentVal !== "" && currentVal !== 0;
+      filteredColumns[key] = hasCurrentValue ? currentVal : extractedVal;
     }
 
     // Filter detailed_specs
@@ -99,8 +105,12 @@ export function BrochureDataReview({
       if (!allowedFields) continue;
       filteredSpecs[catKey] = {};
       for (const fieldKey of Object.keys(allowedFields)) {
+        const currentVal = getDetailedSpecValue(equipment, catKey, fieldKey);
         const extractedCat = extractedData.detailed_specs?.[catKey] as Record<string, unknown> | undefined;
-        filteredSpecs[catKey][fieldKey] = extractedCat?.[fieldKey] ?? null;
+        const extractedVal = extractedCat?.[fieldKey] ?? null;
+        // If current value exists, keep it; otherwise use extracted
+        const hasCurrentValue = currentVal !== null && currentVal !== undefined && currentVal !== "" && currentVal !== 0;
+        filteredSpecs[catKey][fieldKey] = hasCurrentValue ? currentVal : extractedVal;
       }
     }
 
@@ -109,7 +119,7 @@ export function BrochureDataReview({
       detailed_specs: filteredSpecs,
       extraction_metadata: extractedData.extraction_metadata,
     } as ExtractedData;
-  }, [extractedData, allowedColumnKeys, allowedCategories, fieldLabels]);
+  }, [extractedData, allowedColumnKeys, allowedCategories, fieldLabels, equipment]);
 
   const [editedData, setEditedData] = useState<ExtractedData>(filteredData);
   const metadata: ExtractionMetadata | undefined = extractedData.extraction_metadata;
