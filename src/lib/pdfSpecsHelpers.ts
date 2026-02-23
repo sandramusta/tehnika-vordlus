@@ -317,7 +317,7 @@ export const SELF_PROPELLED_SPRAYER_CATEGORY_ORDER = [
 export const SELF_PROPELLED_SPRAYER_CATEGORY_NAMES: Record<string, string> = {
   pumbasüsteem: "PUMBASÜSTEEM",
   pihustisüsteem: "PIHUSTISÜSTEEM",
-  šassii: "ŠASSII",
+  šassii: "VEERMIK JA RAAM",
 };
 
 export const SELF_PROPELLED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>> = {
