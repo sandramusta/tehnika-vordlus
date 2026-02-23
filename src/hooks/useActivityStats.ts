@@ -74,7 +74,7 @@ export function useLeaderboard() {
             full_name: profile?.full_name || "Tundmatu",
             email: profile?.email || "",
             ...stats,
-            total_points: stats.pdf_count * 3 + stats.comparison_count + stats.roi_count * 2,
+            total_points: stats.pdf_count * 3 + stats.comparison_count,
           };
         })
         .sort((a, b) => b.total_points - a.total_points);
