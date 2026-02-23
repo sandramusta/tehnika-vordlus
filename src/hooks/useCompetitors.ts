@@ -23,14 +23,16 @@ function getSprayerTankVolume(equipment: Equipment): number | null {
   return isNaN(val) ? null : val;
 }
 
-function getSprayerPumpCategory(equipment: Equipment): "tsentrifugaal" | "kolb-membraan" | null {
+type PumpCategory = "tsentrifugaal" | "kolb-membraan";
+
+function getSprayerPumpCategories(equipment: Equipment): PumpCategory[] | null {
   const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
   const raw = specs?.pumbasüsteem?.tüüp?.toLowerCase().trim();
   if (!raw) return null;
-  if (raw.includes("tsentrifugaal") && !raw.includes("kolb-membraan")) return "tsentrifugaal";
-  if (raw.includes("kolb-membraan") && !raw.includes("tsentrifugaal")) return "kolb-membraan";
-  if (raw.includes("kolb-membraan")) return "kolb-membraan";
-  return null;
+  const categories: PumpCategory[] = [];
+  if (raw.includes("tsentrifugaal")) categories.push("tsentrifugaal");
+  if (raw.includes("kolb-membraan")) categories.push("kolb-membraan");
+  return categories.length > 0 ? categories : null;
 }
 
 function isTractor(equipment: Equipment): boolean {
@@ -51,8 +53,8 @@ export function useCompetitors(
     // For trailed sprayers, use tank volume and pump type for matching
     if (isTrailedSprayer(selectedModel)) {
       const selectedTank = getSprayerTankVolume(selectedModel);
-      const selectedPump = getSprayerPumpCategory(selectedModel);
-      if (!selectedTank || !selectedPump) return [];
+      const selectedPumps = getSprayerPumpCategories(selectedModel);
+      if (!selectedTank || !selectedPumps) return [];
 
       return allEquipment.filter((eq) => {
         if (eq.id === selectedModel.id) return false;
@@ -60,13 +62,14 @@ export function useCompetitors(
         if (eq.brand_id === selectedModel.brand_id) return false;
 
         const eqTank = getSprayerTankVolume(eq);
-        const eqPump = getSprayerPumpCategory(eq);
-        if (!eqTank || !eqPump) return false;
+        const eqPumps = getSprayerPumpCategories(eq);
+        if (!eqTank || !eqPumps) return false;
 
-        // Must be same pump type
-        if (eqPump !== selectedPump) return false;
+        // Must have overlapping pump categories
+        const hasPumpOverlap = eqPumps.some(p => selectedPumps.includes(p));
+        if (!hasPumpOverlap) return false;
 
-        // Tank volume within ±500L
+        // Tank volume within range
         const tankDiff = Math.abs(eqTank - selectedTank);
         return tankDiff <= TANK_VOLUME_RANGE_L;
       });
@@ -118,9 +121,11 @@ export function getCompetitorSummary(
   // For trailed sprayers, show tank volume and pump type info
   if (isTrailedSprayer(selectedModel)) {
     const tank = getSprayerTankVolume(selectedModel);
-    const pump = getSprayerPumpCategory(selectedModel);
-    if (!tank || !pump) return null;
-    const pumpLabel = pump === "tsentrifugaal" ? "tsentrifugaalpump" : "kolb-membraanpump";
+    const pumps = getSprayerPumpCategories(selectedModel);
+    if (!tank || !pumps) return null;
+    const pumpLabel = pumps.length > 1
+      ? "tsentrifugaal- / kolb-membraanpump"
+      : pumps[0] === "tsentrifugaal" ? "tsentrifugaalpump" : "kolb-membraanpump";
     return `Leitud ${competitors.length} konkurenti pumba tüübiga "${pumpLabel}" ja ±${TANK_VOLUME_RANGE_L}L paagi mahuga (valitud: ${tank}L)`;
   }
 
