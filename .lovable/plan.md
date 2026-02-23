@@ -1,30 +1,37 @@
 
 
+# Mitmese pumba tüübiga mudelite kuvamine mõlemas võrdlusgrupis
+
 ## Probleem
 
-Kui admin paneelil toote dialoogi sulgeda (pärast salvestamist), kerib leht automaatselt üles tagasi. See juhtub, kuna Radix UI Dialog taastab fookuse elemendile, mis dialogi avas, ja brauser kerib selle elemendini -- kuid React Query andmete uuendamine põhjustab listi uuestirenderdamise, mis võib muuta DOM-i ja kaotada keripositsiooni.
+Praegu tagastab `getSprayerPumpCategory` ainult uhe kategooria. Mudelid, mille pumba tyyp sisaldab molemaid variante (nt "tsentrifugaal voi kolb-membraan"), kuvatakse ainult kolb-membraanpumba vordluses.
 
 ## Lahendus
 
-Salvestada keripositsioon enne dialogi sulgemist ja taastada see pärast sulgemist. Muudetakse `closeEquipmentDialog` funktsiooni failis `src/pages/Admin.tsx`.
+Muuta `getSprayerPumpCategory` tagastama massiivi kategooriatest uhe vaartuse asemel. Vordlusloogikas kontrollida, kas valitud mudeli ja konkurendi pumba kategooriad kattuvad (intersection).
 
-## Tehnilised detailid
+## Tehnilised muudatused
 
-Muudetav fail: **src/pages/Admin.tsx**
+### 1. `src/hooks/useCompetitors.ts`
 
-1. Muuta `closeEquipmentDialog` funktsiooni, et see salvestaks `window.scrollY` väärtuse enne dialogi sulgemist
-2. Kasutada `requestAnimationFrame` või `setTimeout`, et taastada keripositsioon pärast DOM-i uuendamist
-3. Sama loogika rakendada ka `closeBrochureDialog` ja `closeArgumentDialog` ning `closeMythDialog` funktsioonidele, et kõik dialoogid käituksid ühtmoodi
+**Funktsioon `getSprayerPumpCategory`:**
+- Tagastustyyp muutub `string | null` asemel `("tsentrifugaal" | "kolb-membraan")[] | null`
+- Kui tekst sisaldab molemaid marksoanu, tagastatakse `["tsentrifugaal", "kolb-membraan"]`
+- Kui ainult yhte, tagastatakse yheelemendine massiiv
 
-Näide lahendusest:
-```typescript
-const closeEquipmentDialog = () => {
-  const scrollY = window.scrollY;
-  setEquipmentDialogOpen(false);
-  setEditingEquipment(null);
-  requestAnimationFrame(() => {
-    window.scrollTo(0, scrollY);
-  });
-};
-```
+**Vordlusloogika `useCompetitors` hookis:**
+- Praegune `eqPump !== selectedPump` kontroll asendatakse kattuvuse kontrollile: kas valitud mudeli ja konkurendi kategooriate massiividel on yhisosa
+- Nt kui valitud mudelil on `["tsentrifugaal"]` ja konkurendil `["tsentrifugaal", "kolb-membraan"]`, siis on yhisosa olemas ja mudel kuvatakse
+
+**Kokkuvottefunktsioon `getCompetitorSummary`:**
+- Kuvab pumba tyybi(d) massiivi pohjal, nt "tsentrifugaalpump" voi "tsentrifugaal- / kolb-membraanpump"
+
+### Naide
+
+Kui kasutaja valib mudeli pumba tyybiga "tsentrifugaalpump":
+- Kuvatakse konkurendid, kus pumba tyyp on "tsentrifugaalpump"
+- Kuvatakse ka konkurendid, kus pumba tyyp on "tsentrifugaal voi kolb-membraan"
+
+Kui kasutaja valib mudeli pumba tyybiga "tsentrifugaal voi kolb-membraan":
+- Kuvatakse molemad grupid: nii tsentrifugaal- kui ka kolb-membraanpumbaga konkurendid
 
