@@ -37,7 +37,7 @@
    useUpdateMyth,
    useDeleteMyth,
  } from "@/hooks/useEquipmentData";
- import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingUp, Users, ChevronRight } from "lucide-react";
+ import { Plus, Trash2, Tractor, MessageSquare, Pencil, MessageSquareWarning, Wallet, Wrench, CloudSun, TrendingDown, Users, ChevronRight, Clock, HelpCircle } from "lucide-react";
  import { StaffUsersManagement } from "@/components/admin/StaffUsersManagement";
  import { useToast } from "@/hooks/use-toast";
  import { Badge } from "@/components/ui/badge";
@@ -50,11 +50,13 @@
  import { useAuthContext } from "@/contexts/AuthContext";
  import { getBrandTextColor } from "@/lib/brandColors";
  
- const MYTH_CATEGORIES = [
-   { value: "finance", label: "Finantsid ja investeeringud", icon: Wallet },
-   { value: "tech", label: "Tehnika ja töökindlus", icon: Wrench },
-   { value: "weather", label: "Ilm, saagikus ja juhtimine", icon: CloudSun },
-   { value: "market", label: "Turg ja konkurents", icon: TrendingUp },
+const MYTH_CATEGORIES = [
+   { value: "uncertainty", label: "Ebakindlus ja ajastus", icon: Clock },
+   { value: "finance", label: "Finantsid ja rahastus", icon: Wallet },
+   { value: "machines", label: "Masinad ja konkurents", icon: Wrench },
+   { value: "costs", label: "Turuhinnad ja sisendkulud", icon: TrendingDown },
+   { value: "weather", label: "Ilm ja saagitingimused", icon: CloudSun },
+   { value: "other", label: "Muud argumendid", icon: HelpCircle },
 ];
 
 // Argument category translations
