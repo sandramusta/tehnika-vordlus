@@ -187,17 +187,24 @@ export function DetailedSpecsEditor({
 
   const handleFieldChange = useCallback(
     (categoryKey: string, fieldKey: string, value: string) => {
-      const parsedValue = parseInputValue(value);
+      // Store raw string in local state for display (allows comma input)
       setSpecs((prevSpecs) => {
         const existingCategory = prevSpecs[categoryKey] || {};
         const updatedSpecs = {
           ...prevSpecs,
           [categoryKey]: {
             ...existingCategory,
-            [fieldKey]: parsedValue,
+            [fieldKey]: value,
           },
         };
-        onChange(updatedSpecs);
+        // Send normalized/parsed value to parent for saving
+        const normalizedSpecs = { ...updatedSpecs };
+        const parsedValue = parseInputValue(value);
+        normalizedSpecs[categoryKey] = {
+          ...normalizedSpecs[categoryKey],
+          [fieldKey]: parsedValue,
+        };
+        onChange(normalizedSpecs);
         return updatedSpecs;
       });
     },
@@ -580,7 +587,7 @@ export function DetailedSpecsEditor({
                             <Input
                               id={cellId}
                               value={fieldValue}
-                              onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value.replace(/,/g, "."))}
+                              onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value)}
                               placeholder="—"
                               className={cn(
                                 "h-8 text-sm",

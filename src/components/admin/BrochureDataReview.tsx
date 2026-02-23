@@ -140,7 +140,8 @@ export function BrochureDataReview({
   };
 
   const updateColumnValue = (key: string, value: string) => {
-    const parsed = value === "" ? null : isNaN(Number(value)) ? value : Number(value);
+    const normalized = value.replace(/,/g, ".");
+    const parsed = normalized === "" ? null : isNaN(Number(normalized)) ? normalized : Number(normalized);
     setEditedData((prev) => {
       const updated = {
         ...prev,
@@ -165,7 +166,8 @@ export function BrochureDataReview({
   };
 
   const updateDetailedSpecValue = (category: string, field: string, value: string) => {
-    const parsed = value === "" ? null : isNaN(Number(value)) ? value : Number(value);
+    const normalized = value.replace(/,/g, ".");
+    const parsed = normalized === "" ? null : isNaN(Number(normalized)) ? normalized : Number(normalized);
     setEditedData((prev) => {
       const updated = {
         ...prev,
@@ -340,7 +342,7 @@ export function BrochureDataReview({
                         <Input
                           id={`col-${key}`}
                           value={value === null || value === undefined ? "" : String(value)}
-                          onChange={(e) => updateColumnValue(key, e.target.value.replace(/,/g, "."))}
+                          onChange={(e) => updateColumnValue(key, e.target.value)}
                           className={cn(
                             "h-8 text-sm",
                             hasValue && "border-green-300 bg-green-50 dark:bg-green-950/20",
@@ -410,7 +412,7 @@ export function BrochureDataReview({
                             id={`spec-${categoryKey}-${field}`}
                             value={value === null || value === undefined ? "" : String(value)}
                             onChange={(e) =>
-                              updateDetailedSpecValue(categoryKey, field, e.target.value.replace(/,/g, "."))
+                              updateDetailedSpecValue(categoryKey, field, e.target.value)
                             }
                             className={cn(
                               "h-8 text-sm",

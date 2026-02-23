@@ -119,7 +119,8 @@ import { cn } from "@/lib/utils";
         // Sync to detailed specs if mapping exists
         const loc = columnToSpecs[fieldName];
         if (loc) {
-          const parsed = value === "" ? null : isNaN(Number(value)) ? value : Number(value);
+          const normalized = value.replace(/,/g, ".");
+          const parsed = normalized === "" ? null : isNaN(Number(normalized)) ? normalized : Number(normalized);
           setDetailedSpecs((prev) => {
             const prevObj = (prev || {}) as Record<string, Record<string, unknown>>;
             return {
@@ -217,7 +218,7 @@ import { cn } from "@/lib/utils";
               step={field.step}
               placeholder={field.placeholder}
               value={controlledValue ?? ""}
-              onChange={(e) => handleFormFieldChange(field.name, e.target.value.replace(/,/g, "."))}
+              onChange={(e) => handleFormFieldChange(field.name, e.target.value)}
             />
           ) : (
             <Input
