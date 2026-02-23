@@ -190,6 +190,7 @@ export default function Stats() {
                       <TableHead>Nimi</TableHead>
                       <TableHead>Viimati aktiivne</TableHead>
                       <TableHead className="text-center">PDF-raportid</TableHead>
+                      <TableHead className="text-center">Võrdlused</TableHead>
                       <TableHead className="text-center">Punktid</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -217,7 +218,10 @@ export default function Stats() {
                             : "—"}
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant="secondary">{entry.pdf_count + entry.comparison_count}</Badge>
+                          <Badge variant="secondary">{entry.pdf_count}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="secondary">{entry.comparison_count}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge
