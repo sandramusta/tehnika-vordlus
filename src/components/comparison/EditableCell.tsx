@@ -142,7 +142,7 @@ export function EditableValueCell({
     if (!disabled && !isEditing) {
       const editableValue = rawValue === null || rawValue === undefined 
         ? "" 
-        : String(rawValue);
+        : typeof rawValue === "number" ? String(rawValue).replace(".", ",") : String(rawValue);
       onStartEdit(cellId, editableValue);
     }
   };

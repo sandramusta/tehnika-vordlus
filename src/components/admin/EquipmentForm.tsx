@@ -77,7 +77,7 @@ import { cn } from "@/lib/utils";
         for (const group of COMMON_FIELDS) {
           for (const field of group.fields) {
             const val = equipment[field.name as keyof Equipment];
-            values[field.name] = val != null ? String(val) : "";
+            values[field.name] = val != null ? (typeof val === "number" ? String(val).replace(".", ",") : String(val)) : "";
           }
         }
         setFormValues(values);

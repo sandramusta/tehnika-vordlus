@@ -17,7 +17,7 @@ export function useInlineEdit(options: UseInlineEditOptions = {}) {
 
   const startEditing = useCallback((cellId: string, currentValue: unknown) => {
     setEditingCell(cellId);
-    setEditValue(currentValue === null || currentValue === undefined ? "" : String(currentValue));
+    setEditValue(currentValue === null || currentValue === undefined ? "" : (typeof currentValue === "number" ? String(currentValue).replace(".", ",") : String(currentValue)));
   }, []);
 
   const cancelEditing = useCallback(() => {
