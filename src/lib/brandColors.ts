@@ -32,9 +32,15 @@
         return "text-kubota";
       case "Massey Ferguson":
         return "text-massey-ferguson";
-      case "Valtra":
-        return "text-valtra";
-      default:
+       case "Valtra":
+         return "text-valtra";
+       case "Agrifac":
+         return "text-agrifac";
+       case "Amazone":
+         return "text-amazone";
+       case "Horsch":
+         return "text-horsch";
+       default:
        return "text-foreground";
    }
  }
@@ -71,9 +77,15 @@
         return "brand-kubota";
       case "Massey Ferguson":
         return "brand-massey-ferguson";
-      case "Valtra":
-        return "brand-valtra";
-      default:
+       case "Valtra":
+         return "brand-valtra";
+       case "Agrifac":
+         return "brand-agrifac";
+       case "Amazone":
+         return "brand-amazone";
+       case "Horsch":
+         return "brand-horsch";
+       default:
        return "bg-muted text-foreground";
    }
  }
@@ -89,9 +101,9 @@
         return "#D0202E";
       case "New Holland":
         return "#003087";
-      case "Fendt":
-        return "#345A36";
-     // Telehandler brands
+       case "Fendt":
+         return "#2E6F40";
+      // Telehandler brands
      case "Kramer":
       return "#42805E";
      case "Manitou":
@@ -110,17 +122,23 @@
         return "#FF6600";
       case "Massey Ferguson":
         return "#C8102E";
-      case "Valtra":
-        return "#C41230";
-      default:
+       case "Valtra":
+         return "#C41230";
+       case "Agrifac":
+         return "#BB1E10";
+       case "Amazone":
+         return "#E75B12";
+       case "Horsch":
+         return "#9B111E";
+       default:
        return "#6b7280";
    }
  }
  
  // Determine if brand color is light (needs dark text)
-  export function isBrandColorLight(brandName: string): boolean {
-    return ["JCB", "Claas Scorpion", "Claas", "Kubota"].includes(brandName);
-  }
+   export function isBrandColorLight(brandName: string): boolean {
+     return ["JCB", "Claas Scorpion", "Claas", "Kubota", "Amazone"].includes(brandName);
+   }
  
  // Get badge classes for "vs Brand" display
  export function getBrandBadgeClasses(brandName: string): string {
