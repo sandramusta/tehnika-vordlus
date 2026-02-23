@@ -197,32 +197,32 @@
        ],
      },
    ],
-   "self_propelled_sprayer": [
-     {
-       title: "Paak ja pihustid",
-       fields: [
-         { name: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number", placeholder: "400" },
-         { name: "grain_tank_liters", label: "Pritsimispaak (L)", type: "number", placeholder: "5000" },
-         { name: "header_width_m", label: "Töölaius (m)", type: "number", step: "0.1", placeholder: "36" },
-       ],
-     },
-     {
-       title: "Mõõtmed",
-       fields: [
-         { name: "transport_width_mm", label: "Transpordi laius (mm)", type: "number", placeholder: "3000" },
-         { name: "transport_height_mm", label: "Transpordi kõrgus (mm)", type: "number", placeholder: "4000" },
-       ],
-     },
-   ],
-   "trailed_sprayer": [
-     {
-       title: "Paak ja poomid",
-       fields: [
-         { name: "grain_tank_liters", label: "Paagi maht (L)", type: "number", placeholder: "4000" },
-         { name: "header_width_m", label: "Poomi laius (m)", type: "number", step: "0.1", placeholder: "28" },
-       ],
-     },
-   ],
+  "self_propelled_sprayer": [
+    {
+      title: "Paak ja pihustid",
+      fields: [
+        { name: "fuel_tank_liters", label: "Kütusepaak (L)", type: "number", placeholder: "400" },
+        { name: "grain_tank_liters", label: "Pritsimispaak (L)", type: "number", placeholder: "5000" },
+        { name: "header_width_m", label: "Töölaius (m)", type: "number", step: "0.1", placeholder: "36" },
+      ],
+    },
+    {
+      title: "Mõõtmed",
+      fields: [
+        { name: "transport_width_mm", label: "Transpordi laius (mm)", type: "number", placeholder: "3000" },
+        { name: "transport_height_mm", label: "Transpordi kõrgus (mm)", type: "number", placeholder: "4000" },
+      ],
+    },
+  ],
+  "trailed_sprayer": [
+    {
+      title: "Paak ja poomid",
+      fields: [
+        { name: "grain_tank_liters", label: "Paagi maht (L)", type: "number", placeholder: "4000" },
+        { name: "header_width_m", label: "Poomi laius (m)", type: "number", step: "0.1", placeholder: "28" },
+      ],
+    },
+  ],
   "round_baler": [
     {
       title: "Rulooni mõõtmed",
@@ -251,8 +251,18 @@
  };
  
  // Get fields for a specific equipment type
- export function getFieldsForEquipmentType(typeName: string): FieldGroup[] {
-   const normalizedName = typeName.toLowerCase().replace(/\s+/g, "_");
-   const specificFields = TYPE_SPECIFIC_FIELDS[normalizedName] || [];
-   return [...COMMON_FIELDS, ...specificFields];
- }
+export function getFieldsForEquipmentType(typeName: string): FieldGroup[] {
+  const normalizedName = typeName.toLowerCase().replace(/\s+/g, "_");
+  const specificFields = TYPE_SPECIFIC_FIELDS[normalizedName] || [];
+  
+  // Trailed sprayers don't have their own engine, so exclude engine_power_hp
+  if (normalizedName === "trailed_sprayer") {
+    const filteredCommon = COMMON_FIELDS.map(group => ({
+      ...group,
+      fields: group.fields.filter(f => f.name !== "engine_power_hp"),
+    }));
+    return [...filteredCommon, ...specificFields];
+  }
+  
+  return [...COMMON_FIELDS, ...specificFields];
+}
