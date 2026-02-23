@@ -177,15 +177,14 @@ import { cn } from "@/lib/utils";
     // Get dynamic fields based on selected type
     // Only show COMMON_FIELDS (Põhiandmed + Majandusandmed), not type-specific fields
     const fieldGroups = useMemo(() => {
-      if (selectedType?.name === "round_baler") {
-        // Hide engine_power_hp and fuel_consumption_lh for round balers
-        const hiddenFields = new Set(["engine_power_hp", "fuel_consumption_lh"]);
-        return COMMON_FIELDS.map(group => ({
-          ...group,
-          fields: group.fields.filter(f => !hiddenFields.has(f.name)),
-        })).filter(group => group.fields.length > 0);
-      }
-      return COMMON_FIELDS;
+    if (selectedType?.name === "round_baler" || selectedType?.name === "trailed_sprayer") {
+      const hiddenFields = new Set(["engine_power_hp", "fuel_consumption_lh"]);
+      return COMMON_FIELDS.map(group => ({
+        ...group,
+        fields: group.fields.filter(f => !hiddenFields.has(f.name)),
+      })).filter(group => group.fields.length > 0);
+    }
+    return COMMON_FIELDS;
     }, [selectedType?.name]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
