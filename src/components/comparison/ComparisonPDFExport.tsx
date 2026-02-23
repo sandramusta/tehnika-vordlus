@@ -510,9 +510,16 @@ async function generateROIPDF(
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
       .finalY + 15;
 
-  // Results
+  // Results - check if table fits on current page
   const tcoSavings = existingCalc.totalLifetimeCosts - newCalc.totalLifetimeCosts;
   const roiDiff = newCalc.roi - existingCalc.roi;
+
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const resultsTableHeight = 60;
+  if (yPos + resultsTableHeight + 30 > pageHeight) {
+    doc.addPage("landscape");
+    yPos = 20;
+  }
 
   doc.setFontSize(12);
   doc.text("Tulemused", 14, yPos);
@@ -745,9 +752,16 @@ async function generateFullReportPDF(
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
       .finalY + 10;
 
-  // Results
+  // Results - check if table fits on current page
   const tcoSavings = existingCalc.totalLifetimeCosts - newCalc.totalLifetimeCosts;
   const roiDiff = newCalc.roi - existingCalc.roi;
+
+  const roiPageHeight = doc.internal.pageSize.getHeight();
+  const roiResultsHeight = 60;
+  if (yPos + roiResultsHeight + 30 > roiPageHeight) {
+    doc.addPage("landscape");
+    yPos = 20;
+  }
 
   doc.setFontSize(12);
   doc.text("Tulemused", 14, yPos);

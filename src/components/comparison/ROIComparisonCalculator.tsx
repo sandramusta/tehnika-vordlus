@@ -166,6 +166,15 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     
     yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
     
+    // Check if "Tulemused" table fits on current page (header + 5 rows ≈ 70px)
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const resultsTableHeight = 70;
+    if (yPos + resultsTableHeight + 30 > pageHeight) {
+      addPDFFooter(doc, pageWidth, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
+      doc.addPage();
+      yPos = 20;
+    }
+    
     doc.setFontSize(12);
     doc.text("Tulemused", 14, yPos);
     yPos += 6;
