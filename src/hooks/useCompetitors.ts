@@ -23,9 +23,14 @@ function getSprayerTankVolume(equipment: Equipment): number | null {
   return isNaN(val) ? null : val;
 }
 
-function getSprayerPumpType(equipment: Equipment): string | null {
+function getSprayerPumpCategory(equipment: Equipment): "tsentrifugaal" | "kolb-membraan" | null {
   const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
-  return specs?.pumbasüsteem?.tüüp?.toLowerCase().trim() || null;
+  const raw = specs?.pumbasüsteem?.tüüp?.toLowerCase().trim();
+  if (!raw) return null;
+  if (raw.includes("tsentrifugaal") && !raw.includes("kolb-membraan")) return "tsentrifugaal";
+  if (raw.includes("kolb-membraan") && !raw.includes("tsentrifugaal")) return "kolb-membraan";
+  if (raw.includes("kolb-membraan")) return "kolb-membraan";
+  return null;
 }
 
 function isTractor(equipment: Equipment): boolean {
@@ -46,7 +51,7 @@ export function useCompetitors(
     // For trailed sprayers, use tank volume and pump type for matching
     if (isTrailedSprayer(selectedModel)) {
       const selectedTank = getSprayerTankVolume(selectedModel);
-      const selectedPump = getSprayerPumpType(selectedModel);
+      const selectedPump = getSprayerPumpCategory(selectedModel);
       if (!selectedTank || !selectedPump) return [];
 
       return allEquipment.filter((eq) => {
@@ -55,7 +60,7 @@ export function useCompetitors(
         if (eq.brand_id === selectedModel.brand_id) return false;
 
         const eqTank = getSprayerTankVolume(eq);
-        const eqPump = getSprayerPumpType(eq);
+        const eqPump = getSprayerPumpCategory(eq);
         if (!eqTank || !eqPump) return false;
 
         // Must be same pump type
@@ -113,9 +118,10 @@ export function getCompetitorSummary(
   // For trailed sprayers, show tank volume and pump type info
   if (isTrailedSprayer(selectedModel)) {
     const tank = getSprayerTankVolume(selectedModel);
-    const pump = getSprayerPumpType(selectedModel);
+    const pump = getSprayerPumpCategory(selectedModel);
     if (!tank || !pump) return null;
-    return `Leitud ${competitors.length} konkurenti sama pumba tüübiga ("${pump}") ja ±${TANK_VOLUME_RANGE_L}L paagi mahuga (valitud: ${tank}L)`;
+    const pumpLabel = pump === "tsentrifugaal" ? "tsentrifugaalpump" : "kolb-membraanpump";
+    return `Leitud ${competitors.length} konkurenti pumba tüübiga "${pumpLabel}" ja ±${TANK_VOLUME_RANGE_L}L paagi mahuga (valitud: ${tank}L)`;
   }
 
   // For telehandlers, show lift height and capacity info
