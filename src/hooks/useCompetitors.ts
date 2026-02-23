@@ -5,10 +5,27 @@ const HP_RANGE_DEFAULT = 50;
 const HP_RANGE_TRACTOR = 10;
 const LIFT_HEIGHT_RANGE_M = 0.5; // ±0.5m for telehandler matching
 const LIFT_CAPACITY_RANGE_KG = 400; // ±400kg for telehandler matching
+const TANK_VOLUME_RANGE_L = 500; // ±500L for trailed sprayer matching
 
 // Check if equipment type is telehandler
 function isTelehandler(equipment: Equipment): boolean {
   return equipment.equipment_type?.name === "telehandler";
+}
+
+function isTrailedSprayer(equipment: Equipment): boolean {
+  return equipment.equipment_type?.name === "trailed_sprayer";
+}
+
+function getSprayerTankVolume(equipment: Equipment): number | null {
+  const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
+  if (!specs?.paak_ja_poomid?.paagi_maht_l) return null;
+  const val = parseFloat(specs.paak_ja_poomid.paagi_maht_l);
+  return isNaN(val) ? null : val;
+}
+
+function getSprayerPumpType(equipment: Equipment): string | null {
+  const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
+  return specs?.pumbasüsteem?.tüüp?.toLowerCase().trim() || null;
 }
 
 function isTractor(equipment: Equipment): boolean {
@@ -26,9 +43,32 @@ export function useCompetitors(
   return useMemo(() => {
     if (!selectedModel) return [];
 
+    // For trailed sprayers, use tank volume and pump type for matching
+    if (isTrailedSprayer(selectedModel)) {
+      const selectedTank = getSprayerTankVolume(selectedModel);
+      const selectedPump = getSprayerPumpType(selectedModel);
+      if (!selectedTank || !selectedPump) return [];
+
+      return allEquipment.filter((eq) => {
+        if (eq.id === selectedModel.id) return false;
+        if (eq.equipment_type_id !== selectedModel.equipment_type_id) return false;
+        if (eq.brand_id === selectedModel.brand_id) return false;
+
+        const eqTank = getSprayerTankVolume(eq);
+        const eqPump = getSprayerPumpType(eq);
+        if (!eqTank || !eqPump) return false;
+
+        // Must be same pump type
+        if (eqPump !== selectedPump) return false;
+
+        // Tank volume within ±500L
+        const tankDiff = Math.abs(eqTank - selectedTank);
+        return tankDiff <= TANK_VOLUME_RANGE_L;
+      });
+    }
+
     // For telehandlers, use lift height and capacity for matching
     if (isTelehandler(selectedModel)) {
-      // Need at least lift height for telehandler matching
       if (!selectedModel.lift_height_m) return [];
 
       return allEquipment.filter((eq) => {
@@ -37,11 +77,9 @@ export function useCompetitors(
         if (eq.brand_id === selectedModel.brand_id) return false;
         if (!eq.lift_height_m) return false;
 
-        // Match by lift height (primary criterion)
         const heightDiff = Math.abs(eq.lift_height_m - selectedModel.lift_height_m!);
         if (heightDiff > LIFT_HEIGHT_RANGE_M) return false;
 
-        // If both have capacity data, also check capacity range
         if (selectedModel.max_lift_capacity_kg && eq.max_lift_capacity_kg) {
           const capacityDiff = Math.abs(eq.max_lift_capacity_kg - selectedModel.max_lift_capacity_kg);
           if (capacityDiff > LIFT_CAPACITY_RANGE_KG) return false;
@@ -71,6 +109,14 @@ export function getCompetitorSummary(
   competitors: Equipment[]
 ): string | null {
   if (!selectedModel || competitors.length === 0) return null;
+
+  // For trailed sprayers, show tank volume and pump type info
+  if (isTrailedSprayer(selectedModel)) {
+    const tank = getSprayerTankVolume(selectedModel);
+    const pump = getSprayerPumpType(selectedModel);
+    if (!tank || !pump) return null;
+    return `Leitud ${competitors.length} konkurenti sama pumba tüübiga ("${pump}") ja ±${TANK_VOLUME_RANGE_L}L paagi mahuga (valitud: ${tank}L)`;
+  }
 
   // For telehandlers, show lift height and capacity info
   if (isTelehandler(selectedModel) && selectedModel.lift_height_m) {
