@@ -17,7 +17,7 @@ import {
   ROIEquipmentCategory,
   getROIEquipmentCategory,
 } from "./SingleROICalculator";
-import { addPDFHeader, addPDFFooter } from "@/lib/pdfHelpers";
+import { addPDFHeader, addPDFFooter, ensureSpaceForContent } from "@/lib/pdfHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import { useActivityLog } from "@/hooks/useActivityLog";
 import { useEquipmentTypes } from "@/hooks/useEquipmentData";
@@ -166,14 +166,8 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     
     yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
     
-    // Check if "Tulemused" table fits on current page (header + 5 rows ≈ 70px)
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const resultsTableHeight = 70;
-    if (yPos + resultsTableHeight + 30 > pageHeight) {
-      addPDFFooter(doc, pageWidth, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
-      doc.addPage();
-      yPos = 20;
-    }
+    // Ensure "Tulemused" table fits on current page
+    yPos = ensureSpaceForContent(doc, yPos, 70);
     
     doc.setFontSize(12);
     doc.text("Tulemused", 14, yPos);
@@ -219,6 +213,9 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     });
     
     yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+    
+    // Ensure "Kokkuvõte" section fits on current page
+    yPos = ensureSpaceForContent(doc, yPos, 40);
     
     doc.setFontSize(11);
     doc.setTextColor(34, 87, 46);

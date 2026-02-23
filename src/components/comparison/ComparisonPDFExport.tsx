@@ -15,7 +15,7 @@ import {
   getCategoryNamesForType,
   buildDetailedSpecRows,
 } from "@/lib/pdfSpecsHelpers";
-import { addPDFHeader, addPDFFooter, initializePDFGeneration } from "@/lib/pdfHelpers";
+import { addPDFHeader, addPDFFooter, initializePDFGeneration, ensureSpaceForContent } from "@/lib/pdfHelpers";
 import { useAuth } from "@/hooks/useAuth";
 import { useActivityLog } from "@/hooks/useActivityLog";
 import { useState } from "react";
@@ -184,6 +184,7 @@ function renderChunkedTable(
       styles: {
         overflow: 'linebreak',
       },
+      rowPageBreak: 'avoid',
       margin: { top: 28, bottom: 30, left: 14, right: 14 },
       didParseCell: (data) => {
         if (data.section === "body" && data.column.index === 0) {
@@ -371,6 +372,7 @@ async function generateComparisonWithTCOPDF(
     bodyStyles: { fontSize: 9, cellPadding: 3 },
     columnStyles: { 0: { cellWidth: 60 } },
     styles: { overflow: 'linebreak' },
+    rowPageBreak: 'avoid',
     margin: { bottom: 30 },
   });
 
@@ -378,7 +380,7 @@ async function generateComparisonWithTCOPDF(
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
       .finalY + 15;
 
-  // TCO Summary
+  // TCO Summary - ensure it fits on current page
   const tcoValues = selectedModels
     .map((m) => calculateTCO(m))
     .filter((v): v is number => v !== null);
@@ -389,9 +391,11 @@ async function generateComparisonWithTCOPDF(
 
     const bestModel = selectedModels.find((m) => calculateTCO(m) === minTCO);
 
+    let summaryY = ensureSpaceForContent(doc, lastY, 40, "landscape");
+
     doc.setFontSize(11);
     doc.setTextColor(34, 87, 46);
-    doc.text("Kokkuvõte", 14, lastY);
+    doc.text("Kokkuvõte", 14, summaryY);
 
     doc.setFontSize(10);
     doc.setTextColor(0);
@@ -399,13 +403,13 @@ async function generateComparisonWithTCOPDF(
       doc.text(
         `• Madalaima omamiskuluga on ${bestModel.brand?.name} ${bestModel.model_name} (${formatCurrency(minTCO)})`,
         14,
-        lastY + 8,
+        summaryY + 8,
         { maxWidth: pageWidth - 28 }
       );
       doc.text(
         `• Maksimaalne sääst võrreldes kallima mudeliga: ${formatCurrency(savings)}`,
         14,
-        lastY + 16,
+        summaryY + 16,
         { maxWidth: pageWidth - 28 }
       );
     }
@@ -503,6 +507,7 @@ async function generateROIPDF(
     headStyles: commonHeadStyles,
     bodyStyles: { fontSize: 9, cellPadding: 3 },
     styles: { overflow: 'linebreak' },
+    rowPageBreak: 'avoid',
     margin: { bottom: 30 },
   });
 
@@ -510,16 +515,11 @@ async function generateROIPDF(
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
       .finalY + 15;
 
-  // Results - check if table fits on current page
+  // Results - ensure table fits on current page
   const tcoSavings = existingCalc.totalLifetimeCosts - newCalc.totalLifetimeCosts;
   const roiDiff = newCalc.roi - existingCalc.roi;
 
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const resultsTableHeight = 60;
-  if (yPos + resultsTableHeight + 30 > pageHeight) {
-    doc.addPage("landscape");
-    yPos = 20;
-  }
+  yPos = ensureSpaceForContent(doc, yPos, 60, "landscape");
 
   doc.setFontSize(12);
   doc.text("Tulemused", 14, yPos);
@@ -552,6 +552,7 @@ async function generateROIPDF(
     headStyles: commonHeadStyles,
     bodyStyles: { fontSize: 9, cellPadding: 3 },
     styles: { overflow: 'linebreak' },
+    rowPageBreak: 'avoid',
     margin: { bottom: 30 },
   });
 
@@ -679,6 +680,7 @@ async function generateFullReportPDF(
     bodyStyles: { fontSize: 9, cellPadding: 3 },
     columnStyles: { 0: { cellWidth: 60 } },
     styles: { overflow: 'linebreak' },
+    rowPageBreak: 'avoid',
     margin: { bottom: 30 },
   });
 
@@ -745,6 +747,7 @@ async function generateFullReportPDF(
     headStyles: commonHeadStyles,
     bodyStyles: { fontSize: 9, cellPadding: 3 },
     styles: { overflow: 'linebreak' },
+    rowPageBreak: 'avoid',
     margin: { bottom: 30 },
   });
 
@@ -752,16 +755,11 @@ async function generateFullReportPDF(
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
       .finalY + 10;
 
-  // Results - check if table fits on current page
+  // Results - ensure table fits on current page
   const tcoSavings = existingCalc.totalLifetimeCosts - newCalc.totalLifetimeCosts;
   const roiDiff = newCalc.roi - existingCalc.roi;
 
-  const roiPageHeight = doc.internal.pageSize.getHeight();
-  const roiResultsHeight = 60;
-  if (yPos + roiResultsHeight + 30 > roiPageHeight) {
-    doc.addPage("landscape");
-    yPos = 20;
-  }
+  yPos = ensureSpaceForContent(doc, yPos, 60, "landscape");
 
   doc.setFontSize(12);
   doc.text("Tulemused", 14, yPos);
@@ -794,6 +792,7 @@ async function generateFullReportPDF(
     headStyles: commonHeadStyles,
     bodyStyles: { fontSize: 9, cellPadding: 3 },
     styles: { overflow: 'linebreak' },
+    rowPageBreak: 'avoid',
     margin: { bottom: 30 },
   });
 
