@@ -53,7 +53,7 @@
     --claas: 80 76% 41%;
     --case-ih: 355 74% 47%;
     --new-holland: 222 100% 26%;
-    --fendt: 122 26% 28%;
+    --fendt: 149 41% 31%;
     
     /* Telehandler brand colors (HSL from HEX) */
     --kramer: 152 32% 38%;
@@ -66,6 +66,11 @@
     --kubota: 24 100% 50%;
     --massey-ferguson: 354 83% 42%;
     --valtra: 352 82% 42%;
+
+    /* Sprayer brand colors */
+    --agrifac: 5 85% 40%;
+    --amazone: 21 87% 49%;
+    --horsch: 354 80% 34%;
 
     /* Sidebar */
     --sidebar-background: 120 15% 97%;

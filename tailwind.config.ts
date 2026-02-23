@@ -70,6 +70,9 @@ export default {
         "kubota": "hsl(var(--kubota))",
         "massey-ferguson": "hsl(var(--massey-ferguson))",
         "valtra": "hsl(var(--valtra))",
+        "agrifac": "hsl(var(--agrifac))",
+        "amazone": "hsl(var(--amazone))",
+        "horsch": "hsl(var(--horsch))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
