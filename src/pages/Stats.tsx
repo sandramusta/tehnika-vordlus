@@ -169,7 +169,7 @@ export default function Stats() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Punktid: PDF = 3p, Võrdlus = 1p
+              Punktid: PDF = 2p, Võrdlus = 1p
             </p>
           </CardHeader>
           <CardContent>
