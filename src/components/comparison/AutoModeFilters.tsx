@@ -15,6 +15,7 @@ interface AutoModeFiltersProps {
   competitorCount: number;
   competitorSummary: string | null;
   equipmentTypeName?: string;
+  isShowAllModelsType?: boolean;
 }
 
 const allowedTypes = [
@@ -39,6 +40,7 @@ export function AutoModeFilters({
   competitorCount,
   competitorSummary,
   equipmentTypeName,
+  isShowAllModelsType = false,
 }: AutoModeFiltersProps) {
   const { data: types } = useEquipmentTypes();
   const { data: brands } = useBrands();
@@ -61,6 +63,7 @@ export function AutoModeFilters({
   const isBrandSelected = selectedBrand !== "all";
   const isModelSelected = selectedModelId !== "all";
 
+  const isSelfPropelledSprayer = equipmentTypeName === "self_propelled_sprayer";
   const selectedModel = equipment.find((m) => m.id === selectedModelId);
   const isTelehandler = equipmentTypeName === "telehandler";
   const isTrailedSprayer = equipmentTypeName === "trailed_sprayer";
@@ -86,57 +89,71 @@ export function AutoModeFilters({
           </Select>
         </div>
 
-        {/* Brand Selector */}
-        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-          <label className="text-sm font-medium text-muted-foreground">Bränd</label>
-          <Select 
-            value={selectedBrand} 
-            onValueChange={onBrandChange}
-            disabled={!isTypeSelected}
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder={isTypeSelected ? "Vali bränd" : "Vali esmalt tüüp"} />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Vali bränd...</SelectItem>
-              {availableBrands.map((brand) => (
-                <SelectItem key={brand.id} value={brand.id}>
-                  {brand.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Brand Selector - hidden for show-all types */}
+        {!isShowAllModelsType && (
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+            <label className="text-sm font-medium text-muted-foreground">Bränd</label>
+            <Select 
+              value={selectedBrand} 
+              onValueChange={onBrandChange}
+              disabled={!isTypeSelected}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder={isTypeSelected ? "Vali bränd" : "Vali esmalt tüüp"} />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Vali bränd...</SelectItem>
+                {availableBrands.map((brand) => (
+                  <SelectItem key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-        {/* Model Selector */}
-        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-          <label className="text-sm font-medium text-muted-foreground">Mudel</label>
-          <Select 
-            value={selectedModelId} 
-            onValueChange={onModelChange}
-            disabled={!isBrandSelected}
-          >
-            <SelectTrigger className="w-full sm:w-[220px]">
-              <SelectValue placeholder={isBrandSelected ? "Vali mudel" : "Vali esmalt bränd"} />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Vali mudel...</SelectItem>
-              {filteredModels.map((model) => (
-                <SelectItem key={model.id} value={model.id}>
-                  {model.model_name}
-                  {isTelehandler 
-                    ? (model.lift_height_m && ` (${model.lift_height_m}m)`)
-                    : (model.engine_power_hp && ` (${model.engine_power_hp} hj)`)
-                  }
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Model Selector - hidden for show-all types */}
+        {!isShowAllModelsType && (
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+            <label className="text-sm font-medium text-muted-foreground">Mudel</label>
+            <Select 
+              value={selectedModelId} 
+              onValueChange={onModelChange}
+              disabled={!isBrandSelected}
+            >
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder={isBrandSelected ? "Vali mudel" : "Vali esmalt bränd"} />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Vali mudel...</SelectItem>
+                {filteredModels.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.model_name}
+                    {isTelehandler 
+                      ? (model.lift_height_m && ` (${model.lift_height_m}m)`)
+                      : (model.engine_power_hp && ` (${model.engine_power_hp} hj)`)
+                    }
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
+      {/* Show-all type info message */}
+      {isShowAllModelsType && isTypeSelected && (
+        <div className="flex items-center gap-1.5">
+          <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5">
+            <Info className="h-3.5 w-3.5" />
+            Kuvatakse kõik {equipment.length} mudelit
+          </Badge>
+        </div>
+      )}
+
       {/* Competitor Summary */}
-      {isModelSelected && selectedModel && (
+      {!isShowAllModelsType && isModelSelected && selectedModel && (
         <div className="flex items-center gap-3">
           {competitorCount > 0 ? (
             <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5">
@@ -158,7 +175,7 @@ export function AutoModeFilters({
       )}
 
       {/* Selection guidance */}
-      {!isModelSelected && isTypeSelected && (
+      {!isShowAllModelsType && !isModelSelected && isTypeSelected && (
         <div className="text-sm text-muted-foreground">
           {isTrailedSprayer
             ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sama pumba tüübi ja ±1000L paagi mahu vahemikus teistest brändidest."

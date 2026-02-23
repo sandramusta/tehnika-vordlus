@@ -54,6 +54,9 @@ export default function Comparison() {
     return types.find((t) => t.id === selectedType) || null;
   }, [selectedType, types]);
 
+  // Check if current type shows all models automatically (no brand/model selection needed)
+  const isShowAllModelsType = currentEquipmentType?.name === "self_propelled_sprayer";
+
   // Auto mode: find the selected model object
   const selectedModel = useMemo(() => {
     if (selectedModelId === "all") return null;
@@ -67,12 +70,16 @@ export default function Comparison() {
   // Compute display models based on mode
   const displayModels = useMemo((): Equipment[] => {
     if (comparisonMode === "auto") {
+      // For self-propelled sprayers, show ALL models of that type
+      if (isShowAllModelsType && selectedType !== "all") {
+        return allEquipment.filter(eq => eq.equipment_type_id === selectedType);
+      }
       if (!selectedModel) return [];
       return [selectedModel, ...competitors];
     } else {
       return selectedModels;
     }
-  }, [comparisonMode, selectedModel, competitors, selectedModels]);
+  }, [comparisonMode, selectedModel, competitors, selectedModels, isShowAllModelsType, selectedType, allEquipment]);
 
   // Log comparison activity when 2+ models are displayed
   const lastLoggedModelsRef = useRef<string>("");
@@ -174,6 +181,7 @@ export default function Comparison() {
                   competitorCount={competitors.length}
                   competitorSummary={competitorSummary}
                   equipmentTypeName={currentEquipmentType?.name}
+                  isShowAllModelsType={isShowAllModelsType}
                 />
               )}
 
