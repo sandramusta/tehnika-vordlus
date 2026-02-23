@@ -76,12 +76,7 @@ const WHEEL_LOADER_MAPPING: Record<string, SpecLocation> = {
 };
 
 const SELF_PROPELLED_SPRAYER_MAPPING: Record<string, SpecLocation> = {
-  engine_power_hp: { category: "mootor", field: "võimsus_hj" },
-  fuel_tank_liters: { category: "mootor", field: "kütusepaagi_maht_l" },
-  weight_kg: { category: "mõõtmed", field: "kaal_kg" },
-  transport_width_mm: { category: "mõõtmed", field: "laius_mm" },
-  transport_height_mm: { category: "mõõtmed", field: "kõrgus_mm" },
-  transport_length_mm: { category: "mõõtmed", field: "pikkus_mm" },
+  engine_power_hp: { category: "šassii", field: "kliirens_cm" },
 };
 
 const TRAILED_SPRAYER_MAPPING: Record<string, SpecLocation> = {

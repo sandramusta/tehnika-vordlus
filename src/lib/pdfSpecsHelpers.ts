@@ -306,40 +306,36 @@ export const WHEEL_LOADER_FIELD_NAMES: Record<string, Record<string, string>> = 
 };
 
 // ============================================================================
-// SELF-PROPELLED SPRAYER (Iseliikuv taimekaitseprits) - 4 categories
+// SELF-PROPELLED SPRAYER (Iseliikuv taimekaitseprits) - 3 categories
 // ============================================================================
 export const SELF_PROPELLED_SPRAYER_CATEGORY_ORDER = [
-  "paak",
-  "poomid",
-  "mootor",
-  "mõõtmed",
+  "pumbasüsteem",
+  "pihustisüsteem",
+  "šassii",
 ] as const;
 
 export const SELF_PROPELLED_SPRAYER_CATEGORY_NAMES: Record<string, string> = {
-  paak: "PAAK",
-  poomid: "POOMID",
-  mootor: "MOOTOR",
-  mõõtmed: "MÕÕTMED",
+  pumbasüsteem: "PUMBASÜSTEEM",
+  pihustisüsteem: "PIHUSTISÜSTEEM",
+  šassii: "ŠASSII",
 };
 
 export const SELF_PROPELLED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>> = {
-  paak: {
-    paagi_maht_l: "Paagi maht (l)",
-    puhastvee_paak_l: "Puhta vee paak (l)",
+  pumbasüsteem: {
+    tüüp: "Pumba tüüp",
+    täitmiskiirus_l_min: "Täitmiskiirus (l/min)",
+    täitmisaeg_5000l: "Täitmisaeg (5000L paak)",
+    täitmiskeskus: "Täitmiskeskus",
   },
-  poomid: {
-    poomi_laius_m: "Poomi laius (m)",
-    poomi_kõrguse_vahemik_mm: "Poomi kõrguse vahemik (mm)",
+  pihustisüsteem: {
+    süsteem: "Pihustisüsteem",
+    kandur: "Pihustikandur",
+    samm_cm: "Pihustisamm (cm)",
+    täppispritsimine: "Täppispritsimine",
   },
-  mootor: {
-    võimsus_hj: "Võimsus (hj)",
-    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
-  },
-  mõõtmed: {
-    kaal_kg: "Kaal (kg)",
-    laius_mm: "Transpordi laius (mm)",
-    kõrgus_mm: "Kõrgus (mm)",
-    pikkus_mm: "Pikkus (mm)",
+  šassii: {
+    kliirens_cm: "Kliirens (cm)",
+    muud_omadused: "Muud omadused",
   },
 };
 
