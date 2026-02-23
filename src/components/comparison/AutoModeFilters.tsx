@@ -72,7 +72,7 @@ export function AutoModeFilters({
         <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
           <Select value={selectedType} onValueChange={onTypeChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[240px]">
               <SelectValue placeholder="Vali tüüp" />
             </SelectTrigger>
             <SelectContent className="bg-popover">
