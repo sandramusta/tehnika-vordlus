@@ -5,7 +5,7 @@ const HP_RANGE_DEFAULT = 50;
 const HP_RANGE_TRACTOR = 10;
 const LIFT_HEIGHT_RANGE_M = 0.5; // ±0.5m for telehandler matching
 const LIFT_CAPACITY_RANGE_KG = 400; // ±400kg for telehandler matching
-const TANK_VOLUME_RANGE_L = 500; // ±500L for trailed sprayer matching
+const TANK_VOLUME_RANGE_L = 1000; // ±1000L for trailed sprayer matching
 
 // Check if equipment type is telehandler
 function isTelehandler(equipment: Equipment): boolean {
