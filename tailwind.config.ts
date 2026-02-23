@@ -73,6 +73,9 @@ export default {
         "agrifac": "hsl(var(--agrifac))",
         "amazone": "hsl(var(--amazone))",
         "horsch": "hsl(var(--horsch))",
+        "hardi": "hsl(var(--hardi))",
+        "kuhn": "hsl(var(--kuhn))",
+        "kverneland": "hsl(var(--kverneland))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -340,34 +340,41 @@ export const SELF_PROPELLED_SPRAYER_FIELD_NAMES: Record<string, Record<string, s
 };
 
 // ============================================================================
-// TRAILED SPRAYER (Järelveetav taimekaitseprits) - 3 categories
+// TRAILED SPRAYER (Järelveetav taimekaitseprits) - 4 categories
 // ============================================================================
 export const TRAILED_SPRAYER_CATEGORY_ORDER = [
-  "paak",
-  "poomid",
-  "mõõtmed",
+  "pumbasüsteem",
+  "pihustisüsteem",
+  "paak_ja_poomid",
+  "juhtimine_ja_veermik",
 ] as const;
 
 export const TRAILED_SPRAYER_CATEGORY_NAMES: Record<string, string> = {
-  paak: "PAAK",
-  poomid: "POOMID",
-  mõõtmed: "MÕÕTMED",
+  pumbasüsteem: "PUMBASÜSTEEM",
+  pihustisüsteem: "PIHUSTISÜSTEEM",
+  paak_ja_poomid: "PAAK JA POOMID",
+  juhtimine_ja_veermik: "JUHTIMINE JA VEERMIK",
 };
 
 export const TRAILED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>> = {
-  paak: {
-    paagi_maht_l: "Paagi maht (l)",
-    puhastvee_paak_l: "Puhta vee paak (l)",
+  pumbasüsteem: {
+    tüüp: "Pumba tüüp",
+    tootlikkus_l_min: "Tootlikkus (l/min)",
+    täitmiskiirus: "Täitmissüsteem",
   },
-  poomid: {
+  pihustisüsteem: {
+    süsteem: "Pihustisüsteem",
+    täppisviljelus: "Täppisviljeluse võimekus",
+    poomi_vedrustus: "Poomi vedrustussüsteem",
+  },
+  paak_ja_poomid: {
+    paagi_maht_l: "Paagi maht (L)",
     poomi_laius_m: "Poomi laius (m)",
-    poomi_kõrguse_vahemik_mm: "Poomi kõrguse vahemik (mm)",
   },
-  mõõtmed: {
-    kaal_kg: "Kaal (kg)",
-    laius_mm: "Transpordi laius (mm)",
-    kõrgus_mm: "Kõrgus (mm)",
-    pikkus_mm: "Pikkus (mm)",
+  juhtimine_ja_veermik: {
+    juhtimissüsteem: "Juhtimissüsteem",
+    vedrustus: "Vedrustus / sild",
+    muud_omadused: "Muud omadused",
   },
 };
 

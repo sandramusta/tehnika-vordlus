@@ -216,17 +216,10 @@
    ],
    "trailed_sprayer": [
      {
-       title: "Paak ja pihustid",
+       title: "Paak ja poomid",
        fields: [
-         { name: "grain_tank_liters", label: "Pritsimispaak (L)", type: "number", placeholder: "4000" },
-         { name: "header_width_m", label: "Töölaius (m)", type: "number", step: "0.1", placeholder: "28" },
-       ],
-     },
-     {
-       title: "Mõõtmed",
-       fields: [
-         { name: "transport_width_mm", label: "Transpordi laius (mm)", type: "number", placeholder: "2800" },
-         { name: "transport_length_mm", label: "Transpordi pikkus (mm)", type: "number", placeholder: "8500" },
+         { name: "grain_tank_liters", label: "Paagi maht (L)", type: "number", placeholder: "4000" },
+         { name: "header_width_m", label: "Poomi laius (m)", type: "number", step: "0.1", placeholder: "28" },
        ],
      },
    ],
