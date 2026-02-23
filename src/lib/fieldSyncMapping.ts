@@ -80,10 +80,8 @@ const SELF_PROPELLED_SPRAYER_MAPPING: Record<string, SpecLocation> = {
 };
 
 const TRAILED_SPRAYER_MAPPING: Record<string, SpecLocation> = {
-  weight_kg: { category: "mõõtmed", field: "kaal_kg" },
-  transport_width_mm: { category: "mõõtmed", field: "laius_mm" },
-  transport_height_mm: { category: "mõõtmed", field: "kõrgus_mm" },
-  transport_length_mm: { category: "mõõtmed", field: "pikkus_mm" },
+  grain_tank_liters: { category: "paak_ja_poomid", field: "paagi_maht_l" },
+  header_width_m: { category: "paak_ja_poomid", field: "poomi_laius_m" },
 };
 
 const ROUND_BALER_MAPPING: Record<string, SpecLocation> = {

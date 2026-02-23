@@ -40,6 +40,12 @@
          return "text-amazone";
        case "Horsch":
          return "text-horsch";
+       case "Hardi":
+         return "text-hardi";
+       case "Kuhn":
+         return "text-kuhn";
+       case "Kverneland":
+         return "text-kverneland";
        default:
        return "text-foreground";
    }
@@ -83,9 +89,15 @@
          return "brand-agrifac";
        case "Amazone":
          return "brand-amazone";
-       case "Horsch":
-         return "brand-horsch";
-       default:
+        case "Horsch":
+          return "brand-horsch";
+        case "Hardi":
+          return "brand-hardi";
+        case "Kuhn":
+          return "brand-kuhn";
+        case "Kverneland":
+          return "brand-kverneland";
+        default:
        return "bg-muted text-foreground";
    }
  }
@@ -128,9 +140,15 @@
          return "#BB1E10";
        case "Amazone":
          return "#E75B12";
-       case "Horsch":
-         return "#9B111E";
-       default:
+        case "Horsch":
+          return "#9B111E";
+        case "Hardi":
+          return "#003DA5";
+        case "Kuhn":
+          return "#E30613";
+        case "Kverneland":
+          return "#009639";
+        default:
        return "#6b7280";
    }
  }
