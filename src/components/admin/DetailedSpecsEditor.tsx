@@ -87,6 +87,10 @@ export function DetailedSpecsEditor({
   const [editingLabelValue, setEditingLabelValue] = useState("");
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
   const [newFieldName, setNewFieldName] = useState("");
+  const [editingCategoryName, setEditingCategoryName] = useState<string | null>(null);
+  const [editingCategoryValue, setEditingCategoryValue] = useState("");
+  const [addingNewCategory, setAddingNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   useEffect(() => {
     setExpandedCategories(new Set(categoryOrder));
@@ -288,6 +292,80 @@ export function DetailedSpecsEditor({
     [editingLabelValue, queryClient]
   );
 
+  // ---- Category management ----
+  const getCategoryDisplayName = (categoryKey: string): string => {
+    const labelKey = `cat_${categoryKey}`;
+    return specLabels[labelKey] || categoryNames[categoryKey] || categoryKey;
+  };
+
+  const handleSaveCategoryName = useCallback(
+    async (categoryKey: string) => {
+      const newName = editingCategoryValue.trim();
+      if (!newName) {
+        setEditingCategoryName(null);
+        return;
+      }
+      const labelKey = `cat_${categoryKey}`;
+      const { error } = await supabase
+        .from("spec_labels")
+        .upsert({ spec_key: labelKey, custom_label: newName }, { onConflict: "spec_key" });
+      if (error) {
+        toast.error("Viga kategooria nime salvestamisel");
+      } else {
+        toast.success("Kategooria nimetus salvestatud");
+        queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
+      }
+      setEditingCategoryName(null);
+    },
+    [editingCategoryValue, queryClient]
+  );
+
+  const handleDeleteCategory = useCallback(
+    (categoryKey: string) => {
+      setSpecs((prevSpecs) => {
+        const updatedSpecs = { ...prevSpecs };
+        delete updatedSpecs[categoryKey];
+        onChange(updatedSpecs);
+        return updatedSpecs;
+      });
+      toast.success("Kategooria eemaldatud");
+    },
+    [onChange]
+  );
+
+  const handleAddCategory = useCallback(() => {
+    if (!newCategoryName.trim()) return;
+    const key = sanitizeKey(newCategoryName);
+    if (!key) {
+      toast.error("Vigane kategooria nimi");
+      return;
+    }
+    if (allCategories.includes(key)) {
+      toast.error("See kategooria on juba olemas");
+      return;
+    }
+    // Save display name to spec_labels
+    const labelKey = `cat_${key}`;
+    const displayName = newCategoryName.trim().toUpperCase();
+    supabase
+      .from("spec_labels")
+      .upsert({ spec_key: labelKey, custom_label: displayName }, { onConflict: "spec_key" })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
+      });
+
+    // Add empty category to specs
+    setSpecs((prevSpecs) => {
+      const updatedSpecs = { ...prevSpecs, [key]: {} };
+      onChange(updatedSpecs);
+      return updatedSpecs;
+    });
+    setExpandedCategories(prev => new Set([...prev, key]));
+    setNewCategoryName("");
+    setAddingNewCategory(false);
+    toast.success("Kategooria lisatud");
+  }, [newCategoryName, allCategories, onChange, queryClient]);
+
   const getFieldValue = (categoryKey: string, fieldKey: string): string => {
     const categoryData = specs[categoryKey];
     if (!categoryData) return "";
@@ -319,8 +397,9 @@ export function DetailedSpecsEditor({
       <div className="border border-border rounded-lg overflow-hidden">
         {allCategories.map((categoryKey) => {
           const isExpanded = expandedCategories.has(categoryKey);
-          const categoryName = categoryNames[categoryKey] || categoryKey;
+          const categoryDisplayName = getCategoryDisplayName(categoryKey);
           const fields = allFieldsByCategory[categoryKey] || [];
+          const isEditingThisCat = editingCategoryName === categoryKey;
           
           const filledCount = fields.filter(({ key }) => {
             const val = specs[categoryKey]?.[key];
@@ -329,26 +408,80 @@ export function DetailedSpecsEditor({
 
           return (
             <div key={categoryKey} className="border-b border-border last:border-b-0">
-              <button
-                type="button"
-                onClick={() => toggleCategory(categoryKey)}
+              {/* Category header */}
+              <div
                 className={cn(
-                  "w-full flex items-center gap-2 p-3 text-left transition-colors",
+                  "flex items-center gap-2 p-3 transition-colors group",
                   isExpanded ? "bg-primary/10" : "bg-muted/30 hover:bg-muted/50"
                 )}
               >
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-primary" />
+                {isEditingThisCat ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      value={editingCategoryValue}
+                      onChange={(e) => setEditingCategoryValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveCategoryName(categoryKey);
+                        }
+                        if (e.key === "Escape") setEditingCategoryName(null);
+                      }}
+                      className="h-7 text-sm font-semibold flex-1"
+                      autoFocus
+                    />
+                    <button type="button" onClick={() => handleSaveCategoryName(categoryKey)} className="text-primary hover:text-primary/80">
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button type="button" onClick={() => setEditingCategoryName(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => toggleCategory(categoryKey)}
+                      className="flex items-center gap-2 flex-1 text-left"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-primary" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className={cn("font-semibold text-sm", isExpanded && "text-primary")}>
+                        {categoryDisplayName}
+                      </span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {filledCount}/{fields.length} täidetud
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingCategoryName(categoryKey);
+                        setEditingCategoryValue(categoryDisplayName);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity"
+                      title="Muuda kategooria nimetust"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCategory(categoryKey);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                      title="Eemalda kategooria"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </>
                 )}
-                <span className={cn("font-semibold text-sm", isExpanded && "text-primary")}>
-                  {categoryName}
-                </span>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {filledCount}/{fields.length} täidetud
-                </span>
-              </button>
+              </div>
 
               {isExpanded && (
                 <div className="p-4 bg-card space-y-3">
@@ -521,6 +654,51 @@ export function DetailedSpecsEditor({
             </div>
           );
         })}
+
+        {/* Add new category */}
+        {addingNewCategory ? (
+          <div className="flex items-center gap-2 p-3 bg-muted/20">
+            <Input
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddCategory();
+                }
+                if (e.key === "Escape") {
+                  setAddingNewCategory(false);
+                  setNewCategoryName("");
+                }
+              }}
+              placeholder="Kategooria nimetus, nt 'Hüdraulika'"
+              className="h-8 text-sm flex-1"
+              autoFocus
+            />
+            <Button type="button" size="sm" variant="default" className="h-8 px-3" onClick={handleAddCategory}>
+              <Check className="h-3 w-3 mr-1" />
+              Lisa
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-8 px-2"
+              onClick={() => { setAddingNewCategory(false); setNewCategoryName(""); }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setAddingNewCategory(true); setNewCategoryName(""); }}
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 p-3 w-full"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Lisa kategooria
+          </button>
+        )}
       </div>
     </div>
   );
