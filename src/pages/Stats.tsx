@@ -86,7 +86,7 @@ export default function Stats() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Täna tehtud pakkumised
+                Täna alla laetud raportid
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -95,7 +95,7 @@ export default function Stats() {
                 {loadingStats ? "..." : stats?.todayPDFs ?? 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Genereeritud PDF-dokumendid
+                Alla laetud PDF-raportid
               </p>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ export default function Stats() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Punktid: PDF = 3p, ROI = 2p, Võrdlus = 1p
+              Punktid: PDF = 3p, Võrdlus = 1p
             </p>
           </CardHeader>
           <CardContent>
@@ -190,7 +190,6 @@ export default function Stats() {
                       <TableHead>Nimi</TableHead>
                       <TableHead>Viimati aktiivne</TableHead>
                       <TableHead className="text-center">PDF-raportid</TableHead>
-                      <TableHead className="text-center">ROI</TableHead>
                       <TableHead className="text-center">Punktid</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -219,9 +218,6 @@ export default function Stats() {
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary">{entry.pdf_count + entry.comparison_count}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">{entry.roi_count}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge
