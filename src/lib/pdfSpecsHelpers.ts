@@ -312,12 +312,14 @@ export const SELF_PROPELLED_SPRAYER_CATEGORY_ORDER = [
   "pumbasüsteem",
   "pihustisüsteem",
   "šassii",
+  "mõõtmed",
 ] as const;
 
 export const SELF_PROPELLED_SPRAYER_CATEGORY_NAMES: Record<string, string> = {
   pumbasüsteem: "PUMBASÜSTEEM",
   pihustisüsteem: "PIHUSTISÜSTEEM",
   šassii: "VEERMIK JA RAAM",
+  mõõtmed: "MÕÕTMED",
 };
 
 export const SELF_PROPELLED_SPRAYER_FIELD_NAMES: Record<string, Record<string, string>> = {
@@ -336,6 +338,13 @@ export const SELF_PROPELLED_SPRAYER_FIELD_NAMES: Record<string, Record<string, s
   šassii: {
     kliirens_cm: "Kliirens (cm)",
     muud_omadused: "Muud omadused",
+  },
+  mõõtmed: {
+    paagi_maht_l: "Paagi maht (l)",
+    tühikaal_kg: "Tühikaal (kg)",
+    täiskaal_kg: "Täiskaal (kg)",
+    transpordi_laius_mm: "Transpordi laius (mm)",
+    transpordi_kõrgus_mm: "Transpordi kõrgus (mm)",
   },
 };
 
