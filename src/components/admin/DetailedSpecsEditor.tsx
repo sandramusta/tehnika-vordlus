@@ -2,8 +2,12 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Equipment } from "@/types/equipment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, ChevronRight, Unlock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight, Unlock, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -15,8 +19,10 @@ import {
   getCategoryOrderForType,
   getCategoryNamesForType,
   getFieldNamesForType,
+  formatFieldKey,
   TRACTOR_TRANSMISSION_OPTIONS,
 } from "@/lib/pdfSpecsHelpers";
+import { useSpecLabels } from "@/hooks/useSpecLabels";
 
 interface DetailedSpecsEditorProps {
   equipment?: Equipment | null;
@@ -36,19 +42,27 @@ function formatDisplayValue(value: unknown): string {
 
 function parseInputValue(value: string): unknown {
   if (value === "" || value === "—") return null;
-  
-  // Check for boolean-like values
   if (value.toLowerCase() === "jah" || value.toLowerCase() === "true") return true;
   if (value.toLowerCase() === "ei" || value.toLowerCase() === "false") return false;
-  
-  // Try to parse as number
   const cleanValue = value.replace(/\s/g, "").replace(",", ".");
   const parsed = parseFloat(cleanValue);
-  if (!isNaN(parsed)) {
-    return parsed;
-  }
-  
+  if (!isNaN(parsed)) return parsed;
   return value;
+}
+
+function sanitizeKey(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[()\/\\]/g, "")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
+interface FieldInfo {
+  key: string;
+  label: string;
 }
 
 export function DetailedSpecsEditor({ 
@@ -57,26 +71,27 @@ export function DetailedSpecsEditor({
   onChange,
   equipmentTypeName,
 }: DetailedSpecsEditorProps) {
-  // Get dynamic categories and fields based on equipment type
   const categoryOrder = useMemo(() => getCategoryOrderForType(equipmentTypeName), [equipmentTypeName]);
   const categoryNames = useMemo(() => getCategoryNamesForType(equipmentTypeName), [equipmentTypeName]);
   const fieldNames = useMemo(() => getFieldNamesForType(equipmentTypeName), [equipmentTypeName]);
+  const { data: specLabels = {} } = useSpecLabels();
+  const queryClient = useQueryClient();
 
-  // Track if this is the initial mount to avoid overwriting user edits
   const isInitialMount = useRef(true);
   const equipmentIdRef = useRef<string | null>(equipment?.id || null);
   
-  // All categories expanded by default for Admin view
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(categoryOrder)
   );
+  const [editingLabel, setEditingLabel] = useState<string | null>(null);
+  const [editingLabelValue, setEditingLabelValue] = useState("");
+  const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
+  const [newFieldName, setNewFieldName] = useState("");
 
-  // Update expanded categories when type changes
   useEffect(() => {
     setExpandedCategories(new Set(categoryOrder));
   }, [categoryOrder]);
 
-  // Initialize specs from equipment or initialSpecs
   const getInitialSpecs = (): Record<string, Record<string, unknown>> => {
     if (equipment?.detailed_specs && typeof equipment.detailed_specs === 'object') {
       return equipment.detailed_specs as Record<string, Record<string, unknown>>;
@@ -89,14 +104,10 @@ export function DetailedSpecsEditor({
 
   const [specs, setSpecs] = useState<Record<string, Record<string, unknown>>>(getInitialSpecs);
 
-  // Only sync with external data when equipment ID changes (switching to different equipment)
   useEffect(() => {
     const currentEquipmentId = equipment?.id || null;
-    
-    // If switching to a different equipment item, reset the specs
     if (currentEquipmentId !== equipmentIdRef.current) {
       equipmentIdRef.current = currentEquipmentId;
-      
       if (equipment?.detailed_specs && typeof equipment.detailed_specs === 'object') {
         setSpecs(equipment.detailed_specs as Record<string, Record<string, unknown>>);
       } else if (initialSpecs && typeof initialSpecs === 'object' && Object.keys(initialSpecs).length > 0) {
@@ -105,35 +116,74 @@ export function DetailedSpecsEditor({
         setSpecs({});
       }
     }
-    
     isInitialMount.current = false;
   }, [equipment?.id, equipment?.detailed_specs, initialSpecs]);
+
+  // Build merged field list: predefined + extra fields from actual data
+  const allFieldsByCategory = useMemo(() => {
+    const result: Record<string, FieldInfo[]> = {};
+    
+    // Process predefined categories
+    categoryOrder.forEach(cat => {
+      const predefined = fieldNames[cat] || {};
+      const actualData = specs[cat] || {};
+      const fields: FieldInfo[] = [];
+      
+      // Predefined fields first (in order)
+      Object.entries(predefined).forEach(([key, label]) => {
+        const compositeKey = `${cat}_${key}`;
+        fields.push({ key, label: specLabels[compositeKey] || label });
+      });
+      
+      // Extra fields from actual data
+      Object.keys(actualData).forEach(key => {
+        if (!predefined[key]) {
+          const compositeKey = `${cat}_${key}`;
+          fields.push({ key, label: specLabels[compositeKey] || formatFieldKey(key) });
+        }
+      });
+      
+      result[cat] = fields;
+    });
+    
+    // Check for categories in specs not in predefined order
+    Object.keys(specs).forEach(cat => {
+      if (!result[cat]) {
+        const actualData = specs[cat] || {};
+        result[cat] = Object.keys(actualData).map(key => {
+          const compositeKey = `${cat}_${key}`;
+          return { key, label: specLabels[compositeKey] || formatFieldKey(key) };
+        });
+      }
+    });
+    
+    return result;
+  }, [categoryOrder, fieldNames, specs, specLabels]);
+
+  // All category keys (predefined + extra from data)
+  const allCategories = useMemo(() => {
+    const cats = [...categoryOrder];
+    Object.keys(specs).forEach(cat => {
+      if (!cats.includes(cat)) cats.push(cat);
+    });
+    return cats;
+  }, [categoryOrder, specs]);
 
   const toggleCategory = (categoryKey: string) => {
     setExpandedCategories((prev) => {
       const next = new Set(prev);
-      if (next.has(categoryKey)) {
-        next.delete(categoryKey);
-      } else {
-        next.add(categoryKey);
-      }
+      if (next.has(categoryKey)) next.delete(categoryKey);
+      else next.add(categoryKey);
       return next;
     });
   };
 
-  const expandAll = () => {
-    setExpandedCategories(new Set(categoryOrder));
-  };
+  const expandAll = () => setExpandedCategories(new Set(allCategories));
+  const collapseAll = () => setExpandedCategories(new Set());
 
-  const collapseAll = () => {
-    setExpandedCategories(new Set());
-  };
-
-  // Handle field changes - always allowed, no restrictions
   const handleFieldChange = useCallback(
     (categoryKey: string, fieldKey: string, value: string) => {
       const parsedValue = parseInputValue(value);
-      
       setSpecs((prevSpecs) => {
         const existingCategory = prevSpecs[categoryKey] || {};
         const updatedSpecs = {
@@ -143,12 +193,99 @@ export function DetailedSpecsEditor({
             [fieldKey]: parsedValue,
           },
         };
-        // Notify parent of changes
         onChange(updatedSpecs);
         return updatedSpecs;
       });
     },
     [onChange]
+  );
+
+  const handleDeleteField = useCallback(
+    (categoryKey: string, fieldKey: string) => {
+      setSpecs((prevSpecs) => {
+        const existingCategory = { ...(prevSpecs[categoryKey] || {}) };
+        delete existingCategory[fieldKey];
+        const updatedSpecs = {
+          ...prevSpecs,
+          [categoryKey]: existingCategory,
+        };
+        // If category is empty, remove it too
+        if (Object.keys(existingCategory).length === 0) {
+          delete updatedSpecs[categoryKey];
+        }
+        onChange(updatedSpecs);
+        return updatedSpecs;
+      });
+      toast.success("Näitaja eemaldatud");
+    },
+    [onChange]
+  );
+
+  const handleAddField = useCallback(
+    (categoryKey: string) => {
+      if (!newFieldName.trim()) return;
+      const key = sanitizeKey(newFieldName);
+      if (!key) {
+        toast.error("Vigane näitaja nimi");
+        return;
+      }
+      // Check for duplicates
+      const existing = specs[categoryKey] || {};
+      const predefined = fieldNames[categoryKey] || {};
+      if (existing[key] !== undefined || predefined[key] !== undefined) {
+        toast.error("See näitaja on juba olemas");
+        return;
+      }
+      
+      // Save display label to spec_labels
+      const compositeKey = `${categoryKey}_${key}`;
+      const displayLabel = newFieldName.trim();
+      supabase
+        .from("spec_labels")
+        .upsert({ spec_key: compositeKey, custom_label: displayLabel }, { onConflict: "spec_key" })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
+        });
+
+      setSpecs((prevSpecs) => {
+        const updatedSpecs = {
+          ...prevSpecs,
+          [categoryKey]: {
+            ...(prevSpecs[categoryKey] || {}),
+            [key]: null,
+          },
+        };
+        onChange(updatedSpecs);
+        return updatedSpecs;
+      });
+      setNewFieldName("");
+      setAddingToCategory(null);
+      toast.success("Näitaja lisatud");
+    },
+    [newFieldName, specs, fieldNames, onChange, queryClient]
+  );
+
+  const handleSaveLabel = useCallback(
+    async (categoryKey: string, fieldKey: string) => {
+      const newLabel = editingLabelValue.trim();
+      if (!newLabel) {
+        setEditingLabel(null);
+        return;
+      }
+      const compositeKey = `${categoryKey}_${fieldKey}`;
+      const { error } = await supabase
+        .from("spec_labels")
+        .upsert({ spec_key: compositeKey, custom_label: newLabel }, { onConflict: "spec_key" });
+      
+      if (error) {
+        toast.error("Viga nime salvestamisel");
+      } else {
+        toast.success("Nimetus salvestatud");
+        queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
+      }
+      setEditingLabel(null);
+    },
+    [editingLabelValue, queryClient]
   );
 
   const getFieldValue = (categoryKey: string, fieldKey: string): string => {
@@ -166,43 +303,32 @@ export function DetailedSpecsEditor({
           <Label className="text-base font-semibold">Detailsed spetsifikatsioonid</Label>
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={expandAll}
-            className="text-xs text-primary hover:underline"
-          >
+          <button type="button" onClick={expandAll} className="text-xs text-primary hover:underline">
             Ava kõik
           </button>
           <span className="text-muted-foreground">|</span>
-          <button
-            type="button"
-            onClick={collapseAll}
-            className="text-xs text-muted-foreground hover:underline"
-          >
+          <button type="button" onClick={collapseAll} className="text-xs text-muted-foreground hover:underline">
             Sulge kõik
           </button>
         </div>
       </div>
       <p className="text-xs text-muted-foreground mb-3">
-        Admin: Kõik väljad on alati muudetavad. Muudatused salvestatakse vormi esitamisel.
+        Kõik väljad on muudetavad. Nimetusi saab muuta pliiatsiikooni alt, näitajaid kustutada ja juurde lisada.
       </p>
       
       <div className="border border-border rounded-lg overflow-hidden">
-        {categoryOrder.map((categoryKey) => {
+        {allCategories.map((categoryKey) => {
           const isExpanded = expandedCategories.has(categoryKey);
           const categoryName = categoryNames[categoryKey] || categoryKey;
-          const categoryFieldNames = fieldNames[categoryKey] || {};
-          const fields = Object.entries(categoryFieldNames);
+          const fields = allFieldsByCategory[categoryKey] || [];
           
-          // Count filled fields for this category
-          const filledCount = fields.filter(([fieldKey]) => {
-            const val = specs[categoryKey]?.[fieldKey];
+          const filledCount = fields.filter(({ key }) => {
+            const val = specs[categoryKey]?.[key];
             return val !== null && val !== undefined && val !== "";
           }).length;
 
           return (
             <div key={categoryKey} className="border-b border-border last:border-b-0">
-              {/* Category Header */}
               <button
                 type="button"
                 onClick={() => toggleCategory(categoryKey)}
@@ -224,26 +350,82 @@ export function DetailedSpecsEditor({
                 </span>
               </button>
 
-              {/* Category Fields - All fields are always editable */}
               {isExpanded && (
                 <div className="p-4 bg-card space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    {fields.map(([fieldKey, fieldLabel]) => {
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {fields.map(({ key: fieldKey, label: fieldLabel }) => {
                       const fieldValue = getFieldValue(categoryKey, fieldKey);
                       const hasValue = fieldValue !== "";
+                      const cellId = `${categoryKey}-${fieldKey}`;
+                      const isEditingThisLabel = editingLabel === cellId;
                       const isTransmissionSelect = categoryKey === "käigukast" && fieldKey === "tüüp" && equipmentTypeName?.toLowerCase().includes("tractor") && equipment?.brand?.is_primary === true;
                       
                       return (
                         <div key={fieldKey} className="space-y-1">
-                          <Label 
-                            htmlFor={`${categoryKey}-${fieldKey}`} 
-                            className={cn(
-                              "text-xs",
-                              hasValue ? "text-foreground" : "text-muted-foreground"
+                          <div className="flex items-center gap-1 group">
+                            {isEditingThisLabel ? (
+                              <div className="flex items-center gap-1 flex-1">
+                                <Input
+                                  value={editingLabelValue}
+                                  onChange={(e) => setEditingLabelValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleSaveLabel(categoryKey, fieldKey);
+                                    }
+                                    if (e.key === "Escape") setEditingLabel(null);
+                                  }}
+                                  className="h-6 text-xs flex-1"
+                                  autoFocus
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveLabel(categoryKey, fieldKey)}
+                                  className="text-primary hover:text-primary/80"
+                                >
+                                  <Check className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingLabel(null)}
+                                  className="text-muted-foreground hover:text-foreground"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <Label 
+                                  htmlFor={cellId}
+                                  className={cn(
+                                    "text-xs flex-1",
+                                    hasValue ? "text-foreground" : "text-muted-foreground"
+                                  )}
+                                >
+                                  {fieldLabel}
+                                </Label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingLabel(cellId);
+                                    setEditingLabelValue(fieldLabel);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity"
+                                  title="Muuda nimetust"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteField(categoryKey, fieldKey)}
+                                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                                  title="Eemalda näitaja"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </>
                             )}
-                          >
-                            {fieldLabel}
-                          </Label>
+                          </div>
                           {isTransmissionSelect ? (
                             <Select
                               value={fieldValue || undefined}
@@ -263,7 +445,7 @@ export function DetailedSpecsEditor({
                             </Select>
                           ) : (
                             <Input
-                              id={`${categoryKey}-${fieldKey}`}
+                              id={cellId}
                               value={fieldValue}
                               onChange={(e) => handleFieldChange(categoryKey, fieldKey, e.target.value.replace(/,/g, "."))}
                               placeholder="—"
@@ -277,6 +459,63 @@ export function DetailedSpecsEditor({
                       );
                     })}
                   </div>
+
+                  {/* Add new field */}
+                  {addingToCategory === categoryKey ? (
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                      <Input
+                        value={newFieldName}
+                        onChange={(e) => setNewFieldName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddField(categoryKey);
+                          }
+                          if (e.key === "Escape") {
+                            setAddingToCategory(null);
+                            setNewFieldName("");
+                          }
+                        }}
+                        placeholder="Näitaja nimetus, nt 'Paagi maht (l)'"
+                        className="h-8 text-sm flex-1"
+                        autoFocus
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        className="h-8 px-3"
+                        onClick={() => handleAddField(categoryKey)}
+                      >
+                        <Check className="h-3 w-3 mr-1" />
+                        Lisa
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2"
+                        onClick={() => {
+                          setAddingToCategory(null);
+                          setNewFieldName("");
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddingToCategory(categoryKey);
+                        setNewFieldName("");
+                      }}
+                      className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 pt-2 border-t border-border/50"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Lisa näitaja
+                    </button>
+                  )}
                 </div>
               )}
             </div>
