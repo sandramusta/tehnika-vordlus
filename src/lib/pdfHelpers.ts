@@ -177,6 +177,39 @@ export function addPDFFooter(
 }
 
 /**
+ * Check if there is enough vertical space on the current page for content.
+ * If not, adds a new page and returns the new Y position.
+ * Use this before every standalone table or text section to prevent splitting.
+ * 
+ * @param doc - jsPDF document
+ * @param currentY - Current Y position on the page
+ * @param neededHeight - Estimated height needed for the content (in mm)
+ * @param orientation - Page orientation for new page (default: current)
+ * @param footerMargin - Bottom margin reserved for footer (default: 30)
+ * @returns New Y position (same if fits, or reset Y on new page)
+ */
+export function ensureSpaceForContent(
+  doc: jsPDF,
+  currentY: number,
+  neededHeight: number,
+  orientation?: "portrait" | "landscape",
+  footerMargin: number = 30
+): number {
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const availableSpace = pageHeight - currentY - footerMargin;
+  
+  if (availableSpace < neededHeight) {
+    if (orientation) {
+      doc.addPage(orientation);
+    } else {
+      doc.addPage();
+    }
+    return 20; // Standard top margin on new page
+  }
+  return currentY;
+}
+
+/**
  * Initialize PDF with logo preloading
  * Call this before generating PDF
  */
