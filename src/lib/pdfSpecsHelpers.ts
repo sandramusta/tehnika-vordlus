@@ -730,28 +730,60 @@ export interface DetailedSpecCategory {
 // Build detailed spec rows for PDF export
 export function buildDetailedSpecRows(
   selectedModels: Equipment[],
-  isCombine: boolean
+  isCombine: boolean,
+  equipmentTypeName?: string
 ): DetailedSpecCategory[] {
   const result: DetailedSpecCategory[] = [];
 
-  // Get categories - for combines, always show all
+  const typeCategoryOrder = getCategoryOrderForType(equipmentTypeName);
+  const typeCategoryNames = getCategoryNamesForType(equipmentTypeName);
+  const typeFieldNames = getFieldNamesForType(equipmentTypeName);
+
+  // For combines, always show all categories; otherwise only those with data
   const categories = isCombine
-    ? CATEGORY_ORDER.slice()
-    : getAvailableCategories(selectedModels, false);
+    ? typeCategoryOrder.slice()
+    : (() => {
+        const available = new Set<string>();
+        selectedModels.forEach((model) => {
+          const specs = model.detailed_specs;
+          if (specs && typeof specs === "object") {
+            Object.keys(specs).forEach((key) => {
+              if ((typeCategoryOrder as readonly string[]).includes(key)) {
+                available.add(key);
+              }
+            });
+          }
+        });
+        return typeCategoryOrder.filter((cat) => available.has(cat));
+      })();
 
   categories.forEach((categoryKey) => {
-    const categoryName = CATEGORY_NAMES[categoryKey] || categoryKey;
+    const categoryName = typeCategoryNames[categoryKey] || categoryKey;
     
-    // For combines, always show all fields; otherwise, only fields with data
-    const fields = isCombine
-      ? getCategoryFields(categoryKey)
-      : getAllFieldsForCategory(selectedModels, categoryKey);
+    const fieldOrder = typeFieldNames[categoryKey];
+    let fields: string[];
+    if (isCombine && fieldOrder) {
+      fields = Object.keys(fieldOrder);
+    } else {
+      const allFields = new Set<string>();
+      selectedModels.forEach((model) => {
+        const specs = model.detailed_specs;
+        if (specs && typeof specs === "object" && specs[categoryKey]) {
+          Object.keys(specs[categoryKey] as Record<string, unknown>).forEach((k) => allFields.add(k));
+        }
+      });
+      if (fieldOrder) {
+        const ordered = Object.keys(fieldOrder).filter((f) => allFields.has(f));
+        const remaining = Array.from(allFields).filter((f) => !ordered.includes(f));
+        fields = [...ordered, ...remaining];
+      } else {
+        fields = Array.from(allFields);
+      }
+    }
     
-    const fieldNames = FIELD_NAMES[categoryKey] || {};
-
     const rows: { label: string; values: string[] }[] = [];
     fields.forEach((fieldKey) => {
-      const label = fieldNames[fieldKey] || formatFieldKey(fieldKey);
+      const label = (fieldOrder && fieldOrder[fieldKey]) || formatFieldKey(fieldKey);
       const values = selectedModels.map((model) => {
         const specs = model.detailed_specs;
         const categoryData =
@@ -764,7 +796,6 @@ export function buildDetailedSpecRows(
       rows.push({ label, values });
     });
 
-    // Always include category for combines; otherwise only if it has rows
     if (rows.length > 0 || isCombine) {
       result.push({ categoryKey, categoryName, rows });
     }

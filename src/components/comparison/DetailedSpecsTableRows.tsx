@@ -5,7 +5,12 @@ import { cn } from "@/lib/utils";
 import { EditableCell, EditableValueCell } from "./EditableCell";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
-import { formatFieldKey } from "@/lib/pdfSpecsHelpers";
+import { 
+  formatFieldKey, 
+  getCategoryOrderForType, 
+  getCategoryNamesForType, 
+  getFieldNamesForType 
+} from "@/lib/pdfSpecsHelpers";
 import { toast } from "sonner";
 
 interface DetailedSpecsTableRowsProps {
@@ -14,112 +19,6 @@ interface DetailedSpecsTableRowsProps {
   equipmentTypeName?: string;
 }
 
-// Category display names and order
-const CATEGORY_ORDER = [
-  "mootor",
-  "kaldtransportöör_etteanne",
-  "peksusüsteem",
-  "puhastussüsteem",
-  "terapunker",
-  "koristusjääkide_käitlemine",
-  "nõlvakusüsteem",
-  "mõõtmed",
-  "heedrid",
-  "kabiin",
-  "veosüsteem",
-  "tehnoloogia",
-] as const;
-
-const CATEGORY_NAMES: Record<string, string> = {
-  mootor: "MOOTOR",
-  kaldtransportöör_etteanne: "KALDTRANSPORTÖÖR / ETTEANNE",
-  peksusüsteem: "PEKS JA SEPAREERIMINE",
-  puhastussüsteem: "PUHASTUSSÜSTEEM",
-  terapunker: "TERAPUNKER",
-  koristusjääkide_käitlemine: "KORISTUSJÄÄKIDE KÄITLEMINE",
-  nõlvakusüsteem: "NÕLVAKUSÜSTEEM",
-  mõõtmed: "MÕÕTMED",
-  heedrid: "HEEDRID",
-  kabiin: "KABIIN",
-  veosüsteem: "VEOSÜSTEEM",
-  tehnoloogia: "INTEGREERITUD TEHNOLOOGIA",
-};
-
-// Field display names for each category
-const FIELD_NAMES: Record<string, Record<string, string>> = {
-  mootor: {
-    mark_ja_mudel: "Mark ja mudel",
-    heitgaasinorm: "Heitgaasinorm",
-    silindrid: "Silindrid",
-    töömahu_liitrid: "Töömaht (l)",
-    võimsus_kW_hj: "Võimsus (kW/hj)",
-    max_pöördemoment_Nm: "Max pöördemoment (Nm)",
-    kütusepaagi_maht_l: "Kütusepaagi maht (l)",
-    adblue_paagi_maht_l: "AdBlue paagi maht (l)",
-    jahutussüsteem: "Jahutussüsteem",
-  },
-  kaldtransportöör_etteanne: {
-    sisestuslaius_mm: "Sisestuslaius (mm)",
-    etteande_kett: "Etteande kett",
-    raspi_latid: "Raspi latid",
-    kivikaitse: "Kivikaitse",
-  },
-  peksusüsteem: {
-    süsteemi_tüüp: "Süsteemi tüüp",
-    rootorite_arv: "Rootorite arv",
-    rootori_läbimõõt_mm: "Rootori läbimõõt (mm)",
-    rootori_pikkus_mm: "Rootori pikkus (mm)",
-    separeerimispind_m2: "Separeerimispind (m²)",
-    rootori_kiiruse_reguleerimine: "Rootori kiiruse reguleerimine",
-  },
-  puhastussüsteem: {
-    puhastussüsteemi_tüüp: "Puhastussüsteemi tüüp",
-    sõelapind_m2: "Sõelapind (m²)",
-    ventilaatori_tüüp: "Ventilaatori tüüp",
-    aktiivne_sõelavõre: "Aktiivne sõelavõre",
-  },
-  terapunker: {
-    maht_standardne_l: "Maht standardne (l)",
-    maht_laiendusega_l: "Maht laiendusega (l)",
-    tühjenduskiirus_l_s: "Tühjenduskiirus (l/s)",
-    tigupikkus_m: "Tigupikkus (m)",
-    tigupööramise_nurk: "Tigupööramise nurk",
-    kokkuvolditav: "Kokkuvolditav",
-  },
-  koristusjääkide_käitlemine: {
-    hekseldi_tüüp: "Hekseldi tüüp",
-    laotuslaius_m: "Laotuslaius (m)",
-  },
-  nõlvakusüsteem: {
-    süsteemi_nimi: "Süsteemi nimi",
-    küljenurk_kraadi: "Küljenurk (°)",
-    pikinurk_kraadi: "Pikinurk (°)",
-  },
-  mõõtmed: {
-    kaal_baasmasin_kg: "Kaal baasmasin (kg)",
-    transpordi_laius_mm: "Transpordi laius (mm)",
-    transpordi_kõrgus_mm: "Transpordi kõrgus (mm)",
-  },
-  heedrid: {
-    teraviljaheedri_laius_min_m: "Teraviljaheedri laius min (m)",
-    teraviljaheedri_laius_max_m: "Teraviljaheedri laius max (m)",
-  },
-  kabiin: {
-    kabiini_tüüp: "Kabiini tüüp",
-    istme_tüüp: "Istme tüüp",
-    vaateväli: "Vaateväli",
-  },
-  veosüsteem: {
-    vedamise_tüüp: "Vedamise tüüp",
-    kiiruse_vahemik_km_h: "Kiiruse vahemik (km/h)",
-  },
-  tehnoloogia: {
-    starfire_positsioneerimine: "StarFire positsioneerimine",
-    autotrac_juhtimine: "AutoTrac juhtimine",
-    active_yield: "Active Yield",
-    harvest_doc: "Harvest Doc",
-  },
-};
 
 
 function formatValue(value: unknown): string {
@@ -131,10 +30,11 @@ function formatValue(value: unknown): string {
   return String(value);
 }
 
-// Get all unique fields across all models for a category
-function getAllFieldsForCategory(
+// Get all unique fields across all models for a category, using type-specific field order
+function getAllFieldsForCategoryDynamic(
   allModels: Equipment[],
-  categoryKey: string
+  categoryKey: string,
+  typeFieldNames: Record<string, Record<string, string>>
 ): string[] {
   const allFields = new Set<string>();
   
@@ -146,8 +46,7 @@ function getAllFieldsForCategory(
     }
   });
 
-  // Sort fields by predefined order if available
-  const fieldOrder = FIELD_NAMES[categoryKey];
+  const fieldOrder = typeFieldNames[categoryKey];
   if (fieldOrder) {
     const orderedFields = Object.keys(fieldOrder).filter((f) => allFields.has(f));
     const remainingFields = Array.from(allFields).filter(
@@ -159,11 +58,14 @@ function getAllFieldsForCategory(
   return Array.from(allFields);
 }
 
-// Get all available categories from the models
-function getAvailableCategories(allModels: Equipment[], forceAll: boolean = false): string[] {
-  // For combines, always show all categories
+// Get available categories from models, using type-specific category order
+function getAvailableCategoriesDynamic(
+  allModels: Equipment[],
+  categoryOrder: readonly string[],
+  forceAll: boolean = false
+): string[] {
   if (forceAll) {
-    return CATEGORY_ORDER.slice();
+    return categoryOrder.slice();
   }
 
   const availableCategories = new Set<string>();
@@ -172,14 +74,14 @@ function getAvailableCategories(allModels: Equipment[], forceAll: boolean = fals
     const specs = model.detailed_specs;
     if (specs && typeof specs === "object") {
       Object.keys(specs).forEach((key) => {
-        if (CATEGORY_ORDER.includes(key as typeof CATEGORY_ORDER[number])) {
+        if ((categoryOrder as readonly string[]).includes(key)) {
           availableCategories.add(key);
         }
       });
     }
   });
 
-  return CATEGORY_ORDER.filter((cat) => availableCategories.has(cat));
+  return categoryOrder.filter((cat) => availableCategories.has(cat));
 }
 
 export function DetailedSpecsTableRows({
@@ -189,8 +91,11 @@ export function DetailedSpecsTableRows({
 }: DetailedSpecsTableRowsProps) {
   // For combines, always show all categories
   const isCombine = equipmentTypeName === "combine";
+  const typeCategoryOrder = getCategoryOrderForType(equipmentTypeName);
+  const typeCategoryNames = getCategoryNamesForType(equipmentTypeName);
+  const typeFieldNames = getFieldNamesForType(equipmentTypeName);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(["mootor"])
+    new Set([typeCategoryOrder[0] || "mootor"])
   );
   const { data: specLabels = {} } = useSpecLabels();
   const inlineEdit = useInlineEdit({
@@ -231,7 +136,7 @@ export function DetailedSpecsTableRows({
     );
   };
 
-  const availableCategories = getAvailableCategories(allModels, isCombine);
+  const availableCategories = getAvailableCategoriesDynamic(allModels, typeCategoryOrder, isCombine);
 
   if (availableCategories.length === 0) {
     return null;
@@ -241,9 +146,9 @@ export function DetailedSpecsTableRows({
     <>
       {availableCategories.map((categoryKey) => {
         const isExpanded = expandedCategories.has(categoryKey);
-        const categoryName = CATEGORY_NAMES[categoryKey] || categoryKey;
-        const fields = getAllFieldsForCategory(allModels, categoryKey);
-        const fieldNames = FIELD_NAMES[categoryKey] || {};
+        const categoryName = typeCategoryNames[categoryKey] || categoryKey;
+        const fields = getAllFieldsForCategoryDynamic(allModels, categoryKey, typeFieldNames);
+        const fieldNames = typeFieldNames[categoryKey] || {};
 
         return (
           <tr key={`category-wrapper-${categoryKey}`} style={{ display: 'contents' }}>
