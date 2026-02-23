@@ -12,7 +12,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ROIInputs, calculateROI } from "./SingleROICalculator";
 import {
-  CATEGORY_NAMES,
+  getCategoryNamesForType,
   buildDetailedSpecRows,
 } from "@/lib/pdfSpecsHelpers";
 import { addPDFHeader, addPDFFooter, initializePDFGeneration } from "@/lib/pdfHelpers";
@@ -86,9 +86,10 @@ const commonBodyStyles = {
 // Build table body with all detailed specs
 function buildFullSpecBody(
   selectedModels: Equipment[],
-  isCombine: boolean
+  isCombine: boolean,
+  equipmentTypeName?: string
 ): string[][] {
-  const detailedSpecs = buildDetailedSpecRows(selectedModels, isCombine);
+  const detailedSpecs = buildDetailedSpecRows(selectedModels, isCombine, equipmentTypeName);
   const body: string[][] = [];
 
   detailedSpecs.forEach(({ categoryName, rows }) => {
@@ -240,7 +241,7 @@ async function generateComparisonTablePDF(
   ];
 
   // Build full spec body with all categories
-  const specBody = buildFullSpecBody(selectedModels, isCombine);
+  const specBody = buildFullSpecBody(selectedModels, isCombine, equipmentType?.name);
 
   // Add cost rows
   COST_ROWS.forEach((row) => {
@@ -260,7 +261,7 @@ async function generateComparisonTablePDF(
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
-  const categoryNames = Object.values(CATEGORY_NAMES);
+  const categoryNames = Object.values(getCategoryNamesForType(equipmentType?.name)) as string[];
 
   renderChunkedTable(
     doc, tableStartY, headers, specBody, categoryNames,
@@ -308,8 +309,8 @@ async function generateComparisonWithTCOPDF(
   ];
 
   // Build full spec body
-  const specBody = buildFullSpecBody(selectedModels, isCombine);
-  const categoryNames = Object.values(CATEGORY_NAMES);
+  const specBody = buildFullSpecBody(selectedModels, isCombine, equipmentType?.name);
+  const categoryNames = Object.values(getCategoryNamesForType(equipmentType?.name)) as string[];
 
   renderChunkedTable(
     doc, yPos + 8, headers, specBody, categoryNames,
@@ -590,7 +591,7 @@ async function generateFullReportPDF(
   ];
 
   // Build full spec body
-  const specBody = buildFullSpecBody(selectedModels, isCombine);
+  const specBody = buildFullSpecBody(selectedModels, isCombine, equipmentType?.name);
 
   // Add cost rows
   COST_ROWS.forEach((row) => {
@@ -610,7 +611,7 @@ async function generateFullReportPDF(
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
-  const categoryNames = Object.values(CATEGORY_NAMES);
+  const categoryNames = Object.values(getCategoryNamesForType(equipmentType?.name)) as string[];
 
   renderChunkedTable(
     doc, yPos + 8, headers, specBody, categoryNames,
