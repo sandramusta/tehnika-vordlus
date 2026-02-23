@@ -291,7 +291,7 @@ import { cn } from "@/lib/utils";
              defaultValue={equipment?.model_name || ""}
            />
          </div>
-          {selectedType?.name !== "telehandler" && selectedType?.name !== "round_baler" && (
+          {selectedType?.name !== "telehandler" && selectedType?.name !== "round_baler" && selectedType?.name !== "self_propelled_sprayer" && (
             <div className="space-y-2">
               <Label htmlFor="power_class_id">Jõuklass</Label>
               <Select
