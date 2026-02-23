@@ -36,10 +36,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
 
   // Determine equipment category - from prop or local selector
   const equipmentCategory: ROIEquipmentCategory = useMemo(() => {
-    if (equipmentTypeName) {
-      return getROIEquipmentCategory(equipmentTypeName);
-    }
-    // From local selector
+    // Always use local selector
     if (selectedTypeId === "combine") return "combine";
     if (selectedTypeId === "sprayer") return "sprayer";
     if (selectedTypeId === "baler") return "baler";
@@ -48,7 +45,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     const typeObj = equipmentTypes?.find(t => t.id === selectedTypeId);
     if (typeObj) return getROIEquipmentCategory(typeObj.name);
     return "combine";
-  }, [equipmentTypeName, selectedTypeId, equipmentTypes]);
+  }, [selectedTypeId, equipmentTypes]);
 
   const updateExistingInput = (key: keyof ROIInputs, value: string | number) => {
     if (key === "machineName") {
@@ -282,25 +279,23 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Equipment type selector (only if not provided via prop) */}
-        {!equipmentTypeName && (
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Tehnika tüüp</Label>
-            <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
-              <SelectTrigger className="w-full sm:w-64">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="combine">Kombain / Hekseldi</SelectItem>
-                <SelectItem value="sprayer">Taimekaitseprits</SelectItem>
-                <SelectItem value="baler">Ruloonpress</SelectItem>
-                <SelectItem value="none">Traktor / Laadur / Teleskooplaadur</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Tüüp määrab, milliseid näitajaid kuvatakse kalkulaatoris
-            </p>
-          </div>
-        )}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Tehnika tüüp</Label>
+          <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="combine">Kombain / Hekseldi</SelectItem>
+              <SelectItem value="sprayer">Taimekaitseprits</SelectItem>
+              <SelectItem value="baler">Ruloonpress</SelectItem>
+              <SelectItem value="none">Traktor / Laadur / Teleskooplaadur</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Tüüp määrab, milliseid näitajaid kuvatakse kalkulaatoris
+          </p>
+        </div>
 
         {/* Desktop: Two columns side by side */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
