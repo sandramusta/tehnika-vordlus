@@ -44,9 +44,14 @@ function parseInputValue(value: string): unknown {
   if (value === "" || value === "—") return null;
   if (value.toLowerCase() === "jah" || value.toLowerCase() === "true") return true;
   if (value.toLowerCase() === "ei" || value.toLowerCase() === "false") return false;
-  const cleanValue = value.replace(/\s/g, "").replace(",", ".");
-  const parsed = parseFloat(cleanValue);
-  if (!isNaN(parsed)) return parsed;
+  const cleanValue = value.replace(/\s/g, "");
+  // If multiple commas exist, treat as a multi-value string (e.g. "2400,3200,4000")
+  const commaCount = (cleanValue.match(/,/g) || []).length;
+  if (commaCount <= 1) {
+    const numValue = cleanValue.replace(",", ".");
+    const parsed = parseFloat(numValue);
+    if (!isNaN(parsed)) return parsed;
+  }
   return value;
 }
 
