@@ -1,4 +1,5 @@
  import { useState, useCallback } from "react";
+ import { getCategoryOrderForType } from "@/lib/pdfSpecsHelpers";
  import { useQueryClient } from "@tanstack/react-query";
  import { Layout } from "@/components/layout/Layout";
  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -391,12 +392,22 @@ function getCategoryLabel(category: string): string {
             }
           });
         }
- 
+
+        // Filter mergedSpecs to only keep categories allowed for this equipment type
+        const equipmentTypeName = brochureEquipment.equipment_type?.name || "combine";
+        const allowedCats = new Set(getCategoryOrderForType(equipmentTypeName));
+        const filteredSpecs: Record<string, unknown> = {};
+        for (const [catKey, catVal] of Object.entries(mergedSpecs)) {
+          if (allowedCats.has(catKey)) {
+            filteredSpecs[catKey] = catVal;
+          }
+        }
+
        const { error } = await supabase
          .from("equipment")
          .update({
            ...columnUpdates,
-           detailed_specs: mergedSpecs as unknown as Record<string, never>,
+           detailed_specs: filteredSpecs as unknown as Record<string, never>,
          })
          .eq("id", brochureEquipment.id);
  
