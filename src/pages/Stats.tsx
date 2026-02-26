@@ -18,16 +18,18 @@ import {
   Users,
   ArrowUpDown,
   TrendingUp,
+  Calendar,
 } from "lucide-react";
-import { useLeaderboard, useDashboardStats } from "@/hooks/useActivityStats";
-import { formatDistanceToNow } from "date-fns";
+import { useLeaderboard, useDashboardStats, type StatsPeriod } from "@/hooks/useActivityStats";
+import { formatDistanceToNow, format } from "date-fns";
 import { et } from "date-fns/locale";
 
 type SortField = "total_points" | "pdf_count" | "comparison_count";
 
 export default function Stats() {
-  const { data: leaderboard = [], isLoading: loadingLeaderboard } = useLeaderboard();
-  const { data: stats, isLoading: loadingStats } = useDashboardStats();
+  const [period, setPeriod] = useState<StatsPeriod>("current_month");
+  const { data: leaderboard = [], isLoading: loadingLeaderboard } = useLeaderboard(period);
+  const { data: stats, isLoading: loadingStats } = useDashboardStats(period);
   const [sortBy, setSortBy] = useState<SortField>("total_points");
 
   const sortedLeaderboard = [...leaderboard].sort((a, b) => {
@@ -78,7 +80,34 @@ export default function Stats() {
           </h1>
           <p className="mt-2 text-sm sm:text-base text-primary-foreground/80">
             Jälgi müügimeeste aktiivsust ja vaata, kes on kõige produktiivsem.
+            {period === "current_month" && (
+              <span className="ml-2 font-semibold">
+                — {format(new Date(), "LLLL yyyy", { locale: et })}
+              </span>
+            )}
           </p>
+        </div>
+
+        {/* Period Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={period === "current_month" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPeriod("current_month")}
+            className="gap-1.5"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            Käesolev kuu
+          </Button>
+          <Button
+            variant={period === "all_time" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPeriod("all_time")}
+            className="gap-1.5"
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            Kogu aeg
+          </Button>
         </div>
 
         {/* Dashboard Cards */}
