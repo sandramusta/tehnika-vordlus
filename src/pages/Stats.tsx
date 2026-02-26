@@ -110,6 +110,12 @@ export default function Stats() {
           </Button>
         </div>
 
+        {period === "current_month" && (
+          <h2 className="text-2xl sm:text-3xl font-bold capitalize">
+            {format(new Date(), "LLLL yyyy", { locale: et })}
+          </h2>
+        )}
+
         {/* Dashboard Cards */}
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>
