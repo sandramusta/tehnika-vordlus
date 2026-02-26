@@ -180,12 +180,12 @@ export default function Stats() {
                 <BarChart3 className="h-5 w-5" />
                 Müügimeeste edetabel
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 flex-wrap">
                 <Button
                   variant={sortBy === "total_points" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSortBy("total_points")}
-                  className="gap-1"
+                  className="gap-1 text-xs px-2"
                 >
                   <ArrowUpDown className="h-3 w-3" />
                   Punktid
@@ -194,16 +194,16 @@ export default function Stats() {
                   variant={sortBy === "pdf_count" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSortBy("pdf_count")}
-                  className="gap-1"
+                  className="gap-1 text-xs px-2"
                 >
                   <ArrowUpDown className="h-3 w-3" />
-                  PDF-raportid
+                  PDF
                 </Button>
                 <Button
                   variant={sortBy === "comparison_count" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSortBy("comparison_count")}
-                  className="gap-1"
+                  className="gap-1 text-xs px-2"
                 >
                   <ArrowUpDown className="h-3 w-3" />
                   Võrdlused
