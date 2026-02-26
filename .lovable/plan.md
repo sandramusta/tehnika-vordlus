@@ -1,37 +1,49 @@
 
 
-# Mitmese pumba tüübiga mudelite kuvamine mõlemas võrdlusgrupis
+# Igakuine statistikasusteem perioodi valikuga
 
-## Probleem
+## Ulevaade
+Lisa "Statistika ja edetabel" lehele perioodi valik ("Kaesolev kuu" / "Kogu aeg"), kus vaikimisi kuvatakse ainult jooksva kuu andmeid. Andmebaasi muudatusi pole vaja -- `created_at` timestamp on juba olemas.
 
-Praegu tagastab `getSprayerPumpCategory` ainult uhe kategooria. Mudelid, mille pumba tyyp sisaldab molemaid variante (nt "tsentrifugaal voi kolb-membraan"), kuvatakse ainult kolb-membraanpumba vordluses.
+## Muudatused
 
-## Lahendus
+### 1. Hook: `src/hooks/useActivityStats.ts`
+- Lisa `period` parameeter molemale hookile (`useLeaderboard` ja `useDashboardStats`)
+- Tyyp: `"current_month" | "all_time"` (vaikimisi `"current_month"`)
+- Kui `period === "current_month"`, lisa `.gte("created_at", monthStart.toISOString())` filter koikidele paringutele
+- Kui `period === "all_time"`, ara filtreeri kuupaeva jargi
+- Uuenda `queryKey` sisaldama perioodi vaartust, et React Query teaks andmeid uuesti laadida perioodi vahetusel
+- Dashboard stats kaardid ("Tana alla laetud raportid", "Aktiivseim muugimees") jaavad alati tanase paeva pohiseks, kuid "Koige popim masin" kaardi paringule lisatakse samuti perioodi filter
 
-Muuta `getSprayerPumpCategory` tagastama massiivi kategooriatest uhe vaartuse asemel. Vordlusloogikas kontrollida, kas valitud mudeli ja konkurendi pumba kategooriad kattuvad (intersection).
+### 2. Leht: `src/pages/Stats.tsx`
+- Lisa `period` state: `useState<"current_month" | "all_time">("current_month")`
+- Lisa hero sektsiooni alla perioodi valik -- kaks nuppu/toggle:
+  - "Kaesolev kuu" (vaikimisi aktiivne)
+  - "Kogu aeg"
+- Edasta `period` molemale hookile: `useLeaderboard(period)` ja `useDashboardStats(period)`
+- Kuva hero sektsioonis ka jooksva kuu nimi (nt "Veebruar 2026"), kui valitud on "Kaesolev kuu"
 
-## Tehnilised muudatused
+## Tehniline detail
 
-### 1. `src/hooks/useCompetitors.ts`
+Kuu alguse arvutamine hookis:
+```typescript
+const monthStart = new Date();
+monthStart.setDate(1);
+monthStart.setHours(0, 0, 0, 0);
+```
 
-**Funktsioon `getSprayerPumpCategory`:**
-- Tagastustyyp muutub `string | null` asemel `("tsentrifugaal" | "kolb-membraan")[] | null`
-- Kui tekst sisaldab molemaid marksoanu, tagastatakse `["tsentrifugaal", "kolb-membraan"]`
-- Kui ainult yhte, tagastatakse yheelemendine massiiv
+Paring naide filtriga:
+```typescript
+let query = (supabase as any)
+  .from("user_activity_logs")
+  .select("user_id, action_type, created_at")
+  .in("action_type", [...]);
 
-**Vordlusloogika `useCompetitors` hookis:**
-- Praegune `eqPump !== selectedPump` kontroll asendatakse kattuvuse kontrollile: kas valitud mudeli ja konkurendi kategooriate massiividel on yhisosa
-- Nt kui valitud mudelil on `["tsentrifugaal"]` ja konkurendil `["tsentrifugaal", "kolb-membraan"]`, siis on yhisosa olemas ja mudel kuvatakse
+if (period === "current_month") {
+  query = query.gte("created_at", monthStart.toISOString());
+}
+```
 
-**Kokkuvottefunktsioon `getCompetitorSummary`:**
-- Kuvab pumba tyybi(d) massiivi pohjal, nt "tsentrifugaalpump" voi "tsentrifugaal- / kolb-membraanpump"
-
-### Naide
-
-Kui kasutaja valib mudeli pumba tyybiga "tsentrifugaalpump":
-- Kuvatakse konkurendid, kus pumba tyyp on "tsentrifugaalpump"
-- Kuvatakse ka konkurendid, kus pumba tyyp on "tsentrifugaal voi kolb-membraan"
-
-Kui kasutaja valib mudeli pumba tyybiga "tsentrifugaal voi kolb-membraan":
-- Kuvatakse molemad grupid: nii tsentrifugaal- kui ka kolb-membraanpumbaga konkurendid
-
+## Muudetavad failid
+1. `src/hooks/useActivityStats.ts` -- perioodi filter paringutesse
+2. `src/pages/Stats.tsx` -- perioodi valik UI ja state
