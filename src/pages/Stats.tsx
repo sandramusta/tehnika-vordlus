@@ -80,11 +80,6 @@ export default function Stats() {
           </h1>
           <p className="mt-2 text-sm sm:text-base text-primary-foreground/80">
             Jälgi müügimeeste aktiivsust ja vaata, kes on kõige produktiivsem.
-            {period === "current_month" && (
-              <span className="ml-2 font-semibold">
-                — {format(new Date(), "LLLL yyyy", { locale: et })}
-              </span>
-            )}
           </p>
         </div>
 
