@@ -241,7 +241,7 @@ export default function Stats() {
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">PDF</span>
                           <Badge variant="secondary" className="text-xs">{entry.pdf_count}</Badge>
-                          <span className="text-xs text-muted-foreground">Võrdl.</span>
+                          <span className="text-xs text-muted-foreground">Võrdlus</span>
                           <Badge variant="secondary" className="text-xs">{entry.comparison_count}</Badge>
                           <Badge
                             variant={index < 3 ? "default" : "outline"}
