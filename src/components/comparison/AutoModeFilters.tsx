@@ -22,7 +22,6 @@ const allowedTypes = [
   "combine",
   "tractor",
   "forage_harvester",
-  "wheel_loader",
   "telehandler",
   "self_propelled_sprayer",
   "trailed_sprayer",
