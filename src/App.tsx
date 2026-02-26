@@ -26,9 +26,21 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/comparison" element={<Comparison />} />
-            <Route path="/myths" element={<Myths />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/comparison" element={
+              <ProtectedRoute>
+                <Comparison />
+              </ProtectedRoute>
+            } />
+            <Route path="/myths" element={
+              <ProtectedRoute>
+                <Myths />
+              </ProtectedRoute>
+            } />
             <Route path="/admin" element={
               <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
                 <Admin />
