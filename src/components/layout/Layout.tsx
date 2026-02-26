@@ -1,10 +1,12 @@
 import { Header } from "./Header";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  useInactivityLogout();
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
