@@ -34,7 +34,10 @@ export default function Stats() {
 
   const sortedLeaderboard = [...leaderboard].sort((a, b) => {
     if (sortBy === "pdf_count") {
-      return (b.pdf_count + b.comparison_count) - (a.pdf_count + a.comparison_count);
+      return b.pdf_count - a.pdf_count;
+    }
+    if (sortBy === "comparison_count") {
+      return b.comparison_count - a.comparison_count;
     }
     return b[sortBy] - a[sortBy];
   });
@@ -195,6 +198,15 @@ export default function Stats() {
                 >
                   <ArrowUpDown className="h-3 w-3" />
                   PDF-raportid
+                </Button>
+                <Button
+                  variant={sortBy === "comparison_count" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSortBy("comparison_count")}
+                  className="gap-1"
+                >
+                  <ArrowUpDown className="h-3 w-3" />
+                  Võrdlused
                 </Button>
               </div>
             </div>
