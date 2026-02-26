@@ -212,48 +212,37 @@ export default function Stats() {
                 Tegevuste andmed puuduvad. Statistika ilmub, kui kasutajad hakkavad rakendust kasutama.
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-16">Koht</TableHead>
-                      <TableHead>Nimi</TableHead>
-                      <TableHead>Viimati aktiivne</TableHead>
-                      <TableHead className="text-center">PDF-raportid</TableHead>
-                      <TableHead className="text-center">Võrdlused</TableHead>
-                      <TableHead className="text-center">Punktid</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedLeaderboard.map((entry, index) => (
-                      <TableRow
-                        key={entry.user_id}
-                        className={getRowStyle(index)}
-                      >
-                        <TableCell>{getTrophyIcon(index)}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{entry.full_name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {entry.email}
-                            </div>
+              <>
+                {/* Mobile: card layout */}
+                <div className="space-y-3 sm:hidden">
+                  {sortedLeaderboard.map((entry, index) => (
+                    <div
+                      key={entry.user_id}
+                      className={`rounded-lg border p-3 ${getRowStyle(index)}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0">{getTrophyIcon(index)}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{entry.full_name}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {entry.email}
                           </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
+                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between gap-2 text-sm">
+                        <span className="text-muted-foreground text-xs">
                           {entry.last_active
                             ? formatDistanceToNow(new Date(entry.last_active), {
                                 addSuffix: true,
                                 locale: et,
                               })
                             : "—"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">{entry.pdf_count}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">{entry.comparison_count}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">PDF</span>
+                          <Badge variant="secondary" className="text-xs">{entry.pdf_count}</Badge>
+                          <span className="text-xs text-muted-foreground">Võrdl</span>
+                          <Badge variant="secondary" className="text-xs">{entry.comparison_count}</Badge>
                           <Badge
                             variant={index < 3 ? "default" : "outline"}
                             className={
@@ -262,14 +251,74 @@ export default function Stats() {
                                 : ""
                             }
                           >
-                            {entry.total_points}
+                            {entry.total_points}p
                           </Badge>
-                        </TableCell>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop: table layout */}
+                <div className="rounded-md border hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-16">Koht</TableHead>
+                        <TableHead>Nimi</TableHead>
+                        <TableHead>Viimati aktiivne</TableHead>
+                        <TableHead className="text-center">PDF-raportid</TableHead>
+                        <TableHead className="text-center">Võrdlused</TableHead>
+                        <TableHead className="text-center">Punktid</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedLeaderboard.map((entry, index) => (
+                        <TableRow
+                          key={entry.user_id}
+                          className={getRowStyle(index)}
+                        >
+                          <TableCell>{getTrophyIcon(index)}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{entry.full_name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {entry.email}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {entry.last_active
+                              ? formatDistanceToNow(new Date(entry.last_active), {
+                                  addSuffix: true,
+                                  locale: et,
+                                })
+                              : "—"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="secondary">{entry.pdf_count}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="secondary">{entry.comparison_count}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant={index < 3 ? "default" : "outline"}
+                              className={
+                                index === 0
+                                  ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500"
+                                  : ""
+                              }
+                            >
+                              {entry.total_points}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
