@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export type StatsPeriod = "current_month" | "all_time";
+
 interface LeaderboardEntry {
   user_id: string;
   full_name: string;
@@ -18,19 +20,29 @@ interface DashboardStats {
   mostActiveUser: string | null;
 }
 
-export function useLeaderboard() {
+function getMonthStart(): string {
+  const d = new Date();
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+export function useLeaderboard(period: StatsPeriod = "current_month") {
   return useQuery({
-    queryKey: ["activity-leaderboard"],
+    queryKey: ["activity-leaderboard", period],
     queryFn: async () => {
-      // Get all activity logs
-      const { data: logs, error } = await (supabase as any)
+      let query = (supabase as any)
         .from("user_activity_logs")
         .select("user_id, action_type, created_at")
         .in("action_type", ["PDF_GENERATED", "COMPARISON_MADE", "ROI_CALCULATED"]);
 
+      if (period === "current_month") {
+        query = query.gte("created_at", getMonthStart());
+      }
+
+      const { data: logs, error } = await query;
       if (error) throw error;
 
-      // Get profiles for names
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, email");
@@ -39,7 +51,6 @@ export function useLeaderboard() {
         profiles?.map((p) => [p.id, { full_name: p.full_name, email: p.email }]) || []
       );
 
-      // Aggregate per user
       const userMap = new Map<string, {
         pdf_count: number;
         comparison_count: number;
@@ -81,31 +92,37 @@ export function useLeaderboard() {
 
       return leaderboard;
     },
-    refetchInterval: 30000, // Refresh every 30s
+    refetchInterval: 30000,
   });
 }
 
-export function useDashboardStats() {
+export function useDashboardStats(period: StatsPeriod = "current_month") {
   return useQuery({
-    queryKey: ["activity-dashboard-stats"],
+    queryKey: ["activity-dashboard-stats", period],
     queryFn: async (): Promise<DashboardStats> => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      // Today's PDFs
+      // Today's PDFs — always today-based
       const { count: todayPDFs } = await (supabase as any)
         .from("user_activity_logs")
         .select("*", { count: "exact", head: true })
         .eq("action_type", "PDF_GENERATED")
         .gte("created_at", todayStart.toISOString());
 
-      // Most popular model in comparisons (from details JSON)
-      const { data: comparisonLogs } = await (supabase as any)
+      // Most popular model — filtered by period
+      let compQuery = (supabase as any)
         .from("user_activity_logs")
         .select("details")
         .eq("action_type", "COMPARISON_MADE")
         .order("created_at", { ascending: false })
         .limit(100);
+
+      if (period === "current_month") {
+        compQuery = compQuery.gte("created_at", getMonthStart());
+      }
+
+      const { data: comparisonLogs } = await compQuery;
 
       let mostPopularModel: string | null = null;
       if (comparisonLogs && comparisonLogs.length > 0) {
@@ -128,7 +145,7 @@ export function useDashboardStats() {
         }
       }
 
-      // Most active user today
+      // Most active user today — always today-based
       const { data: todayLogs } = await (supabase as any)
         .from("user_activity_logs")
         .select("user_id")
