@@ -341,9 +341,22 @@ export function DetailedSpecsEditor({
 
   const handleDeleteField = useCallback(
     (categoryKey: string, fieldKey: string) => {
+      const isPredefinedField = Boolean(fieldNames[categoryKey]?.[fieldKey]);
+
       setSpecs((prevSpecs) => {
         const existingCategory = { ...(prevSpecs[categoryKey] || {}) };
-        delete existingCategory[fieldKey];
+
+        if (isPredefinedField) {
+          const hiddenFields = new Set(
+            Array.isArray(existingCategory.__hidden_fields) ? (existingCategory.__hidden_fields as string[]) : []
+          );
+          hiddenFields.add(fieldKey);
+          delete existingCategory[fieldKey];
+          existingCategory.__hidden_fields = Array.from(hiddenFields);
+        } else {
+          delete existingCategory[fieldKey];
+        }
+
         const updatedSpecs = {
           ...prevSpecs,
           [categoryKey]: existingCategory,
@@ -351,11 +364,11 @@ export function DetailedSpecsEditor({
         onChange(updatedSpecs);
         return updatedSpecs;
       });
-      // Bulk remove from all equipment of same type
+
       bulkRemoveField(categoryKey, fieldKey);
       toast.success("Näitaja eemaldatud kõikidelt selle tüübi masinatelt");
     },
-    [onChange, bulkRemoveField]
+    [fieldNames, onChange, bulkRemoveField]
   );
 
   const handleAddField = useCallback(
