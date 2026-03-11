@@ -459,9 +459,10 @@ export function DetailedSpecsEditor({
         onChange(updatedSpecs);
         return updatedSpecs;
       });
-      toast.success("Kategooria eemaldatud");
+      bulkRemoveCategory(categoryKey);
+      toast.success("Kategooria eemaldatud kõikidelt selle tüübi masinatelt");
     },
-    [onChange]
+    [onChange, bulkRemoveCategory]
   );
 
   const handleAddCategory = useCallback(() => {
