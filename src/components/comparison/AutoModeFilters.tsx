@@ -169,7 +169,7 @@ export function AutoModeFilters({
                 ? "Konkurente sama pumba tüübi ja sarnase paagi mahu vahemikus ei leitud"
                 : isTelehandler 
                 ? "Konkurente sarnase tõstekõrguse ja kandevõime vahemikus ei leitud"
-                : `Konkurente vahemikus ±${equipmentTypeName === 'tractor' ? '10' : '50'} hj ei leitud`
+                : `Konkurente vahemikus ±${hpRangeLabel} hj ei leitud`
               }
             </div>
           )}
