@@ -248,7 +248,7 @@ export function DetailedSpecsEditor({
           } else {
             specs[categoryKey] = cat;
           }
-          return supabase.from("equipment").update({ detailed_specs: specs }).eq("id", e.id);
+          return supabase.from("equipment").update({ detailed_specs: specs as unknown as Json }).eq("id", e.id);
         });
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
