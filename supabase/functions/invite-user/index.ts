@@ -192,17 +192,22 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
+    let emailSent = true;
     if (emailError) {
       console.error("Error sending email:", emailError);
-      throw new Error("Email sending failed");
+      emailSent = false;
+      // Don't throw - user was created successfully, email just couldn't be sent
+    } else {
+      console.log(`Invitation email sent to ${email}`);
     }
-
-    console.log(`Invitation email sent to ${email}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "User invited successfully",
+        message: emailSent 
+          ? "User invited successfully" 
+          : "User created successfully, but invitation email could not be sent. The user can still log in using the password reset flow.",
+        emailSent,
         userId: newUser.user.id 
       }),
       {
