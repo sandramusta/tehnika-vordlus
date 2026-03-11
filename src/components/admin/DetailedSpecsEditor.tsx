@@ -29,6 +29,7 @@ interface DetailedSpecsEditorProps {
   initialSpecs?: Record<string, unknown>;
   onChange: (updatedSpecs: Record<string, unknown>) => void;
   equipmentTypeName?: string;
+  equipmentTypeId?: string;
 }
 
 function formatDisplayValue(value: unknown): string {
