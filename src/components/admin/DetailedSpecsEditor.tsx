@@ -136,12 +136,17 @@ export function DetailedSpecsEditor({
     categoryOrder.forEach(cat => {
       const predefined = fieldNames[cat] || {};
       const actualData = specs[cat] || {};
+      const categoryExists = specs[cat] !== undefined;
       const fields: FieldInfo[] = [];
       
       // Predefined fields first (in order)
+      // If category has data, only show predefined fields that still exist in specs
+      // If category has no data yet, show all predefined fields for easy entry
       Object.entries(predefined).forEach(([key, label]) => {
-        const compositeKey = `${cat}_${key}`;
-        fields.push({ key, label: specLabels[compositeKey] || label });
+        if (!categoryExists || actualData[key] !== undefined) {
+          const compositeKey = `${cat}_${key}`;
+          fields.push({ key, label: specLabels[compositeKey] || label });
+        }
       });
       
       // Extra fields from actual data
