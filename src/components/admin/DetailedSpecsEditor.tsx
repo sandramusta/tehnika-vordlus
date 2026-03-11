@@ -298,7 +298,7 @@ export function DetailedSpecsEditor({
         .map((e) => {
           const specs = { ...(e.detailed_specs as Record<string, Record<string, unknown>>) };
           delete specs[categoryKey];
-          return supabase.from("equipment").update({ detailed_specs: specs }).eq("id", e.id);
+          return supabase.from("equipment").update({ detailed_specs: specs as unknown as Json }).eq("id", e.id);
         });
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
