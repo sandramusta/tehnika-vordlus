@@ -72,6 +72,8 @@ export default function Auth() {
         variant: "destructive",
       });
     } else {
+      // Reset inactivity timer so Layout doesn't immediately sign out
+      localStorage.setItem("last_activity_timestamp", Date.now().toString());
       toast({ title: "Sisselogimine õnnestus!" });
       navigate("/");
     }
