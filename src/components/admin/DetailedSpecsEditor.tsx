@@ -476,7 +476,6 @@ export function DetailedSpecsEditor({
       toast.error("See kategooria on juba olemas");
       return;
     }
-    // Save display name to spec_labels
     const labelKey = `cat_${key}`;
     const displayName = newCategoryName.trim().toUpperCase();
     supabase
@@ -486,17 +485,17 @@ export function DetailedSpecsEditor({
         queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
       });
 
-    // Add empty category to specs
     setSpecs((prevSpecs) => {
       const updatedSpecs = { ...prevSpecs, [key]: {} };
       onChange(updatedSpecs);
       return updatedSpecs;
     });
+    bulkAddCategory(key);
     setExpandedCategories(prev => new Set([...prev, key]));
     setNewCategoryName("");
     setAddingNewCategory(false);
-    toast.success("Kategooria lisatud");
-  }, [newCategoryName, allCategories, onChange, queryClient]);
+    toast.success("Kategooria lisatud kõikidele selle tüübi masinatele");
+  }, [newCategoryName, allCategories, onChange, queryClient, bulkAddCategory]);
 
   const getFieldValue = (categoryKey: string, fieldKey: string): string => {
     const categoryData = specs[categoryKey];
