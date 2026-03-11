@@ -36,12 +36,18 @@ function getSprayerPumpCategories(equipment: Equipment): PumpCategory[] | null {
   return categories.length > 0 ? categories : null;
 }
 
+function isForageHarvester(equipment: Equipment): boolean {
+  return equipment.equipment_type?.name === "forage_harvester";
+}
+
 function isTractor(equipment: Equipment): boolean {
   return equipment.equipment_type?.name === "tractor";
 }
 
 function getHpRange(equipment: Equipment): number {
-  return isTractor(equipment) ? HP_RANGE_TRACTOR : HP_RANGE_DEFAULT;
+  if (isTractor(equipment)) return HP_RANGE_TRACTOR;
+  if (isForageHarvester(equipment)) return HP_RANGE_FORAGE_HARVESTER;
+  return HP_RANGE_DEFAULT;
 }
 
 export function useCompetitors(
