@@ -375,12 +375,13 @@ import { cn } from "@/lib/utils";
 
         {/* Detailed specs editor - always show when type is selected */}
          {selectedType && (
-           <DetailedSpecsEditor
-             equipment={equipment}
-             initialSpecs={detailedSpecs}
-             onChange={handleDetailedSpecsChange}
-             equipmentTypeName={selectedType.name}
-           />
+            <DetailedSpecsEditor
+              equipment={equipment}
+              initialSpecs={detailedSpecs}
+              onChange={handleDetailedSpecsChange}
+              equipmentTypeName={selectedType.name}
+              equipmentTypeId={selectedTypeId}
+            />
          )}
   
         <Button type="submit" className="w-full" disabled={isSubmitting}>
