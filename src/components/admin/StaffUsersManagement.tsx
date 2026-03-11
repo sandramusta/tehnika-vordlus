@@ -70,11 +70,18 @@ export function StaffUsersManagement() {
         await updateUser.mutateAsync({ id: editingUser.id, ...userData });
         toast({ title: "Kasutaja andmed uuendatud!" });
       } else {
-        await inviteUser.mutateAsync({ ...userData, role: selectedRole });
-        toast({ 
-          title: "Kasutaja kutsutud!", 
-          description: `Kutse saadetud aadressile ${userData.email}` 
-        });
+        const result = await inviteUser.mutateAsync({ ...userData, role: selectedRole });
+        if (result.emailSent === false) {
+          toast({ 
+            title: "Kasutaja loodud!", 
+            description: `Kutse e-kirja ei saanud saata (domeeni pole verifitseeritud). Kasutaja saab sisse logida parooli taastamise kaudu.`,
+          });
+        } else {
+          toast({ 
+            title: "Kasutaja kutsutud!", 
+            description: `Kutse saadetud aadressile ${userData.email}` 
+          });
+        }
       }
       setDialogOpen(false);
       setEditingUser(null);
