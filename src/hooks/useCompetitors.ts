@@ -3,6 +3,7 @@ import { Equipment } from "@/types/equipment";
 
 const HP_RANGE_DEFAULT = 50;
 const HP_RANGE_TRACTOR = 10;
+const HP_RANGE_FORAGE_HARVESTER = 25;
 const LIFT_HEIGHT_RANGE_M = 0.5; // ±0.5m for telehandler matching
 const LIFT_CAPACITY_RANGE_KG = 400; // ±400kg for telehandler matching
 const TANK_VOLUME_RANGE_L = 1000; // ±1000L for trailed sprayer matching
