@@ -98,17 +98,34 @@ export function BrochureDataReview({
       filteredColumns[key] = hasCurrentValue ? currentVal : extractedVal;
     }
 
-    // Filter detailed_specs
+    // Filter detailed_specs, respecting __hidden_fields
+    const existingSpecs = (equipment.detailed_specs as Record<string, Record<string, unknown>> | null) || {};
     const filteredSpecs: Record<string, Record<string, unknown>> = {};
     for (const catKey of allowedCategories) {
       const allowedFields = fieldLabels[catKey];
       if (!allowedFields) continue;
+
+      // Read hidden fields from existing equipment data
+      const existingCat = existingSpecs[catKey] || {};
+      const hiddenFields = new Set<string>(
+        Array.isArray(existingCat.__hidden_fields)
+          ? (existingCat.__hidden_fields as string[])
+          : []
+      );
+
       filteredSpecs[catKey] = {};
+      // Preserve __hidden_fields array
+      if (hiddenFields.size > 0) {
+        (filteredSpecs[catKey] as any).__hidden_fields = Array.from(hiddenFields);
+      }
+
       for (const fieldKey of Object.keys(allowedFields)) {
+        // Skip hidden fields
+        if (hiddenFields.has(fieldKey)) continue;
+
         const currentVal = getDetailedSpecValue(equipment, catKey, fieldKey);
         const extractedCat = extractedData.detailed_specs?.[catKey] as Record<string, unknown> | undefined;
         const extractedVal = extractedCat?.[fieldKey] ?? null;
-        // If current value exists, keep it; otherwise use extracted
         const hasCurrentValue = currentVal !== null && currentVal !== undefined && currentVal !== "" && currentVal !== 0;
         filteredSpecs[catKey][fieldKey] = hasCurrentValue ? currentVal : extractedVal;
       }
