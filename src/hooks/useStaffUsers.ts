@@ -99,7 +99,7 @@ export function useInviteStaffUser() {
         throw new Error(data.error);
       }
 
-      return { ...staffUser, authUserId: data.userId };
+      return { ...staffUser, authUserId: data.userId, emailSent: data.emailSent !== false };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staff-users"] });
