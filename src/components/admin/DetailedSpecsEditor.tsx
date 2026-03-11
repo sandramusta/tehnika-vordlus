@@ -364,7 +364,6 @@ export function DetailedSpecsEditor({
         toast.error("Vigane näitaja nimi");
         return;
       }
-      // Check for duplicates
       const existing = specs[categoryKey] || {};
       const predefined = fieldNames[categoryKey] || {};
       if (existing[key] !== undefined || predefined[key] !== undefined) {
@@ -372,7 +371,6 @@ export function DetailedSpecsEditor({
         return;
       }
       
-      // Save display label to spec_labels
       const compositeKey = `${categoryKey}_${key}`;
       const displayLabel = newFieldName.trim();
       supabase
@@ -393,11 +391,13 @@ export function DetailedSpecsEditor({
         onChange(updatedSpecs);
         return updatedSpecs;
       });
+      // Bulk add to all equipment of same type
+      bulkAddField(categoryKey, key);
       setNewFieldName("");
       setAddingToCategory(null);
-      toast.success("Näitaja lisatud");
+      toast.success("Näitaja lisatud kõikidele selle tüübi masinatele");
     },
-    [newFieldName, specs, fieldNames, onChange, queryClient]
+    [newFieldName, specs, fieldNames, onChange, queryClient, bulkAddField]
   );
 
   const handleSaveLabel = useCallback(
