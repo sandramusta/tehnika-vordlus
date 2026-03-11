@@ -241,14 +241,10 @@ export function DetailedSpecsEditor({
           return specs?.[categoryKey]?.[fieldKey] !== undefined;
         })
         .map((e) => {
-          const specs = { ...(e.detailed_specs as Record<string, Record<string, unknown>>) };
-          const cat = { ...specs[categoryKey] };
+          const specs = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
+          const cat = { ...(specs[categoryKey] || {}) };
           delete cat[fieldKey];
-          if (Object.keys(cat).length === 0) {
-            delete specs[categoryKey];
-          } else {
-            specs[categoryKey] = cat;
-          }
+          specs[categoryKey] = cat;
           return supabase.from("equipment").update({ detailed_specs: specs as unknown as Json }).eq("id", e.id);
         });
       await Promise.all(updates);
