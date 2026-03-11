@@ -142,9 +142,8 @@ export function DetailedSpecsEditor({
       const categoryExists = specs[cat] !== undefined;
       const fields: FieldInfo[] = [];
       
-      // Predefined fields first (in order)
-      // If category has data, only show predefined fields that still exist in specs
-      // If category has no data yet, show all predefined fields for easy entry
+      // Predefined fields: only show if category doesn't exist yet (fresh entry)
+      // OR if the field actually exists in specs data
       Object.entries(predefined).forEach(([key, label]) => {
         if (!categoryExists || actualData[key] !== undefined) {
           const compositeKey = `${cat}_${key}`;
