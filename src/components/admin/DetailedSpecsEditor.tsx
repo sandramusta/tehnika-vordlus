@@ -139,13 +139,14 @@ export function DetailedSpecsEditor({
     categoryOrder.forEach(cat => {
       const predefined = fieldNames[cat] || {};
       const actualData = specs[cat] || {};
-      const categoryExists = specs[cat] !== undefined;
+      const hiddenFields = new Set(
+        Array.isArray(actualData.__hidden_fields) ? (actualData.__hidden_fields as string[]) : []
+      );
       const fields: FieldInfo[] = [];
       
-      // Predefined fields: only show if category doesn't exist yet (fresh entry)
-      // OR if the field actually exists in specs data
+      // Predefined fields are visible by default unless explicitly hidden
       Object.entries(predefined).forEach(([key, label]) => {
-        if (!categoryExists || actualData[key] !== undefined) {
+        if (!hiddenFields.has(key)) {
           const compositeKey = `${cat}_${key}`;
           fields.push({ key, label: specLabels[compositeKey] || label });
         }
@@ -153,6 +154,7 @@ export function DetailedSpecsEditor({
       
       // Extra fields from actual data
       Object.keys(actualData).forEach(key => {
+        if (key === "__hidden_fields") return;
         if (!predefined[key]) {
           const compositeKey = `${cat}_${key}`;
           fields.push({ key, label: specLabels[compositeKey] || formatFieldKey(key) });
