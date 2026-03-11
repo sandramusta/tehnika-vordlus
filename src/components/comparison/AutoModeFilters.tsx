@@ -183,7 +183,7 @@ export function AutoModeFilters({
             ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sama pumba tüübi ja ±1000L paagi mahu vahemikus teistest brändidest."
             : isTelehandler 
             ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±0.5m) ja kandevõime (±400kg) vahemikus."
-            : `Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±${equipmentTypeName === 'tractor' ? '10' : '50'} hj vahemikus teistest brändidest.`
+            : `Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±${hpRangeLabel} hj vahemikus teistest brändidest.`
           }
         </div>
       )}
