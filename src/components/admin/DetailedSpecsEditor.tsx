@@ -339,9 +339,6 @@ export function DetailedSpecsEditor({
           ...prevSpecs,
           [categoryKey]: existingCategory,
         };
-        if (Object.keys(existingCategory).length === 0) {
-          delete updatedSpecs[categoryKey];
-        }
         onChange(updatedSpecs);
         return updatedSpecs;
       });
