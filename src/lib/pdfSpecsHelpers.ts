@@ -236,15 +236,19 @@ export const TRACTOR_FIELD_NAMES: Record<string, Record<string, string>> = {
 export const FORAGE_HARVESTER_CATEGORY_ORDER = [
   "mootor",
   "lõikur",
+  "teraviljapurusti",
   "tõstuk",
   "mõõtmed",
+  "täppispõllumajandus",
 ] as const;
 
 export const FORAGE_HARVESTER_CATEGORY_NAMES: Record<string, string> = {
   mootor: "MOOTOR",
   lõikur: "LÕIKUR",
+  teraviljapurusti: "TERAVILJAPURUSTI",
   tõstuk: "TÕSTUK",
   mõõtmed: "MÕÕTMED",
+  täppispõllumajandus: "TÄPPISPÕLLUMAJANDUS",
 };
 
 export const FORAGE_HARVESTER_FIELD_NAMES: Record<string, Record<string, string>> = {
@@ -255,19 +259,34 @@ export const FORAGE_HARVESTER_FIELD_NAMES: Record<string, Record<string, string>
     kütusepaagi_maht_l: "Kütusepaagi maht (l)",
   },
   lõikur: {
+    nugade_arv_standard: "Nugade arv (standard)",
+    lõikepikkus_min_max_mm: "Lõikepikkus (min-max, mm)",
+    konveierikanali_laius_mm: "Konveierikanali laius (mm)",
+    nugade_trummel_laius_mm: "Nugade trummel laius (mm)",
+    nugade_trummel_läbimõõt_mm: "Nugade trummel läbimõõt (mm)",
     lõikelaius_m: "Lõikelaius (m)",
     nugade_arv: "Nugade arv",
     lõikekiirus_min: "Lõikekiirus (1/min)",
   },
+  teraviljapurusti: {
+    teraviljapurusti_tüüp: "Teraviljapurusti tüüp",
+    teraviljapurusti_rulli_läbimõõt_mm: "Teraviljapurusti rulli läbimõõt (mm)",
+  },
   tõstuk: {
     väljutuskõrgus_m: "Väljutuskõrgus (m)",
     väljutuskaugus_m: "Väljutuskaugus (m)",
+    väljasirutuse_ulatus_max_m: "Väljasirutuse ulatus (max, m)",
   },
   mõõtmed: {
     kaal_kg: "Kaal (kg)",
     laius_mm: "Laius (mm)",
     kõrgus_mm: "Kõrgus (mm)",
     pikkus_mm: "Pikkus (mm)",
+    transpordipikkus_ilma_heedrita_m: "Transpordipikkus (ilma heedrita, m)",
+    transpordikõrgus_m: "Transpordikõrgus (m)",
+  },
+  täppispõllumajandus: {
+    täppispõllumajanduse_lahendused: "Täppispõllumajanduse lahendused",
   },
 };
 
