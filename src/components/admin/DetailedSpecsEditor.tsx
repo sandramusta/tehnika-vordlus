@@ -223,6 +223,116 @@ export function DetailedSpecsEditor({
     [onChange]
   );
 
+  // Bulk update all equipment of same type (remove a field from all)
+  const bulkRemoveField = useCallback(
+    async (categoryKey: string, fieldKey: string) => {
+      if (!equipmentTypeId) return;
+      const { data: allEquip, error: fetchErr } = await supabase
+        .from("equipment")
+        .select("id, detailed_specs")
+        .eq("equipment_type_id", equipmentTypeId);
+      if (fetchErr || !allEquip) return;
+
+      const updates = allEquip
+        .filter((e) => e.id !== equipment?.id) // skip current (already handled locally)
+        .filter((e) => {
+          const specs = e.detailed_specs as Record<string, Record<string, unknown>> | null;
+          return specs?.[categoryKey]?.[fieldKey] !== undefined;
+        })
+        .map((e) => {
+          const specs = { ...(e.detailed_specs as Record<string, Record<string, unknown>>) };
+          const cat = { ...specs[categoryKey] };
+          delete cat[fieldKey];
+          if (Object.keys(cat).length === 0) {
+            delete specs[categoryKey];
+          } else {
+            specs[categoryKey] = cat;
+          }
+          return supabase.from("equipment").update({ detailed_specs: specs }).eq("id", e.id);
+        });
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    },
+    [equipmentTypeId, equipment?.id, queryClient]
+  );
+
+  // Bulk update all equipment of same type (add a field to all)
+  const bulkAddField = useCallback(
+    async (categoryKey: string, fieldKey: string) => {
+      if (!equipmentTypeId) return;
+      const { data: allEquip, error: fetchErr } = await supabase
+        .from("equipment")
+        .select("id, detailed_specs")
+        .eq("equipment_type_id", equipmentTypeId);
+      if (fetchErr || !allEquip) return;
+
+      const updates = allEquip
+        .filter((e) => e.id !== equipment?.id)
+        .map((e) => {
+          const specs = { ...(e.detailed_specs as Record<string, Record<string, unknown>> || {}) };
+          specs[categoryKey] = { ...(specs[categoryKey] || {}), [fieldKey]: null };
+          return supabase.from("equipment").update({ detailed_specs: specs }).eq("id", e.id);
+        });
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    },
+    [equipmentTypeId, equipment?.id, queryClient]
+  );
+
+  // Bulk remove category from all equipment of same type
+  const bulkRemoveCategory = useCallback(
+    async (categoryKey: string) => {
+      if (!equipmentTypeId) return;
+      const { data: allEquip, error: fetchErr } = await supabase
+        .from("equipment")
+        .select("id, detailed_specs")
+        .eq("equipment_type_id", equipmentTypeId);
+      if (fetchErr || !allEquip) return;
+
+      const updates = allEquip
+        .filter((e) => e.id !== equipment?.id)
+        .filter((e) => {
+          const specs = e.detailed_specs as Record<string, Record<string, unknown>> | null;
+          return specs?.[categoryKey] !== undefined;
+        })
+        .map((e) => {
+          const specs = { ...(e.detailed_specs as Record<string, Record<string, unknown>>) };
+          delete specs[categoryKey];
+          return supabase.from("equipment").update({ detailed_specs: specs }).eq("id", e.id);
+        });
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    },
+    [equipmentTypeId, equipment?.id, queryClient]
+  );
+
+  // Bulk add category to all equipment of same type
+  const bulkAddCategory = useCallback(
+    async (categoryKey: string) => {
+      if (!equipmentTypeId) return;
+      const { data: allEquip, error: fetchErr } = await supabase
+        .from("equipment")
+        .select("id, detailed_specs")
+        .eq("equipment_type_id", equipmentTypeId);
+      if (fetchErr || !allEquip) return;
+
+      const updates = allEquip
+        .filter((e) => e.id !== equipment?.id)
+        .filter((e) => {
+          const specs = e.detailed_specs as Record<string, Record<string, unknown>> | null;
+          return specs?.[categoryKey] === undefined;
+        })
+        .map((e) => {
+          const specs = { ...(e.detailed_specs as Record<string, Record<string, unknown>> || {}) };
+          specs[categoryKey] = {};
+          return supabase.from("equipment").update({ detailed_specs: specs }).eq("id", e.id);
+        });
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    },
+    [equipmentTypeId, equipment?.id, queryClient]
+  );
+
   const handleDeleteField = useCallback(
     (categoryKey: string, fieldKey: string) => {
       setSpecs((prevSpecs) => {
@@ -232,16 +342,17 @@ export function DetailedSpecsEditor({
           ...prevSpecs,
           [categoryKey]: existingCategory,
         };
-        // If category is empty, remove it too
         if (Object.keys(existingCategory).length === 0) {
           delete updatedSpecs[categoryKey];
         }
         onChange(updatedSpecs);
         return updatedSpecs;
       });
-      toast.success("Näitaja eemaldatud");
+      // Bulk remove from all equipment of same type
+      bulkRemoveField(categoryKey, fieldKey);
+      toast.success("Näitaja eemaldatud kõikidelt selle tüübi masinatelt");
     },
-    [onChange]
+    [onChange, bulkRemoveField]
   );
 
   const handleAddField = useCallback(
