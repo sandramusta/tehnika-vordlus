@@ -66,6 +66,9 @@ export function AutoModeFilters({
   const selectedModel = equipment.find((m) => m.id === selectedModelId);
   const isTelehandler = equipmentTypeName === "telehandler";
   const isTrailedSprayer = equipmentTypeName === "trailed_sprayer";
+  const isForageHarvester = equipmentTypeName === "forage_harvester";
+
+  const hpRangeLabel = equipmentTypeName === 'tractor' ? '10' : isForageHarvester ? '25' : '50';
 
   return (
     <div className="space-y-4">
