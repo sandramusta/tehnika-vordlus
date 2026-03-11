@@ -142,9 +142,8 @@ export function DetailedSpecsEditor({
       const categoryExists = specs[cat] !== undefined;
       const fields: FieldInfo[] = [];
       
-      // Predefined fields first (in order)
-      // If category has data, only show predefined fields that still exist in specs
-      // If category has no data yet, show all predefined fields for easy entry
+      // Predefined fields: only show if category doesn't exist yet (fresh entry)
+      // OR if the field actually exists in specs data
       Object.entries(predefined).forEach(([key, label]) => {
         if (!categoryExists || actualData[key] !== undefined) {
           const compositeKey = `${cat}_${key}`;
@@ -224,7 +223,7 @@ export function DetailedSpecsEditor({
     [onChange]
   );
 
-  // Bulk update all equipment of same type (remove a field from all)
+  // Bulk update ALL equipment of same type (remove a field from all, INCLUDING current)
   const bulkRemoveField = useCallback(
     async (categoryKey: string, fieldKey: string) => {
       if (!equipmentTypeId) return;
@@ -235,22 +234,21 @@ export function DetailedSpecsEditor({
       if (fetchErr || !allEquip) return;
 
       const updates = allEquip
-        .filter((e) => e.id !== equipment?.id) // skip current (already handled locally)
         .filter((e) => {
-          const specs = e.detailed_specs as Record<string, Record<string, unknown>> | null;
-          return specs?.[categoryKey]?.[fieldKey] !== undefined;
+          const s = e.detailed_specs as Record<string, Record<string, unknown>> | null;
+          return s?.[categoryKey]?.[fieldKey] !== undefined;
         })
         .map((e) => {
-          const specs = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
-          const cat = { ...(specs[categoryKey] || {}) };
+          const s = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
+          const cat = { ...(s[categoryKey] || {}) };
           delete cat[fieldKey];
-          specs[categoryKey] = cat;
-          return supabase.from("equipment").update({ detailed_specs: specs as unknown as Json }).eq("id", e.id);
+          s[categoryKey] = cat;
+          return supabase.from("equipment").update({ detailed_specs: s as unknown as Json }).eq("id", e.id);
         });
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
     },
-    [equipmentTypeId, equipment?.id, queryClient]
+    [equipmentTypeId, queryClient]
   );
 
   // Bulk update all equipment of same type (add a field to all)
