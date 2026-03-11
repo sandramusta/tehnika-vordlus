@@ -139,13 +139,14 @@ export function DetailedSpecsEditor({
     categoryOrder.forEach(cat => {
       const predefined = fieldNames[cat] || {};
       const actualData = specs[cat] || {};
-      const categoryExists = specs[cat] !== undefined;
+      const hiddenFields = new Set(
+        Array.isArray(actualData.__hidden_fields) ? (actualData.__hidden_fields as string[]) : []
+      );
       const fields: FieldInfo[] = [];
       
-      // Predefined fields: only show if category doesn't exist yet (fresh entry)
-      // OR if the field actually exists in specs data
+      // Predefined fields are visible by default unless explicitly hidden
       Object.entries(predefined).forEach(([key, label]) => {
-        if (!categoryExists || actualData[key] !== undefined) {
+        if (!hiddenFields.has(key)) {
           const compositeKey = `${cat}_${key}`;
           fields.push({ key, label: specLabels[compositeKey] || label });
         }
@@ -153,6 +154,7 @@ export function DetailedSpecsEditor({
       
       // Extra fields from actual data
       Object.keys(actualData).forEach(key => {
+        if (key === "__hidden_fields") return;
         if (!predefined[key]) {
           const compositeKey = `${cat}_${key}`;
           fields.push({ key, label: specLabels[compositeKey] || formatFieldKey(key) });
@@ -227,28 +229,37 @@ export function DetailedSpecsEditor({
   const bulkRemoveField = useCallback(
     async (categoryKey: string, fieldKey: string) => {
       if (!equipmentTypeId) return;
+      const isPredefinedField = Boolean(fieldNames[categoryKey]?.[fieldKey]);
+
       const { data: allEquip, error: fetchErr } = await supabase
         .from("equipment")
         .select("id, detailed_specs")
         .eq("equipment_type_id", equipmentTypeId);
       if (fetchErr || !allEquip) return;
 
-      const updates = allEquip
-        .filter((e) => {
-          const s = e.detailed_specs as Record<string, Record<string, unknown>> | null;
-          return s?.[categoryKey]?.[fieldKey] !== undefined;
-        })
-        .map((e) => {
-          const s = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
-          const cat = { ...(s[categoryKey] || {}) };
-          delete cat[fieldKey];
-          s[categoryKey] = cat;
-          return supabase.from("equipment").update({ detailed_specs: s as unknown as Json }).eq("id", e.id);
-        });
+      const updates = allEquip.map((e) => {
+        const specs = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
+        const category = { ...(specs[categoryKey] || {}) };
+
+        if (isPredefinedField) {
+          const hiddenFields = new Set(
+            Array.isArray(category.__hidden_fields) ? (category.__hidden_fields as string[]) : []
+          );
+          hiddenFields.add(fieldKey);
+          delete category[fieldKey];
+          category.__hidden_fields = Array.from(hiddenFields);
+        } else {
+          delete category[fieldKey];
+        }
+
+        specs[categoryKey] = category;
+        return supabase.from("equipment").update({ detailed_specs: specs as unknown as Json }).eq("id", e.id);
+      });
+
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
     },
-    [equipmentTypeId, queryClient]
+    [equipmentTypeId, fieldNames, queryClient]
   );
 
   // Bulk update all equipment of same type (add a field to all)
@@ -330,9 +341,22 @@ export function DetailedSpecsEditor({
 
   const handleDeleteField = useCallback(
     (categoryKey: string, fieldKey: string) => {
+      const isPredefinedField = Boolean(fieldNames[categoryKey]?.[fieldKey]);
+
       setSpecs((prevSpecs) => {
         const existingCategory = { ...(prevSpecs[categoryKey] || {}) };
-        delete existingCategory[fieldKey];
+
+        if (isPredefinedField) {
+          const hiddenFields = new Set(
+            Array.isArray(existingCategory.__hidden_fields) ? (existingCategory.__hidden_fields as string[]) : []
+          );
+          hiddenFields.add(fieldKey);
+          delete existingCategory[fieldKey];
+          existingCategory.__hidden_fields = Array.from(hiddenFields);
+        } else {
+          delete existingCategory[fieldKey];
+        }
+
         const updatedSpecs = {
           ...prevSpecs,
           [categoryKey]: existingCategory,
@@ -340,11 +364,11 @@ export function DetailedSpecsEditor({
         onChange(updatedSpecs);
         return updatedSpecs;
       });
-      // Bulk remove from all equipment of same type
+
       bulkRemoveField(categoryKey, fieldKey);
       toast.success("Näitaja eemaldatud kõikidelt selle tüübi masinatelt");
     },
-    [onChange, bulkRemoveField]
+    [fieldNames, onChange, bulkRemoveField]
   );
 
   const handleAddField = useCallback(
