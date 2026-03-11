@@ -261,6 +261,7 @@ export const FORAGE_HARVESTER_FIELD_NAMES: Record<string, Record<string, string>
   lõikur: {
     nugade_arv_standard: "Nugade arv (standard)",
     lõikepikkus_min_max_mm: "Lõikepikkus (min-max, mm)",
+    söötekanali_trumli_laius_mm: "Söötekanali/trumli laius (mm)",
     konveierikanali_laius_mm: "Konveierikanali laius (mm)",
     nugade_trummel_laius_mm: "Nugade trummel laius (mm)",
     nugade_trummel_läbimõõt_mm: "Nugade trummel läbimõõt (mm)",
