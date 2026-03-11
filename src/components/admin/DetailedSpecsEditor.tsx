@@ -229,28 +229,37 @@ export function DetailedSpecsEditor({
   const bulkRemoveField = useCallback(
     async (categoryKey: string, fieldKey: string) => {
       if (!equipmentTypeId) return;
+      const isPredefinedField = Boolean(fieldNames[categoryKey]?.[fieldKey]);
+
       const { data: allEquip, error: fetchErr } = await supabase
         .from("equipment")
         .select("id, detailed_specs")
         .eq("equipment_type_id", equipmentTypeId);
       if (fetchErr || !allEquip) return;
 
-      const updates = allEquip
-        .filter((e) => {
-          const s = e.detailed_specs as Record<string, Record<string, unknown>> | null;
-          return s?.[categoryKey]?.[fieldKey] !== undefined;
-        })
-        .map((e) => {
-          const s = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
-          const cat = { ...(s[categoryKey] || {}) };
-          delete cat[fieldKey];
-          s[categoryKey] = cat;
-          return supabase.from("equipment").update({ detailed_specs: s as unknown as Json }).eq("id", e.id);
-        });
+      const updates = allEquip.map((e) => {
+        const specs = { ...((e.detailed_specs as Record<string, Record<string, unknown>> | null) || {}) };
+        const category = { ...(specs[categoryKey] || {}) };
+
+        if (isPredefinedField) {
+          const hiddenFields = new Set(
+            Array.isArray(category.__hidden_fields) ? (category.__hidden_fields as string[]) : []
+          );
+          hiddenFields.add(fieldKey);
+          delete category[fieldKey];
+          category.__hidden_fields = Array.from(hiddenFields);
+        } else {
+          delete category[fieldKey];
+        }
+
+        specs[categoryKey] = category;
+        return supabase.from("equipment").update({ detailed_specs: specs as unknown as Json }).eq("id", e.id);
+      });
+
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
     },
-    [equipmentTypeId, queryClient]
+    [equipmentTypeId, fieldNames, queryClient]
   );
 
   // Bulk update all equipment of same type (add a field to all)
