@@ -66,6 +66,9 @@ export function AutoModeFilters({
   const selectedModel = equipment.find((m) => m.id === selectedModelId);
   const isTelehandler = equipmentTypeName === "telehandler";
   const isTrailedSprayer = equipmentTypeName === "trailed_sprayer";
+  const isForageHarvester = equipmentTypeName === "forage_harvester";
+
+  const hpRangeLabel = equipmentTypeName === 'tractor' ? '10' : isForageHarvester ? '25' : '50';
 
   return (
     <div className="space-y-4">
@@ -166,7 +169,7 @@ export function AutoModeFilters({
                 ? "Konkurente sama pumba tüübi ja sarnase paagi mahu vahemikus ei leitud"
                 : isTelehandler 
                 ? "Konkurente sarnase tõstekõrguse ja kandevõime vahemikus ei leitud"
-                : `Konkurente vahemikus ±${equipmentTypeName === 'tractor' ? '10' : '50'} hj ei leitud`
+                : `Konkurente vahemikus ±${hpRangeLabel} hj ei leitud`
               }
             </div>
           )}
@@ -180,7 +183,7 @@ export function AutoModeFilters({
             ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sama pumba tüübi ja ±1000L paagi mahu vahemikus teistest brändidest."
             : isTelehandler 
             ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±0.5m) ja kandevõime (±400kg) vahemikus."
-            : `Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±${equipmentTypeName === 'tractor' ? '10' : '50'} hj vahemikus teistest brändidest.`
+            : `Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±${hpRangeLabel} hj vahemikus teistest brändidest.`
           }
         </div>
       )}
