@@ -76,6 +76,7 @@ export function DetailedSpecsEditor({
   initialSpecs = {},
   onChange,
   equipmentTypeName,
+  equipmentTypeId,
 }: DetailedSpecsEditorProps) {
   const categoryOrder = useMemo(() => getCategoryOrderForType(equipmentTypeName), [equipmentTypeName]);
   const categoryNames = useMemo(() => getCategoryNamesForType(equipmentTypeName), [equipmentTypeName]);
