@@ -88,6 +88,7 @@ export function useLeaderboard(period: StatsPeriod = "current_month") {
             total_points: stats.pdf_count * 2 + stats.comparison_count,
           };
         })
+        .filter((entry) => entry.full_name !== "Sandra Must")
         .sort((a, b) => b.total_points - a.total_points);
 
       return leaderboard;
