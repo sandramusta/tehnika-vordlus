@@ -69,43 +69,49 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Inviting user: ${email} with role: ${role}`);
 
-    // Create the user using Supabase Admin API
+    // Create the user or find existing one
+    let userId: string;
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      email_confirm: true, // Mark email as confirmed
-      user_metadata: {
-        full_name,
-      },
+      email_confirm: true,
+      user_metadata: { full_name },
     });
 
     if (createError) {
-      console.error("Error creating user:", createError);
-      throw new Error("User creation failed");
+      if (createError.message?.includes("already been registered")) {
+        // User already exists — find their ID
+        const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
+        const existing = listData?.users.find(u => u.email === email);
+        if (!existing) throw new Error("User lookup failed");
+        userId = existing.id;
+        console.log(`User already exists with ID: ${userId}`);
+      } else {
+        console.error("Error creating user:", createError);
+        throw new Error("User creation failed");
+      }
+    } else {
+      userId = newUser.user.id;
+      console.log(`User created with ID: ${userId}`);
     }
 
-    console.log(`User created with ID: ${newUser.user.id}`);
-
-    // Create profile
+    // Upsert profile
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .insert({
-        id: newUser.user.id,
+      .upsert({
+        id: userId,
         full_name,
         email,
-      });
+      }, { onConflict: "id" });
 
     if (profileError) {
-      console.error("Error creating profile:", profileError);
-      // Don't throw, profile might already exist from trigger
+      console.error("Error upserting profile:", profileError);
     }
 
-    // Assign role
+    // Upsert role — delete old, insert new
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
-      .insert({
-        user_id: newUser.user.id,
-        role,
-      });
+      .insert({ user_id: userId, role });
 
     if (roleError) {
       console.error("Error assigning role:", roleError);
@@ -208,7 +214,7 @@ const handler = async (req: Request): Promise<Response> => {
           ? "User invited successfully" 
           : "User created successfully, but invitation email could not be sent. The user can still log in using the password reset flow.",
         emailSent,
-        userId: newUser.user.id 
+        userId 
       }),
       {
         status: 200,
