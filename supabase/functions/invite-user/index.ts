@@ -252,18 +252,23 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Password reset link generation failed");
     }
 
-    // Send invitation email
-    const resend = new Resend(resendApiKey);
-    const { error: emailError } = await resend.emails.send({
-      from: "Wihuri Agri <noreply@wihuriagri.com>",
-      replyTo: "info@wihuriagri.com",
-      to: [email],
-      subject: "Kutse Wihuri Agri rakendusse",
+    // Send invitation email via Resend API
+    const emailRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
       headers: {
-        "X-Entity-Ref-ID": `invite-${userId}-${Date.now()}`,
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
       },
-      html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+      body: JSON.stringify({
+        from: "Wihuri Agri <noreply@wihuriagri.com>",
+        reply_to: "info@wihuriagri.com",
+        to: [email],
+        subject: "Kutse Wihuri Agri rakendusse",
+        headers: { "X-Entity-Ref-ID": `invite-${userId}-${Date.now()}` },
+        html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+      }),
     });
+    const emailError = !emailRes.ok ? await emailRes.text() : null;
 
     let emailSent = true;
     if (emailError) {

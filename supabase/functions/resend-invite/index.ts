@@ -186,19 +186,28 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (resetError) throw resetError;
 
-    // Send email
-    const resend = new Resend(resendApiKey);
-
-    await resend.emails.send({
-      from: "Wihuri Agri <noreply@wihuriagri.com>",
-      replyTo: "info@wihuriagri.com",
-      to: [email],
-      subject: "Kutse Wihuri Agri rakendusse",
+    // Send email via Resend API
+    const emailRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
       headers: {
-        "X-Entity-Ref-ID": `resend-invite-${user.id}-${Date.now()}`,
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
       },
-      html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+      body: JSON.stringify({
+        from: "Wihuri Agri <noreply@wihuriagri.com>",
+        reply_to: "info@wihuriagri.com",
+        to: [email],
+        subject: "Kutse Wihuri Agri rakendusse",
+        headers: { "X-Entity-Ref-ID": `resend-invite-${user.id}-${Date.now()}` },
+        html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+      }),
     });
+
+    if (!emailRes.ok) {
+      const errText = await emailRes.text();
+      console.error("Email send error:", errText);
+      throw new Error("Email sending failed");
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
