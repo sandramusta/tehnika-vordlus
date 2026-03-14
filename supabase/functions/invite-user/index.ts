@@ -94,27 +94,24 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`User created with ID: ${userId}`);
     }
 
-    // Create profile
+    // Upsert profile
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .insert({
-        id: newUser.user.id,
+      .upsert({
+        id: userId,
         full_name,
         email,
-      });
+      }, { onConflict: "id" });
 
     if (profileError) {
-      console.error("Error creating profile:", profileError);
-      // Don't throw, profile might already exist from trigger
+      console.error("Error upserting profile:", profileError);
     }
 
-    // Assign role
+    // Upsert role — delete old, insert new
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
-      .insert({
-        user_id: newUser.user.id,
-        role,
-      });
+      .insert({ user_id: userId, role });
 
     if (roleError) {
       console.error("Error assigning role:", roleError);
