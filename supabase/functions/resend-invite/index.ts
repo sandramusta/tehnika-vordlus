@@ -41,7 +41,7 @@ function buildInviteEmail(name: string, role: string, actionLink: string): strin
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
           
           <tr>
-            <td style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 32px 40px; border-radius: 12px 12px 0 0; text-align: center;">
+            <td style="background-color: #367C2B; padding: 32px 40px; border-radius: 12px 12px 0 0; text-align: center;">
               <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">
                 🌾 Wihuri Agri
               </h1>
