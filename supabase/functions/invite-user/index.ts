@@ -14,8 +14,130 @@ interface InviteUserRequest {
   role: "user" | "product_manager" | "admin";
 }
 
+function buildInviteEmail(name: string, role: string, actionLink: string): string {
+  const roleNames: Record<string, string> = {
+    user: "Kasutaja",
+    product_manager: "Tootejuht",
+    admin: "Administraator",
+  };
+  const roleName = roleNames[role] || role;
+
+  return `<!DOCTYPE html>
+<html lang="et" xmlns:v="urn:schemas-microsoft-com:vml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+  <title>Kutse Wihuri Agri rakendusse</title>
+  <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+  <style>
+    body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    a { color: #367C2B; text-decoration: none; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <!-- Preheader -->
+  <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #f4f4f5;">
+    Oled kutsutud kasutama Wihuri Agri rakendust. Loo parool ja alusta kohe!
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 32px 40px; border-radius: 12px 12px 0 0; text-align: center;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">
+                      🌾 Wihuri Agri
+                    </h1>
+                    <p style="color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 14px; font-weight: 400;">
+                      Tehnika võrdlus & müügitugi
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 40px; border-left: 1px solid #e4e4e7; border-right: 1px solid #e4e4e7;">
+              <h2 style="color: #18181b; margin: 0 0 16px; font-size: 22px; font-weight: 600;">
+                Tere, ${name}! 👋
+              </h2>
+              
+              <p style="color: #3f3f46; margin: 0 0 16px; font-size: 15px; line-height: 1.6;">
+                Oled kutsutud kasutama <strong>Wihuri Agri rakendust</strong>, kuhu on koondatud tehnika võrdlus, ROI kalkulaator, müüdid ja konkurentsieelised.
+              </p>
+              
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                <tr>
+                  <td style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px 20px;">
+                    <p style="color: #166534; margin: 0; font-size: 14px;">
+                      <strong>Sinu roll:</strong> ${roleName}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #3f3f46; margin: 0 0 24px; font-size: 15px; line-height: 1.6;">
+                Alustamiseks loo endale parool, klõpsates allolevale nupule:
+              </p>
+
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 8px 0 24px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${actionLink}" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="12%" fillcolor="#367C2B" stroke="f">
+                      <v:textbox inset="0,0,0,0"><center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;">Loo parool ja logi sisse</center></v:textbox>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-->
+                    <a href="${actionLink}" style="display: inline-block; background-color: #367C2B; color: #ffffff; padding: 14px 32px; font-size: 16px; font-weight: 600; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(54,124,43,0.3);">
+                      Loo parool ja logi sisse →
+                    </a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #a1a1aa; margin: 0; font-size: 13px; text-align: center;">
+                See link kehtib 24 tundi.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #fafafa; padding: 24px 40px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 12px 12px;">
+              <p style="color: #a1a1aa; margin: 0 0 8px; font-size: 12px; line-height: 1.5; text-align: center;">
+                See e-kiri saadeti automaatselt Wihuri Agri rakenduse poolt.<br>
+                Kui sa ei oodanud seda kutset, võid selle e-kirja lihtsalt ignoreerida.
+              </p>
+              <p style="color: #d4d4d8; margin: 0; font-size: 11px; text-align: center;">
+                © ${new Date().getFullYear()} Wihuri Agri · Eesti
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -29,28 +151,27 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Create Supabase admin client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
     // Verify the requesting user is an admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header");
+      return new Response(JSON.stringify({ error: "Operation failed" }), {
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user: requestingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
     if (authError || !requestingUser) {
-      throw new Error("Unauthorized");
+      return new Response(JSON.stringify({ error: "Operation failed" }), {
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    // Check if requesting user is admin
     const { data: adminRoles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
@@ -58,7 +179,9 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("role", "admin");
 
     if (!adminRoles || adminRoles.length === 0) {
-      throw new Error("Only admins can invite users");
+      return new Response(JSON.stringify({ error: "Operation failed" }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const { email, full_name, role }: InviteUserRequest = await req.json();
@@ -79,7 +202,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (createError) {
       if (createError.message?.includes("already been registered")) {
-        // User already exists — find their ID
         const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
         const existing = listData?.users.find(u => u.email === email);
         if (!existing) throw new Error("User lookup failed");
@@ -97,17 +219,13 @@ const handler = async (req: Request): Promise<Response> => {
     // Upsert profile
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .upsert({
-        id: userId,
-        full_name,
-        email,
-      }, { onConflict: "id" });
+      .upsert({ id: userId, full_name, email }, { onConflict: "id" });
 
     if (profileError) {
       console.error("Error upserting profile:", profileError);
     }
 
-    // Upsert role — delete old, insert new
+    // Upsert role
     await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
@@ -118,17 +236,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Role assignment failed");
     }
 
-    // Update staff_users table to link with auth user
-    const { error: staffError } = await supabaseAdmin
-      .from("staff_users")
-      .update({ is_active: true })
-      .eq("email", email);
+    // Update staff_users
+    await supabaseAdmin.from("staff_users").update({ is_active: true }).eq("email", email);
 
-    if (staffError) {
-      console.log("Staff user update note:", staffError.message);
-    }
-
-    // Generate password reset link for the new user to set their password
+    // Generate password reset link
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email,
@@ -142,67 +253,23 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Password reset link generation failed");
     }
 
-    console.log("Reset link generated successfully");
-
-    // Send invitation email using Resend
+    // Send invitation email
     const resend = new Resend(resendApiKey);
-
-    const roleNames: Record<string, string> = {
-      user: "Kasutaja",
-      product_manager: "Tootejuht",
-      admin: "Administraator",
-    };
-
     const { error: emailError } = await resend.emails.send({
-      from: "Wihuri Agri <noreply@agrifacts.app>",
+      from: "Wihuri Agri <noreply@wihuriagri.com>",
+      replyTo: "info@wihuriagri.com",
       to: [email],
       subject: "Kutse Wihuri Agri rakendusse",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Wihuri Agri rakendus</h1>
-          </div>
-          
-          <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #367C2B; margin-top: 0;">Tere, ${full_name}!</h2>
-            
-            <p>Oled kutsutud kasutama Wihuri Agri rakendust, kuhu on koondatud tehnika võrdlus, ROI kalkulaator, müüdid ja konkurentsieelised.</p>
-            
-            <p><strong>Sinu roll:</strong> ${roleNames[role] || role}</p>
-            
-            <p>Parooli loomiseks ja sisselogimiseks klõpsa allolevale nupule:</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetData.properties.action_link}" 
-                 style="background: #367C2B; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                Loo parool ja logi sisse
-              </a>
-            </div>
-            
-            <p style="color: #666; font-size: 14px;">See link kehtib 24 tundi.</p>
-            
-            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-            
-            <p style="color: #888; font-size: 12px; margin-bottom: 0;">
-              Kui sa ei oodanud seda e-kirja, võid selle lihtsalt ignoreerida.
-            </p>
-          </div>
-        </body>
-        </html>
-      `,
+      headers: {
+        "X-Entity-Ref-ID": `invite-${userId}-${Date.now()}`,
+      },
+      html: buildInviteEmail(full_name, role, resetData.properties.action_link),
     });
 
     let emailSent = true;
     if (emailError) {
       console.error("Error sending email:", emailError);
       emailSent = false;
-      // Don't throw - user was created successfully, email just couldn't be sent
     } else {
       console.log(`Invitation email sent to ${email}`);
     }
@@ -212,24 +279,18 @@ const handler = async (req: Request): Promise<Response> => {
         success: true, 
         message: emailSent 
           ? "User invited successfully" 
-          : "User created successfully, but invitation email could not be sent. The user can still log in using the password reset flow.",
+          : "User created successfully, but invitation email could not be sent.",
         emailSent,
         userId 
       }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
     console.error("Error in invite-user function:", error);
     const isAuthError = error.message?.includes("Unauthorized") || error.message?.includes("No authorization");
     return new Response(
       JSON.stringify({ error: isAuthError ? "Authentication required" : "Operation failed. Please try again." }),
-      {
-        status: isAuthError ? 401 : 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: isAuthError ? 401 : 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

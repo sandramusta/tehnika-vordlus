@@ -14,8 +14,104 @@ interface CreateFirstAdminRequest {
   admin_secret: string;
 }
 
+function buildAdminInviteEmail(name: string, actionLink: string): string {
+  return `<!DOCTYPE html>
+<html lang="et" xmlns:v="urn:schemas-microsoft-com:vml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+  <title>Kutse Wihuri Agri rakendusse</title>
+  <style>
+    body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
+    table { border-collapse: collapse; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    a { color: #367C2B; text-decoration: none; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #f4f4f5;">
+    Oled määratud Wihuri Agri rakenduse administraatoriks. Loo parool ja alusta!
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+          
+          <tr>
+            <td style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 32px 40px; border-radius: 12px 12px 0 0; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">
+                🌾 Wihuri Agri
+              </h1>
+              <p style="color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 14px;">
+                Tehnika võrdlus & müügitugi
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #ffffff; padding: 40px; border-left: 1px solid #e4e4e7; border-right: 1px solid #e4e4e7;">
+              <h2 style="color: #18181b; margin: 0 0 16px; font-size: 22px; font-weight: 600;">
+                Tere, ${name}! 👋
+              </h2>
+              
+              <p style="color: #3f3f46; margin: 0 0 16px; font-size: 15px; line-height: 1.6;">
+                Oled kutsutud kasutama <strong>Wihuri Agri rakendust</strong>, kuhu on koondatud tehnika võrdlus, ROI kalkulaator, müüdid ja konkurentsieelised.
+              </p>
+              
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                <tr>
+                  <td style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px 20px;">
+                    <p style="color: #166534; margin: 0; font-size: 14px;">
+                      <strong>Sinu roll:</strong> Administraator
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #3f3f46; margin: 0 0 24px; font-size: 15px; line-height: 1.6;">
+                Alustamiseks loo endale parool, klõpsates allolevale nupule:
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 8px 0 24px;">
+                    <a href="${actionLink}" style="display: inline-block; background-color: #367C2B; color: #ffffff; padding: 14px 32px; font-size: 16px; font-weight: 600; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(54,124,43,0.3);">
+                      Loo parool ja logi sisse →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #a1a1aa; margin: 0; font-size: 13px; text-align: center;">
+                See link kehtib 24 tundi.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #fafafa; padding: 24px 40px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 12px 12px;">
+              <p style="color: #a1a1aa; margin: 0 0 8px; font-size: 12px; line-height: 1.5; text-align: center;">
+                See e-kiri saadeti automaatselt Wihuri Agri rakenduse poolt.<br>
+                Kui sa ei oodanud seda kutset, võid selle e-kirja lihtsalt ignoreerida.
+              </p>
+              <p style="color: #d4d4d8; margin: 0; font-size: 11px; text-align: center;">
+                © ${new Date().getFullYear()} Wihuri Agri · Eesti
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -29,7 +125,6 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    // Require FIRST_ADMIN_SECRET to be configured - no default fallback
     const expectedSecret = Deno.env.get("FIRST_ADMIN_SECRET");
     if (!expectedSecret) {
       console.error("FIRST_ADMIN_SECRET environment variable is not configured");
@@ -52,12 +147,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required fields: email, full_name");
     }
 
-    // Create Supabase admin client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
     // Check if any admin already exists
@@ -75,13 +166,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Creating first admin user: ${email}`);
 
-    // Create the user using Supabase Admin API
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       email_confirm: true,
-      user_metadata: {
-        full_name,
-      },
+      user_metadata: { full_name },
     });
 
     if (createError) {
@@ -92,36 +180,22 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`User created with ID: ${newUser.user.id}`);
 
     // Create profile
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .insert({
-        id: newUser.user.id,
-        full_name,
-        email,
-      });
-
-    if (profileError) {
-      console.error("Error creating profile:", profileError);
-    }
+    await supabaseAdmin.from("profiles").insert({
+      id: newUser.user.id, full_name, email,
+    });
 
     // Assign admin role
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
-      .insert({
-        user_id: newUser.user.id,
-        role: "admin",
-      });
+      .insert({ user_id: newUser.user.id, role: "admin" });
 
     if (roleError) {
       console.error("Error assigning role:", roleError);
       throw new Error("Role assignment failed");
     }
 
-    // Update staff_users table
-    await supabaseAdmin
-      .from("staff_users")
-      .update({ is_active: true })
-      .eq("email", email);
+    // Update staff_users
+    await supabaseAdmin.from("staff_users").update({ is_active: true }).eq("email", email);
 
     // Generate password reset link
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
@@ -139,50 +213,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send invitation email
     const resend = new Resend(resendApiKey);
-
     const { error: emailError } = await resend.emails.send({
-      from: "Wihuri Agri <noreply@agrifacts.app>",
+      from: "Wihuri Agri <noreply@wihuriagri.com>",
+      replyTo: "info@wihuriagri.com",
       to: [email],
       subject: "Kutse Wihuri Agri rakendusse",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Wihuri Agri rakendus</h1>
-          </div>
-          
-          <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #367C2B; margin-top: 0;">Tere, ${full_name}!</h2>
-            
-            <p>Oled kutsutud kasutama Wihuri Agri rakendust, kuhu on koondatud tehnika võrdlus, ROI kalkulaator, müüdid ja konkurentsieelised.</p>
-            
-            <p><strong>Sinu roll:</strong> Administraator</p>
-            
-            <p>Parooli loomiseks ja sisselogimiseks klõpsa allolevale nupule:</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetData.properties.action_link}" 
-                 style="background: #367C2B; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                Loo parool ja logi sisse
-              </a>
-            </div>
-            
-            <p style="color: #666; font-size: 14px;">See link kehtib 24 tundi.</p>
-            
-            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-            
-            <p style="color: #888; font-size: 12px; margin-bottom: 0;">
-              Kui sa ei oodanud seda e-kirja, võid selle lihtsalt ignoreerida.
-            </p>
-          </div>
-        </body>
-        </html>
-      `,
+      headers: {
+        "X-Entity-Ref-ID": `first-admin-${newUser.user.id}-${Date.now()}`,
+      },
+      html: buildAdminInviteEmail(full_name, resetData.properties.action_link),
     });
 
     if (emailError) {
@@ -193,24 +232,14 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`First admin invitation email sent to ${email}`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "First admin user created successfully",
-        userId: newUser.user.id 
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ success: true, message: "First admin user created successfully", userId: newUser.user.id }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
     console.error("Error in create-first-admin function:", error);
     return new Response(
       JSON.stringify({ error: "Operation failed. Please try again." }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
