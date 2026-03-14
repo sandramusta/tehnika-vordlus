@@ -50,7 +50,7 @@ function buildInviteEmail(name: string, role: string, actionLink: string): strin
           
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #367C2B 0%, #2d6a24 100%); padding: 32px 40px; border-radius: 12px 12px 0 0; text-align: center;">
+            <td style="background-color: #367C2B; padding: 32px 40px; border-radius: 12px 12px 0 0; text-align: center;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
