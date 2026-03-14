@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
     const resend = new Resend(resendApiKey);
 
     await resend.emails.send({
-      from: "Wihuri Agri <noreply@wihuriagri.com>",
+      from: "Wihuri Agri <noreply@agrifacts.app>",
       to: [email],
       subject: "Kutse Wihuri Agri rakendusse",
       html: `
