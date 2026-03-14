@@ -260,8 +260,8 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Wihuri Agri <noreply@wihuriagri.com>",
-        reply_to: "info@wihuriagri.com",
+        from: "Wihuri Agri <noreply@agrifacts.app>",
+        reply_to: "info@agrifacts.app",
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `invite-${userId}-${Date.now()}` },
