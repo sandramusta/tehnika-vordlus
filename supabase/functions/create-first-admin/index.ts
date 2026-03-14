@@ -233,10 +233,6 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Email sending failed");
     }
 
-    if (emailError) {
-      console.error("Error sending email:", emailError);
-      throw new Error("Email sending failed");
-    }
 
     console.log(`First admin invitation email sent to ${email}`);
 
