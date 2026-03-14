@@ -69,21 +69,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Inviting user: ${email} with role: ${role}`);
 
-    // Create the user using Supabase Admin API
+    // Create the user or find existing one
+    let userId: string;
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      email_confirm: true, // Mark email as confirmed
-      user_metadata: {
-        full_name,
-      },
+      email_confirm: true,
+      user_metadata: { full_name },
     });
 
     if (createError) {
-      console.error("Error creating user:", createError);
-      throw new Error("User creation failed");
+      if (createError.message?.includes("already been registered")) {
+        // User already exists — find their ID
+        const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
+        const existing = listData?.users.find(u => u.email === email);
+        if (!existing) throw new Error("User lookup failed");
+        userId = existing.id;
+        console.log(`User already exists with ID: ${userId}`);
+      } else {
+        console.error("Error creating user:", createError);
+        throw new Error("User creation failed");
+      }
+    } else {
+      userId = newUser.user.id;
+      console.log(`User created with ID: ${userId}`);
     }
-
-    console.log(`User created with ID: ${newUser.user.id}`);
 
     // Create profile
     const { error: profileError } = await supabaseAdmin
