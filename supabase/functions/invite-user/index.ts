@@ -154,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     const { error: emailError } = await resend.emails.send({
-      from: "Wihuri Agri <noreply@resend.dev>",
+      from: "Wihuri Agri <noreply@wihuriagri.com>",
       to: [email],
       subject: "Kutse Wihuri Agri rakendusse",
       html: `
