@@ -155,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { email, origin } = await req.json();
-    const baseUrl = origin || "https://agrifacts.app";
+    const baseUrl = "https://agrifacts.app";
 
     // Get user info
     const { data: users } = await supabaseAdmin.auth.admin.listUsers();
