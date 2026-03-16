@@ -146,8 +146,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, full_name, admin_secret, origin }: CreateFirstAdminRequest & { origin?: string } = await req.json();
-    const baseUrl = "https://agrifacts.app";
+    const { email, full_name, admin_secret }: CreateFirstAdminRequest = await req.json();
 
     if (!admin_secret || admin_secret !== expectedSecret) {
       return new Response(
