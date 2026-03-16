@@ -118,6 +118,12 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {expiredLinkMessage && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{expiredLinkMessage}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>
