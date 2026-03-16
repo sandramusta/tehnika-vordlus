@@ -34,7 +34,7 @@ export default function Auth() {
 
     // Invite/recovery links should always go to password setup
     if (authLinkType === "invite" || authLinkType === "recovery" || hasAuthToken) {
-      navigate(`/password-recovery${window.location.hash || ""}`, { replace: true });
+      navigate(`/password-reset${window.location.hash || ""}`, { replace: true });
       return;
     }
     

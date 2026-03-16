@@ -202,7 +202,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: `${baseUrl}/password-recovery`,
+        redirectTo: `${baseUrl}/password-reset`,
       },
     });
 
