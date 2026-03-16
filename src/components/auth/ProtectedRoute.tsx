@@ -11,6 +11,18 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
   const { user, loading, hasAnyRole } = useAuthContext();
 
+  const queryParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+  const isRecoveryFlow =
+    queryParams.get("type") === "recovery" ||
+    hashParams.get("type") === "recovery" ||
+    hashParams.has("access_token") ||
+    queryParams.has("access_token");
+
+  if (isRecoveryFlow && window.location.pathname !== "/password-recovery") {
+    return <Navigate to={`/password-recovery${window.location.hash || ""}`} replace />;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
