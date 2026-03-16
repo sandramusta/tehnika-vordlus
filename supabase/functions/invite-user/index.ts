@@ -243,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: `${req.headers.get("origin") || "https://id-preview--f89c8f26-06f5-44e6-a6d8-9982bec920ca.lovable.app"}/reset-password`,
+        redirectTo: `${req.headers.get("origin") || "https://wihuriapp.lovable.app"}/reset-password`,
       },
     });
 
