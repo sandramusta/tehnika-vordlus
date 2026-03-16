@@ -32,13 +32,10 @@ export default function ResetPassword() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!isPasswordSetupFlow()) {
-      navigate("/auth", { replace: true });
-      return;
-    }
+    const fromEmailLink = isPasswordSetupFlow();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || !!session) {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && fromEmailLink) || !!session) {
         setIsReady(true);
       }
     });
@@ -46,6 +43,8 @@ export default function ResetPassword() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsReady(true);
+      } else if (!fromEmailLink) {
+        navigate("/auth", { replace: true });
       }
     });
 
