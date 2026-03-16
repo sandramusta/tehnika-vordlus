@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
 import wihuriLogo from "@/assets/wihuri-agri-logo.png";
@@ -14,11 +16,25 @@ const passwordSchema = z.string().min(6, "Parool peab olema vähemalt 6 tähemä
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, loading, signIn } = useAuthContext();
   
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [expiredLinkMessage, setExpiredLinkMessage] = useState<string | null>(null);
+
+  // Check for auth error params (e.g. expired invitation link)
+  useEffect(() => {
+    const errorCode = searchParams.get("error_code") || new URLSearchParams(window.location.hash.replace("#", "?")).get("error_code");
+    const error = searchParams.get("error") || new URLSearchParams(window.location.hash.replace("#", "?")).get("error");
+    
+    if (errorCode === "otp_expired" || error === "access_denied") {
+      setExpiredLinkMessage("See kutse link on aegunud. Palun logi sisse oma parooliga või küsi administraatorilt uus kutse.");
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -102,6 +118,12 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {expiredLinkMessage && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{expiredLinkMessage}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>
