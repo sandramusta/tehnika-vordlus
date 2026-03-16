@@ -243,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: "https://agrifacts.app/reset-password",
+        redirectTo: "https://agrifacts.app/password-recovery",
       },
     });
 
