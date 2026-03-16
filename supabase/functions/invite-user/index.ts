@@ -11,6 +11,7 @@ interface InviteUserRequest {
   email: string;
   full_name: string;
   role: "user" | "product_manager" | "admin";
+  origin?: string;
 }
 
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
@@ -183,7 +184,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { email, full_name, role }: InviteUserRequest = await req.json();
+    const { email, full_name, role, origin }: InviteUserRequest = await req.json();
+    const baseUrl = origin || "https://agrifacts.app";
 
     if (!email || !full_name || !role) {
       throw new Error("Missing required fields: email, full_name, role");
@@ -243,7 +245,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: "https://agrifacts.app/password-recovery",
+        redirectTo: `${baseUrl}/password-recovery`,
       },
     });
 
