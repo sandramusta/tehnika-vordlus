@@ -26,21 +26,28 @@ export default function Auth() {
 
   // Check for auth error params (e.g. expired invitation link)
   useEffect(() => {
-    const errorCode = searchParams.get("error_code") || new URLSearchParams(window.location.hash.replace("#", "?")).get("error_code");
-    const error = searchParams.get("error") || new URLSearchParams(window.location.hash.replace("#", "?")).get("error");
+    const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const errorCode = searchParams.get("error_code") || hashParams.get("error_code");
+    const error = searchParams.get("error") || hashParams.get("error");
+
+    // Old links may still point to /auth with recovery token - forward to recovery page
+    if (hashParams.get("type") === "recovery" || hashParams.has("access_token")) {
+      navigate(`/password-recovery${window.location.hash}`, { replace: true });
+      return;
+    }
     
     if (errorCode === "otp_expired" || error === "access_denied") {
       setExpiredLinkMessage("See kutse link on aegunud. Palun logi sisse oma parooliga või küsi administraatorilt uus kutse.");
       // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !expiredLinkMessage) {
       navigate("/");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, expiredLinkMessage]);
 
   const validateField = (field: string, value: string) => {
     try {
