@@ -20,6 +20,14 @@ function forcePasswordResetRedirect(actionLink: string): string {
   }
 }
 
+function buildPasswordSetupLink(resetProps: { hashed_token?: string; action_link: string }): string {
+  if (resetProps?.hashed_token) {
+    return `${PASSWORD_RESET_URL}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
+  }
+
+  return forcePasswordResetRedirect(resetProps.action_link);
+}
+
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
   const roleNames: Record<string, string> = {
     user: "Kasutaja",

@@ -26,6 +26,14 @@ function forcePasswordResetRedirect(actionLink: string): string {
   }
 }
 
+function buildPasswordSetupLink(resetProps: { hashed_token?: string; action_link: string }): string {
+  if (resetProps?.hashed_token) {
+    return `${PASSWORD_RESET_URL}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
+  }
+
+  return forcePasswordResetRedirect(resetProps.action_link);
+}
+
 function buildAdminInviteEmail(name: string, actionLink: string): string {
   return `<!DOCTYPE html>
 <html lang="et" xmlns:v="urn:schemas-microsoft-com:vml">
