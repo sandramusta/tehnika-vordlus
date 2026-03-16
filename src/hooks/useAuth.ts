@@ -56,8 +56,8 @@ export function useAuth() {
         // If this is a password recovery event, redirect to reset-password page
         if (event === "PASSWORD_RECOVERY") {
           // Don't set session/user yet — let ResetPassword page handle it
-          if (window.location.pathname !== "/reset-password") {
-            window.location.href = "/reset-password";
+          if (window.location.pathname !== "/password-recovery") {
+            window.location.href = "/password-recovery";
             return;
           }
         }
