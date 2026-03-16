@@ -268,10 +268,14 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
-    if (resetError) {
+    if (resetError || !resetData?.properties?.action_link) {
       console.error("Error generating reset link:", resetError);
       throw new Error("Password reset link generation failed");
     }
+
+    const passwordSetupLink = buildPasswordSetupLink(
+      resetData.properties as { hashed_token?: string; action_link: string }
+    );
 
     // Send invitation email via Resend API
     const emailRes = await fetch("https://api.resend.com/emails", {
