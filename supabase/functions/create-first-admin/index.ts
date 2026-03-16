@@ -13,6 +13,19 @@ interface CreateFirstAdminRequest {
   admin_secret: string;
 }
 
+const APP_BASE_URL = "https://agrifacts.app";
+const PASSWORD_RESET_URL = `${APP_BASE_URL}/password-reset`;
+
+function forcePasswordResetRedirect(actionLink: string): string {
+  try {
+    const url = new URL(actionLink);
+    url.searchParams.set("redirect_to", PASSWORD_RESET_URL);
+    return url.toString();
+  } catch {
+    return actionLink;
+  }
+}
+
 function buildAdminInviteEmail(name: string, actionLink: string): string {
   return `<!DOCTYPE html>
 <html lang="et" xmlns:v="urn:schemas-microsoft-com:vml">

@@ -11,7 +11,19 @@ interface InviteUserRequest {
   email: string;
   full_name: string;
   role: "user" | "product_manager" | "admin";
-  origin?: string;
+}
+
+const APP_BASE_URL = "https://agrifacts.app";
+const PASSWORD_RESET_URL = `${APP_BASE_URL}/password-reset`;
+
+function forcePasswordResetRedirect(actionLink: string): string {
+  try {
+    const url = new URL(actionLink);
+    url.searchParams.set("redirect_to", PASSWORD_RESET_URL);
+    return url.toString();
+  } catch {
+    return actionLink;
+  }
 }
 
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
