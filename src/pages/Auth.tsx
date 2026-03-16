@@ -27,12 +27,14 @@ export default function Auth() {
   // Check for auth error params (e.g. expired invitation link)
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const authLinkType = searchParams.get("type") || hashParams.get("type");
+    const hasAuthToken = hashParams.has("access_token") || searchParams.has("access_token");
     const errorCode = searchParams.get("error_code") || hashParams.get("error_code");
     const error = searchParams.get("error") || hashParams.get("error");
 
-    // Old links may still point to /auth with recovery token - forward to recovery page
-    if (hashParams.get("type") === "recovery" || hashParams.has("access_token")) {
-      navigate(`/password-recovery${window.location.hash}`, { replace: true });
+    // Invite/recovery links should always go to password setup
+    if (authLinkType === "invite" || authLinkType === "recovery" || hasAuthToken) {
+      navigate(`/password-recovery${window.location.hash || ""}`, { replace: true });
       return;
     }
     
@@ -44,10 +46,14 @@ export default function Auth() {
   }, [searchParams, navigate]);
 
   useEffect(() => {
-    if (!loading && user && !expiredLinkMessage) {
+    const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const authLinkType = searchParams.get("type") || hashParams.get("type");
+    const hasAuthToken = hashParams.has("access_token") || searchParams.has("access_token");
+
+    if (!loading && user && !expiredLinkMessage && authLinkType !== "invite" && authLinkType !== "recovery" && !hasAuthToken) {
       navigate("/");
     }
-  }, [user, loading, navigate, expiredLinkMessage]);
+  }, [user, loading, navigate, expiredLinkMessage, searchParams]);
 
   const validateField = (field: string, value: string) => {
     try {

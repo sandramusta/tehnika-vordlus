@@ -48,25 +48,38 @@ export function useAuth() {
   useEffect(() => {
     let isMounted = true;
 
+    const isPasswordSetupFlow = () => {
+      const queryParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+      const authLinkType = queryParams.get("type") || hashParams.get("type");
+
+      return (
+        authLinkType === "invite" ||
+        authLinkType === "recovery" ||
+        hashParams.has("access_token") ||
+        queryParams.has("access_token")
+      );
+    };
+
     // Listener for ONGOING auth changes — do NOT await inside callback
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         if (!isMounted) return;
-        
-        // If this is a password recovery event, redirect to reset-password page
-        if (event === "PASSWORD_RECOVERY") {
-          // Don't set session/user yet — let ResetPassword page handle it
-          if (window.location.pathname !== "/password-recovery") {
-            window.location.href = "/password-recovery";
-            return;
-          }
+
+        if (
+          isPasswordSetupFlow() &&
+          window.location.pathname !== "/password-recovery" &&
+          window.location.pathname !== "/update-password"
+        ) {
+          window.location.href = `/password-recovery${window.location.hash || ""}`;
+          return;
         }
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          // Use setTimeout to avoid Supabase deadlock
+          // Use setTimeout to avoid auth callback deadlock
           setTimeout(() => {
             if (isMounted) fetchUserProfile(session.user.id);
           }, 0);
@@ -79,6 +92,15 @@ export function useAuth() {
     // INITIAL load — controls loading state
     const initializeAuth = async () => {
       try {
+        if (
+          isPasswordSetupFlow() &&
+          window.location.pathname !== "/password-recovery" &&
+          window.location.pathname !== "/update-password"
+        ) {
+          window.location.href = `/password-recovery${window.location.hash || ""}`;
+          return;
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
         setSession(session);
