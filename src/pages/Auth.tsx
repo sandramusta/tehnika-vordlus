@@ -16,11 +16,25 @@ const passwordSchema = z.string().min(6, "Parool peab olema vähemalt 6 tähemä
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, loading, signIn } = useAuthContext();
   
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [expiredLinkMessage, setExpiredLinkMessage] = useState<string | null>(null);
+
+  // Check for auth error params (e.g. expired invitation link)
+  useEffect(() => {
+    const errorCode = searchParams.get("error_code") || new URLSearchParams(window.location.hash.replace("#", "?")).get("error_code");
+    const error = searchParams.get("error") || new URLSearchParams(window.location.hash.replace("#", "?")).get("error");
+    
+    if (errorCode === "otp_expired" || error === "access_denied") {
+      setExpiredLinkMessage("See kutse link on aegunud. Palun logi sisse oma parooliga või küsi administraatorilt uus kutse.");
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!loading && user) {
