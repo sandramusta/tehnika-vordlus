@@ -193,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: `${baseUrl}/password-reset`,
+        redirectTo: PASSWORD_RESET_URL,
       },
     });
 
