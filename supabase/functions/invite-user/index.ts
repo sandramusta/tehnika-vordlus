@@ -11,6 +11,7 @@ interface InviteUserRequest {
   email: string;
   full_name: string;
   role: "user" | "product_manager" | "admin";
+  origin?: string;
 }
 
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
