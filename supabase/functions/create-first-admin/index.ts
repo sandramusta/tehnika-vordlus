@@ -248,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `first-admin-${newUser.user.id}-${Date.now()}` },
-        html: buildAdminInviteEmail(full_name, forcePasswordResetRedirect(resetData.properties.action_link)),
+        html: buildAdminInviteEmail(full_name, passwordSetupLink),
       }),
     });
 
