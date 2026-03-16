@@ -13,13 +13,18 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
 
   const queryParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
-  const isRecoveryFlow =
-    queryParams.get("type") === "recovery" ||
-    hashParams.get("type") === "recovery" ||
-    hashParams.has("access_token") ||
-    queryParams.has("access_token");
+  const authLinkType = queryParams.get("type") || hashParams.get("type");
+  const hasAuthToken = hashParams.has("access_token") || queryParams.has("access_token");
+  const isPasswordSetupFlow =
+    authLinkType === "recovery" ||
+    authLinkType === "invite" ||
+    hasAuthToken;
 
-  if (isRecoveryFlow && window.location.pathname !== "/password-recovery") {
+  if (
+    isPasswordSetupFlow &&
+    window.location.pathname !== "/password-recovery" &&
+    window.location.pathname !== "/update-password"
+  ) {
     return <Navigate to={`/password-recovery${window.location.hash || ""}`} replace />;
   }
 

@@ -11,6 +11,19 @@ import wihuriLogo from "@/assets/wihuri-agri-logo.png";
 
 const passwordSchema = z.string().min(6, "Parool peab olema vähemalt 6 tähemärki");
 
+const isPasswordSetupFlow = () => {
+  const queryParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+  const authLinkType = queryParams.get("type") || hashParams.get("type");
+
+  return (
+    authLinkType === "invite" ||
+    authLinkType === "recovery" ||
+    hashParams.has("access_token") ||
+    queryParams.has("access_token")
+  );
+};
+
 export default function ResetPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,14 +32,17 @@ export default function ResetPassword() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event from the URL token
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    if (!isPasswordSetupFlow()) {
+      navigate("/auth", { replace: true });
+      return;
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || !!session) {
         setIsReady(true);
       }
     });
 
-    // Also check if we already have a session (user clicked link and token was processed)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsReady(true);
@@ -34,7 +50,7 @@ export default function ResetPassword() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleSetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,7 +59,6 @@ export default function ResetPassword() {
 
     const formData = new FormData(e.currentTarget);
     const password = formData.get("password") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
 
     // Validate password
     try {
@@ -52,12 +67,6 @@ export default function ResetPassword() {
       if (err instanceof z.ZodError) {
         setErrors({ password: err.errors[0].message });
       }
-      setIsLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErrors({ confirmPassword: "Paroolid ei kattu" });
       setIsLoading(false);
       return;
     }
@@ -71,13 +80,11 @@ export default function ResetPassword() {
         variant: "destructive",
       });
     } else {
-      // Sign out so user can log in fresh with new password
-      await supabase.auth.signOut();
       toast({
-        title: "Parool seadistatud!",
-        description: "Nüüd saad sisse logida oma e-posti ja parooliga.",
+        title: "Parool edukalt salvestatud!",
       });
-      navigate("/auth");
+      window.history.replaceState({}, "", window.location.pathname);
+      navigate("/", { replace: true });
     }
 
     setIsLoading(false);
@@ -108,15 +115,15 @@ export default function ResetPassword() {
           <div className="flex justify-center">
             <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl">Loo oma parool</CardTitle>
+          <CardTitle className="text-2xl">Tere tulemast! Palun määra omale parool.</CardTitle>
           <CardDescription>
-            Sisesta uus parool, et alustada rakenduse kasutamist
+            Sisesta uus parool, et jätkata rakenduse kasutamist.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Parool</Label>
+              <Label htmlFor="password">Uus parool</Label>
               <Input
                 id="password"
                 name="password"
@@ -127,19 +134,6 @@ export default function ResetPassword() {
               />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Kinnita parool</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                disabled={isLoading}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword}</p>
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
