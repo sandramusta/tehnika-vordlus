@@ -184,7 +184,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { email, full_name, role }: InviteUserRequest = await req.json();
+    const { email, full_name, role, origin }: InviteUserRequest = await req.json();
+    const baseUrl = origin || "https://agrifacts.app";
 
     if (!email || !full_name || !role) {
       throw new Error("Missing required fields: email, full_name, role");
