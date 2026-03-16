@@ -20,7 +20,8 @@ const isPasswordSetupFlow = () => {
     authLinkType === "invite" ||
     authLinkType === "recovery" ||
     hashParams.has("access_token") ||
-    queryParams.has("access_token")
+    queryParams.has("access_token") ||
+    queryParams.has("token_hash")
   );
 };
 
@@ -32,6 +33,9 @@ export default function ResetPassword() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const tokenHash = queryParams.get("token_hash");
+    const flowType = queryParams.get("type");
     const fromEmailLink = isPasswordSetupFlow();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -40,16 +44,39 @@ export default function ResetPassword() {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initialize = async () => {
+      if (tokenHash && (flowType === "recovery" || flowType === "invite")) {
+        const { error } = await supabase.auth.verifyOtp({
+          type: flowType,
+          token_hash: tokenHash,
+        });
+
+        if (error) {
+          toast({
+            title: "Viga",
+            description: "Parooli seadistamise link on aegunud või vigane.",
+            variant: "destructive",
+          });
+          navigate("/auth", { replace: true });
+          return;
+        }
+
+        setIsReady(true);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsReady(true);
       } else if (!fromEmailLink) {
         navigate("/auth", { replace: true });
       }
-    });
+    };
+
+    initialize();
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleSetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

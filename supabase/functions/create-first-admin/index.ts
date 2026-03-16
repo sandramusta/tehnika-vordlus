@@ -26,6 +26,14 @@ function forcePasswordResetRedirect(actionLink: string): string {
   }
 }
 
+function buildPasswordSetupLink(resetProps: { hashed_token?: string; action_link: string }): string {
+  if (resetProps?.hashed_token) {
+    return `${PASSWORD_RESET_URL}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
+  }
+
+  return forcePasswordResetRedirect(resetProps.action_link);
+}
+
 function buildAdminInviteEmail(name: string, actionLink: string): string {
   return `<!DOCTYPE html>
 <html lang="et" xmlns:v="urn:schemas-microsoft-com:vml">
@@ -218,10 +226,14 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
-    if (resetError) {
+    if (resetError || !resetData?.properties?.action_link) {
       console.error("Error generating reset link:", resetError);
       throw new Error("Password reset link generation failed");
     }
+
+    const passwordSetupLink = buildPasswordSetupLink(
+      resetData.properties as { hashed_token?: string; action_link: string }
+    );
 
     // Send invitation email via Resend API
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -236,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `first-admin-${newUser.user.id}-${Date.now()}` },
-        html: buildAdminInviteEmail(full_name, forcePasswordResetRedirect(resetData.properties.action_link)),
+        html: buildAdminInviteEmail(full_name, passwordSetupLink),
       }),
     });
 
