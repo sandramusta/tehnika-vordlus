@@ -68,10 +68,10 @@ export function useAuth() {
 
         if (
           isPasswordSetupFlow() &&
-          window.location.pathname !== "/password-recovery" &&
+          window.location.pathname !== "/password-reset" &&
           window.location.pathname !== "/update-password"
         ) {
-          window.location.href = `/password-recovery${window.location.hash || ""}`;
+          window.location.href = `/password-reset${window.location.hash || ""}`;
           return;
         }
 
@@ -94,10 +94,10 @@ export function useAuth() {
       try {
         if (
           isPasswordSetupFlow() &&
-          window.location.pathname !== "/password-recovery" &&
+          window.location.pathname !== "/password-reset" &&
           window.location.pathname !== "/update-password"
         ) {
-          window.location.href = `/password-recovery${window.location.hash || ""}`;
+          window.location.href = `/password-reset${window.location.hash || ""}`;
           return;
         }
 
