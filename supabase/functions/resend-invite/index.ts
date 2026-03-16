@@ -7,6 +7,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const APP_BASE_URL = "https://agrifacts.app";
+const PASSWORD_RESET_URL = `${APP_BASE_URL}/password-reset`;
+
+function forcePasswordResetRedirect(actionLink: string): string {
+  try {
+    const url = new URL(actionLink);
+    url.searchParams.set("redirect_to", PASSWORD_RESET_URL);
+    return url.toString();
+  } catch {
+    return actionLink;
+  }
+}
+
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
   const roleNames: Record<string, string> = {
     user: "Kasutaja",
@@ -154,8 +167,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { email, origin } = await req.json();
-    const baseUrl = "https://agrifacts.app";
+    const { email } = await req.json();
 
     // Get user info
     const { data: users } = await supabaseAdmin.auth.admin.listUsers();
@@ -181,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: `${baseUrl}/password-reset`,
+        redirectTo: PASSWORD_RESET_URL,
       },
     });
 
@@ -200,7 +212,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `resend-invite-${user.id}-${Date.now()}` },
-        html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+        html: buildInviteEmail(full_name, role, forcePasswordResetRedirect(resetData.properties.action_link)),
       }),
     });
 

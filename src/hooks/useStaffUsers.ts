@@ -85,7 +85,6 @@ export function useInviteStaffUser() {
           email: user.email,
           full_name: user.full_name,
           role: user.role,
-          origin: window.location.origin,
         },
       });
 

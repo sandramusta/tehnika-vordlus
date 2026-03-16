@@ -13,6 +13,19 @@ interface CreateFirstAdminRequest {
   admin_secret: string;
 }
 
+const APP_BASE_URL = "https://agrifacts.app";
+const PASSWORD_RESET_URL = `${APP_BASE_URL}/password-reset`;
+
+function forcePasswordResetRedirect(actionLink: string): string {
+  try {
+    const url = new URL(actionLink);
+    url.searchParams.set("redirect_to", PASSWORD_RESET_URL);
+    return url.toString();
+  } catch {
+    return actionLink;
+  }
+}
+
 function buildAdminInviteEmail(name: string, actionLink: string): string {
   return `<!DOCTYPE html>
 <html lang="et" xmlns:v="urn:schemas-microsoft-com:vml">
@@ -133,8 +146,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, full_name, admin_secret, origin }: CreateFirstAdminRequest & { origin?: string } = await req.json();
-    const baseUrl = "https://agrifacts.app";
+    const { email, full_name, admin_secret }: CreateFirstAdminRequest = await req.json();
 
     if (!admin_secret || admin_secret !== expectedSecret) {
       return new Response(
@@ -202,7 +214,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email,
       options: {
-        redirectTo: `${baseUrl}/password-reset`,
+        redirectTo: PASSWORD_RESET_URL,
       },
     });
 
@@ -224,7 +236,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `first-admin-${newUser.user.id}-${Date.now()}` },
-        html: buildAdminInviteEmail(full_name, resetData.properties.action_link),
+        html: buildAdminInviteEmail(full_name, forcePasswordResetRedirect(resetData.properties.action_link)),
       }),
     });
 
