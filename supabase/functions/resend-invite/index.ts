@@ -212,7 +212,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `resend-invite-${user.id}-${Date.now()}` },
-        html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+        html: buildInviteEmail(full_name, role, forcePasswordResetRedirect(resetData.properties.action_link)),
       }),
     });
 

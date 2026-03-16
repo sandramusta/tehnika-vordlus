@@ -278,7 +278,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: [email],
         subject: "Kutse Wihuri Agri rakendusse",
         headers: { "X-Entity-Ref-ID": `invite-${userId}-${Date.now()}` },
-        html: buildInviteEmail(full_name, role, resetData.properties.action_link),
+        html: buildInviteEmail(full_name, role, forcePasswordResetRedirect(resetData.properties.action_link)),
       }),
     });
     const emailError = !emailRes.ok ? await emailRes.text() : null;
