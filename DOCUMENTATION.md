@@ -257,3 +257,4 @@ Statistika värskendub automaatselt iga 30 sekundi järel.
 | Kuupäev | Muudatus |
 |---------|----------|
 | 2026-03-17 | Dokumentatsiooni loomine |
+| 2026-03-17 | Token_hash voo ja domeeni konfiguratsiooni täpsustused |
