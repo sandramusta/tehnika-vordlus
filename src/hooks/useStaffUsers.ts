@@ -24,8 +24,15 @@ async function enrichWithRoles(users: StaffUser[]): Promise<StaffUser[]> {
     .from("user_roles")
     .select("user_id, role");
 
+  // Get login activity to determine who has logged in
+  const { data: loginLogs } = await supabase
+    .from("user_activity_logs")
+    .select("user_id")
+    .eq("action_type", "USER_LOGIN");
+
   const emailToAuthId = new Map(profiles?.map((p) => [p.email, p.id]) || []);
   const authIdToRole = new Map(roles?.map((r) => [r.user_id, r.role as AppRole]) || []);
+  const loggedInUsers = new Set(loginLogs?.map((l) => l.user_id) || []);
 
   return users.map((u) => {
     const authId = emailToAuthId.get(u.email);
@@ -33,6 +40,7 @@ async function enrichWithRoles(users: StaffUser[]): Promise<StaffUser[]> {
       ...u,
       auth_user_id: authId || undefined,
       role: authId ? authIdToRole.get(authId) || "user" : undefined,
+      has_logged_in: authId ? loggedInUsers.has(authId) : false,
     };
   });
 }
