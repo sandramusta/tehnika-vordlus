@@ -13,7 +13,7 @@ interface InviteUserRequest {
   role: "user" | "product_manager" | "admin";
 }
 
-const FALLBACK_APP_BASE_URL = "https://wihuriapp.lovable.app";
+const FALLBACK_APP_BASE_URL = "https://agrifacts.app";
 
 function resolveAppBaseUrl(req: Request): string {
   const candidates = [

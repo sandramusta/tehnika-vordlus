@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const FALLBACK_APP_BASE_URL = "https://wihuriapp.lovable.app";
+const FALLBACK_APP_BASE_URL = "https://agrifacts.app";
 
 function resolveAppBaseUrl(req: Request): string {
   const candidates = [
