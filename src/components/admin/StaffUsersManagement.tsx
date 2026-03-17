@@ -375,16 +375,9 @@ export function StaffUsersManagement() {
                       <Badge variant="outline" className="text-xs">Ootel</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <Switch
-                      checked={user.is_active}
-                      onCheckedChange={() => handleToggleActive(user)}
-                      className="scale-90"
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {user.is_active ? "Aktiivne" : "Mitteakt."}
-                    </span>
-                  </div>
+                  <Badge variant={user.has_logged_in ? "default" : "outline"} className="text-xs">
+                    {user.has_logged_in ? "Aktiivne" : "Ootel"}
+                  </Badge>
                 </div>
               </div>
             ))}
