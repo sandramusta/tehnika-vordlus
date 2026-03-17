@@ -7,25 +7,47 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_BASE_URL = "https://agrifacts.app";
-const PASSWORD_RESET_URL = `${APP_BASE_URL}/reset`;
+const FALLBACK_APP_BASE_URL = "https://wihuriapp.lovable.app";
 
-function forcePasswordResetRedirect(actionLink: string): string {
+function resolveAppBaseUrl(req: Request): string {
+  const candidates = [
+    req.headers.get("origin"),
+    req.headers.get("referer"),
+    Deno.env.get("APP_BASE_URL"),
+    FALLBACK_APP_BASE_URL,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      return new URL(candidate).origin;
+    } catch {
+      // ignore invalid candidate
+    }
+  }
+
+  return FALLBACK_APP_BASE_URL;
+}
+
+function forcePasswordResetRedirect(actionLink: string, passwordResetUrl: string): string {
   try {
     const url = new URL(actionLink);
-    url.searchParams.set("redirect_to", PASSWORD_RESET_URL);
+    url.searchParams.set("redirect_to", passwordResetUrl);
     return url.toString();
   } catch {
     return actionLink;
   }
 }
 
-function buildPasswordSetupLink(resetProps: { hashed_token?: string; action_link: string }): string {
+function buildPasswordSetupLink(
+  resetProps: { hashed_token?: string; action_link: string },
+  passwordResetUrl: string,
+): string {
   if (resetProps?.hashed_token) {
-    return `${PASSWORD_RESET_URL}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
+    return `${passwordResetUrl}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
   }
 
-  return forcePasswordResetRedirect(resetProps.action_link);
+  return forcePasswordResetRedirect(resetProps.action_link, passwordResetUrl);
 }
 
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
@@ -196,12 +218,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     const role = roleData?.role || "user";
 
+    const passwordResetUrl = `${resolveAppBaseUrl(req)}/reset`;
+
     // Generate new password reset link
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email,
       options: {
-        redirectTo: PASSWORD_RESET_URL,
+        redirectTo: passwordResetUrl,
       },
     });
 
@@ -210,7 +234,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const passwordSetupLink = buildPasswordSetupLink(
-      resetData.properties as { hashed_token?: string; action_link: string }
+      resetData.properties as { hashed_token?: string; action_link: string },
+      passwordResetUrl,
     );
 
     // Send email via Resend API
