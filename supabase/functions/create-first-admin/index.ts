@@ -14,7 +14,7 @@ interface CreateFirstAdminRequest {
 }
 
 const APP_BASE_URL = "https://agrifacts.app";
-const PASSWORD_RESET_URL = `${APP_BASE_URL}/password-reset`;
+const PASSWORD_RESET_URL = `${APP_BASE_URL}/reset`;
 
 function forcePasswordResetRedirect(actionLink: string): string {
   try {

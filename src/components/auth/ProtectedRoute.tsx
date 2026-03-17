@@ -22,10 +22,11 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
 
   if (
     isPasswordSetupFlow &&
+    window.location.pathname !== "/reset" &&
     window.location.pathname !== "/password-reset" &&
     window.location.pathname !== "/update-password"
   ) {
-    return <Navigate to={`/password-reset${window.location.hash || ""}`} replace />;
+    return <Navigate to={`/reset${window.location.hash || ""}`} replace />;
   }
 
   if (loading) {
