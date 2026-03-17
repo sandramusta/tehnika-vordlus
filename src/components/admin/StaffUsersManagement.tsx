@@ -303,15 +303,9 @@ export function StaffUsersManagement() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={user.is_active}
-                          onCheckedChange={() => handleToggleActive(user)}
-                        />
-                        <Badge variant={user.is_active ? "default" : "secondary"}>
-                          {user.is_active ? "Aktiivne" : "Mitteaktiivne"}
-                        </Badge>
-                      </div>
+                      <Badge variant={user.has_logged_in ? "default" : "outline"}>
+                        {user.has_logged_in ? "Aktiivne" : "Ootel"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -381,16 +375,9 @@ export function StaffUsersManagement() {
                       <Badge variant="outline" className="text-xs">Ootel</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <Switch
-                      checked={user.is_active}
-                      onCheckedChange={() => handleToggleActive(user)}
-                      className="scale-90"
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {user.is_active ? "Aktiivne" : "Mitteakt."}
-                    </span>
-                  </div>
+                  <Badge variant={user.has_logged_in ? "default" : "outline"} className="text-xs">
+                    {user.has_logged_in ? "Aktiivne" : "Ootel"}
+                  </Badge>
                 </div>
               </div>
             ))}
