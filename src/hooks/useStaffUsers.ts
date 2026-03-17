@@ -10,6 +10,7 @@ export interface StaffUser {
   created_at: string;
   role?: AppRole;
   auth_user_id?: string;
+  has_logged_in?: boolean;
 }
 
 async function enrichWithRoles(users: StaffUser[]): Promise<StaffUser[]> {
