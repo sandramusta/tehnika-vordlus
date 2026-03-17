@@ -43,8 +43,11 @@ Rollid hoitakse eraldi tabelis `user_roles` (mitte profiilitabelis). Rollide kon
 
 ### 3.3 Parooli taastamine / määramine
 - Tee: `/password-reset` (ka `/update-password`, `/password-recovery` aliased)
-- Kasutab `supabase.auth.verifyOtp()` token_hash'iga
+- Edge Functions genereerivad otselingi koos `token_hash` parameetriga: `https://agrifacts.app/password-reset?token_hash=...&type=invite`
+- `ResetPassword` komponent tuvastab URL-ist `token_hash` ja `type` parameetrid ning kutsub `supabase.auth.verifyOtp()` kasutaja autentimiseks
+- See väldib Supabase vaikimisi ümbersuunamist, mis muidu kasutaks preview-domeeni
 - `ProtectedRoute` ja `useAuth` tuvastavad taastamismärgi (type=recovery/invite/access_token) ja suunavad automaatselt parooli muutmise vormile
+- Edge Functions kasutavad hardcoded `APP_BASE_URL = "https://agrifacts.app"` – mitte frontendist saadetud origin'it
 
 ### 3.4 Aegunud kutselingid
 - `/auth` lehel tuvastatakse aegunud lingid (otp_expired, access_denied) ja kuvatakse sõbralik teade eesti keeles
@@ -254,3 +257,4 @@ Statistika värskendub automaatselt iga 30 sekundi järel.
 | Kuupäev | Muudatus |
 |---------|----------|
 | 2026-03-17 | Dokumentatsiooni loomine |
+| 2026-03-17 | Token_hash voo ja domeeni konfiguratsiooni täpsustused |
