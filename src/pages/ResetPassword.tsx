@@ -105,6 +105,15 @@ export default function ResetPassword() {
         variant: "destructive",
       });
     } else {
+      // Log first login so admin panel shows "active" status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await (supabase as any).from("user_activity_logs").insert({
+          user_id: user.id,
+          action_type: "USER_LOGIN",
+          details: {},
+        });
+      }
       toast({ title: "Parool edukalt salvestatud!" });
       navigate("/", { replace: true });
     }

@@ -1,0 +1,1 @@
+INSERT INTO user_activity_logs (user_id, action_type, details) VALUES ('380e1aab-3b2e-4870-b56b-ed9804ae8700', 'USER_LOGIN', '{}'::jsonb);
