@@ -54,13 +54,15 @@ export default function ResetPassword() {
         if (error) {
           toast({
             title: "Viga",
-            description: "Parooli seadistamise link on aegunud või vigane.",
+            description: "Parooli seadistamise link on aegunud, vigane või juba kasutatud.",
             variant: "destructive",
           });
           navigate("/auth", { replace: true });
           return;
         }
 
+        // Make link one-time in the browser too (refresh won't re-verify same token)
+        window.history.replaceState({}, "", window.location.pathname);
         setIsReady(true);
         return;
       }

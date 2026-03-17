@@ -281,12 +281,14 @@ const handler = async (req: Request): Promise<Response> => {
     // Update staff_users
     await supabaseAdmin.from("staff_users").update({ is_active: true }).eq("email", email);
 
+    const passwordResetUrl = `${resolveAppBaseUrl(req)}/reset`;
+
     // Generate password reset link
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email,
       options: {
-        redirectTo: PASSWORD_RESET_URL,
+        redirectTo: passwordResetUrl,
       },
     });
 
@@ -296,7 +298,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const passwordSetupLink = buildPasswordSetupLink(
-      resetData.properties as { hashed_token?: string; action_link: string }
+      resetData.properties as { hashed_token?: string; action_link: string },
+      passwordResetUrl,
     );
 
     // Send invitation email via Resend API
