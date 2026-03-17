@@ -66,7 +66,7 @@ function buildAdminInviteEmail(name: string, actionLink: string): string {
                 🌾 Wihuri Agri
               </h1>
               <p style="color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 14px;">
-                Tehnika võrdlus & müügitugi
+                Tehnika võrdlus rakendus
               </p>
             </td>
           </tr>
