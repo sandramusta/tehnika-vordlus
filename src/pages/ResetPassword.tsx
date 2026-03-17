@@ -141,15 +141,15 @@ export default function ResetPassword() {
           <div className="flex justify-center">
             <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl">Tere tulemast! Palun määra omale parool.</CardTitle>
+          <CardTitle className="text-2xl">Tere tulemast!<br />Palun määra omale parool.</CardTitle>
           <CardDescription>
-            Sisesta uus parool, et jätkata rakenduse kasutamist.
+            Selle parooliga saad edaspidi rakendusse sisse logida.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Uus parool</Label>
+              <Label htmlFor="password">Loo parool</Label>
               <Input
                 id="password"
                 name="password"
