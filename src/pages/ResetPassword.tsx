@@ -149,7 +149,7 @@ export default function ResetPassword() {
         <CardContent>
           <form onSubmit={handleSetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Uus parool</Label>
+              <Label htmlFor="password">Loo parool</Label>
               <Input
                 id="password"
                 name="password"
