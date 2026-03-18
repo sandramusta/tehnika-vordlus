@@ -66,6 +66,24 @@ export function ModelMultiSelect({
     return grouped;
   }, [availableModels]);
 
+  // Filter by search query
+  const filteredModelsByBrand = useMemo(() => {
+    if (!searchQuery.trim()) return modelsByBrand;
+    const q = searchQuery.toLowerCase();
+    const result: Record<string, Equipment[]> = {};
+    Object.entries(modelsByBrand).forEach(([brandName, models]) => {
+      const filtered = models.filter(
+        (m) =>
+          m.model_name.toLowerCase().includes(q) ||
+          brandName.toLowerCase().includes(q)
+      );
+      if (filtered.length > 0) {
+        result[brandName] = filtered;
+      }
+    });
+    return result;
+  }, [modelsByBrand, searchQuery]);
+
   // Handle type change - clear selections
   const handleTypeChange = (value: string) => {
     if (value !== selectedType && selectedModels.length > 0) {
