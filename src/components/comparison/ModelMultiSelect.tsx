@@ -3,9 +3,10 @@ import { Equipment, EquipmentType } from "@/types/equipment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertTriangle, ChevronDown, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBrands, useEquipmentTypes } from "@/hooks/useEquipmentData";
 
@@ -37,6 +38,7 @@ export function ModelMultiSelect({
   maxModels = 3,
 }: ModelMultiSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [categoryChangeAlert, setCategoryChangeAlert] = useState(false);
   const [previousType, setPreviousType] = useState(selectedType);
 
@@ -63,6 +65,24 @@ export function ModelMultiSelect({
     });
     return grouped;
   }, [availableModels]);
+
+  // Filter by search query
+  const filteredModelsByBrand = useMemo(() => {
+    if (!searchQuery.trim()) return modelsByBrand;
+    const q = searchQuery.toLowerCase();
+    const result: Record<string, Equipment[]> = {};
+    Object.entries(modelsByBrand).forEach(([brandName, models]) => {
+      const filtered = models.filter(
+        (m) =>
+          m.model_name.toLowerCase().includes(q) ||
+          brandName.toLowerCase().includes(q)
+      );
+      if (filtered.length > 0) {
+        result[brandName] = filtered;
+      }
+    });
+    return result;
+  }, [modelsByBrand, searchQuery]);
 
   // Handle type change - clear selections
   const handleTypeChange = (value: string) => {
@@ -124,7 +144,7 @@ export function ModelMultiSelect({
           <label className="text-sm font-medium text-muted-foreground">
             Mudelid võrdluseks (max {maxModels})
           </label>
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSearchQuery(""); }}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -174,13 +194,24 @@ export function ModelMultiSelect({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0 bg-popover" align="start">
-              <div className="max-h-[400px] overflow-auto p-2">
+              <div className="p-2 border-b">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Otsi mudelit..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div className="max-h-[350px] overflow-auto p-2">
                 {selectedModels.length >= maxModels && (
                   <div className="mb-2 p-2 rounded-md bg-muted text-sm text-muted-foreground">
                     Maksimaalselt {maxModels} mudelit valitud
                   </div>
                 )}
-                {Object.entries(modelsByBrand).map(([brandName, models]) => (
+                {Object.entries(filteredModelsByBrand).map(([brandName, models]) => (
                   <div key={brandName} className="mb-3">
                     <div className={cn(
                       "text-sm font-semibold px-2 py-1 rounded-t-md bg-muted/50",
@@ -226,6 +257,11 @@ export function ModelMultiSelect({
                     </div>
                   </div>
                 ))}
+                {Object.keys(filteredModelsByBrand).length === 0 && availableModels.length > 0 && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    Mudeleid ei leitud
+                  </div>
+                )}
                 {availableModels.length === 0 && (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     Selles kategoorias mudeleid ei leitud
