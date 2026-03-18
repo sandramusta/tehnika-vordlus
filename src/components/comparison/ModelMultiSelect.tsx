@@ -144,7 +144,7 @@ export function ModelMultiSelect({
           <label className="text-sm font-medium text-muted-foreground">
             Mudelid võrdluseks (max {maxModels})
           </label>
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSearchQuery(""); }}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
