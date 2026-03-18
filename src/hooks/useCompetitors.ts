@@ -117,6 +117,23 @@ export function useCompetitors(
       });
     }
 
+    // For tractors, use ECE-R120 power from detailed_specs
+    if (isTractor(selectedModel)) {
+      const selectedPower = getTractorECEPower(selectedModel);
+      if (!selectedPower) return [];
+
+      return allEquipment.filter((eq) => {
+        if (eq.id === selectedModel.id) return false;
+        if (eq.equipment_type_id !== selectedModel.equipment_type_id) return false;
+        if (eq.brand_id === selectedModel.brand_id) return false;
+
+        const eqPower = getTractorECEPower(eq);
+        if (!eqPower) return false;
+
+        return Math.abs(eqPower - selectedPower) <= HP_RANGE_TRACTOR;
+      });
+    }
+
     // For other equipment types, use HP-based matching
     if (!selectedModel.engine_power_hp) return [];
 
