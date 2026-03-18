@@ -327,7 +327,7 @@ export function SingleROICalculator({
             id={`${variant}-grainLossReduction`}
             type="number"
             step="0.5"
-            value={inputs.grainLossReduction}
+            value={inputs.grainLossReduction || ""}
             onChange={(e) => onInputChange("grainLossReduction", e.target.value)}
             className="h-8 text-sm"
           />
@@ -343,7 +343,7 @@ export function SingleROICalculator({
             <Input
               id={`${variant}-chemicalCostPerHa`}
               type="number"
-              value={inputs.chemicalCostPerHa}
+              value={inputs.chemicalCostPerHa || ""}
               onChange={(e) => onInputChange("chemicalCostPerHa", e.target.value)}
               className="h-8 text-sm"
             />
@@ -354,7 +354,7 @@ export function SingleROICalculator({
               id={`${variant}-overlapPercent`}
               type="number"
               step="0.5"
-              value={inputs.overlapPercent}
+              value={inputs.overlapPercent || ""}
               onChange={(e) => onInputChange("overlapPercent", e.target.value)}
               className="h-8 text-sm"
             />
@@ -364,7 +364,7 @@ export function SingleROICalculator({
             <Input
               id={`${variant}-sprayAreaHa`}
               type="number"
-              value={inputs.sprayAreaHa}
+              value={inputs.sprayAreaHa || ""}
               onChange={(e) => onInputChange("sprayAreaHa", e.target.value)}
               className="h-8 text-sm"
             />
@@ -381,7 +381,7 @@ export function SingleROICalculator({
             <Input
               id={`${variant}-balesPerYear`}
               type="number"
-              value={inputs.balesPerYear}
+              value={inputs.balesPerYear || ""}
               onChange={(e) => onInputChange("balesPerYear", e.target.value)}
               className="h-8 text-sm"
             />
@@ -393,7 +393,7 @@ export function SingleROICalculator({
                 id={`${variant}-wrapCostPerBale`}
                 type="number"
                 step="0.5"
-                value={inputs.wrapCostPerBale}
+                value={inputs.wrapCostPerBale || ""}
                 onChange={(e) => onInputChange("wrapCostPerBale", e.target.value)}
                 className="h-8 text-sm"
               />
@@ -404,7 +404,7 @@ export function SingleROICalculator({
                 id={`${variant}-handlingCostPerBale`}
                 type="number"
                 step="0.5"
-                value={inputs.handlingCostPerBale}
+                value={inputs.handlingCostPerBale || ""}
                 onChange={(e) => onInputChange("handlingCostPerBale", e.target.value)}
                 className="h-8 text-sm"
               />
@@ -415,7 +415,7 @@ export function SingleROICalculator({
             <Input
               id={`${variant}-densityIncreasePercent`}
               type="number"
-              value={inputs.densityIncreasePercent}
+              value={inputs.densityIncreasePercent || ""}
               onChange={(e) => onInputChange("densityIncreasePercent", e.target.value)}
               className="h-8 text-sm"
             />
@@ -443,7 +443,7 @@ export function SingleROICalculator({
         <Input
           id={`${variant}-machineName`}
           type="text"
-          value={inputs.machineName}
+          value={inputs.machineName || ""}
           onChange={(e) => onInputChange("machineName", e.target.value)}
           className="h-9"
         />
@@ -467,7 +467,7 @@ export function SingleROICalculator({
                 <Input
                   id={`${variant}-purchasePrice`}
                   type="number"
-                  value={inputs.purchasePrice}
+                  value={inputs.purchasePrice || ""}
                   onChange={(e) => onInputChange("purchasePrice", e.target.value)}
                   className="h-8 text-sm"
                 />
@@ -478,7 +478,7 @@ export function SingleROICalculator({
                   <Input
                     id={`${variant}-expectedLifespan`}
                     type="number"
-                    value={inputs.expectedLifespan}
+                    value={inputs.expectedLifespan || ""}
                     onChange={(e) => onInputChange("expectedLifespan", e.target.value)}
                     className="h-8 text-sm"
                   />
@@ -488,7 +488,7 @@ export function SingleROICalculator({
                   <Input
                     id={`${variant}-residualValuePercent`}
                     type="number"
-                    value={inputs.residualValuePercent}
+                    value={inputs.residualValuePercent || ""}
                     onChange={(e) => onInputChange("residualValuePercent", e.target.value)}
                     className="h-8 text-sm"
                   />
@@ -515,7 +515,7 @@ export function SingleROICalculator({
                   <Input
                     id={`${variant}-annualHectares`}
                     type="number"
-                    value={inputs.annualHectares}
+                    value={inputs.annualHectares || ""}
                     onChange={(e) => onInputChange("annualHectares", e.target.value)}
                     className="h-8 text-sm"
                   />
@@ -526,7 +526,7 @@ export function SingleROICalculator({
                 <Input
                   id={`${variant}-annualWorkHours`}
                   type="number"
-                  value={inputs.annualWorkHours}
+                  value={inputs.annualWorkHours || ""}
                   onChange={(e) => onInputChange("annualWorkHours", e.target.value)}
                   className="h-8 text-sm"
                 />
@@ -537,7 +537,7 @@ export function SingleROICalculator({
               <Input
                 id={`${variant}-operatorHourlyCost`}
                 type="number"
-                value={inputs.operatorHourlyCost}
+                value={inputs.operatorHourlyCost || ""}
                 onChange={(e) => onInputChange("operatorHourlyCost", e.target.value)}
                 className="h-8 text-sm"
               />
@@ -562,7 +562,7 @@ export function SingleROICalculator({
                   id={`${variant}-fuelConsumption`}
                   type="number"
                   step="0.1"
-                  value={inputs.fuelConsumption}
+                  value={inputs.fuelConsumption || ""}
                   onChange={(e) => onInputChange("fuelConsumption", e.target.value)}
                   className="h-8 text-sm"
                 />
@@ -573,7 +573,7 @@ export function SingleROICalculator({
                   id={`${variant}-fuelPrice`}
                   type="number"
                   step="0.01"
-                  value={inputs.fuelPrice}
+                  value={inputs.fuelPrice || ""}
                   onChange={(e) => onInputChange("fuelPrice", e.target.value)}
                   className="h-8 text-sm"
                 />
@@ -584,7 +584,7 @@ export function SingleROICalculator({
               <Input
                 id={`${variant}-fuelSavingsPercent`}
                 type="number"
-                value={inputs.fuelSavingsPercent}
+                value={inputs.fuelSavingsPercent || ""}
                 onChange={(e) => onInputChange("fuelSavingsPercent", e.target.value)}
                 className="h-8 text-sm"
               />
@@ -607,7 +607,7 @@ export function SingleROICalculator({
               <Input
                 id={`${variant}-annualMaintenance`}
                 type="number"
-                value={inputs.annualMaintenance}
+                value={inputs.annualMaintenance || ""}
                 onChange={(e) => onInputChange("annualMaintenance", e.target.value)}
                 className="h-8 text-sm"
               />
@@ -617,7 +617,7 @@ export function SingleROICalculator({
               <Input
                 id={`${variant}-maintenanceSavingsPercent`}
                 type="number"
-                value={inputs.maintenanceSavingsPercent}
+                value={inputs.maintenanceSavingsPercent || ""}
                 onChange={(e) => onInputChange("maintenanceSavingsPercent", e.target.value)}
                 className="h-8 text-sm"
               />
@@ -656,7 +656,7 @@ export function SingleROICalculator({
               <Input
                 id={`${variant}-revenuePerHectare`}
                 type="number"
-                value={inputs.revenuePerHectare}
+                value={inputs.revenuePerHectare || ""}
                 onChange={(e) => onInputChange("revenuePerHectare", e.target.value)}
                 className="h-8 text-sm"
               />
