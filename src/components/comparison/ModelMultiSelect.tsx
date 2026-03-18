@@ -38,6 +38,7 @@ export function ModelMultiSelect({
   maxModels = 3,
 }: ModelMultiSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [categoryChangeAlert, setCategoryChangeAlert] = useState(false);
   const [previousType, setPreviousType] = useState(selectedType);
 
