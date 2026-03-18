@@ -184,10 +184,15 @@ export function calculateROI(inputs: ROIInputs, category: ROIEquipmentCategory =
   const totalAnnualCosts = actualFuelCost + actualMaintenanceCost + operatorCost + annualDepreciation;
   const netAnnualOwnershipCost = annualDepreciation - totalAnnualBenefits;
   
-  const annualRevenue = inputs.annualHectares * inputs.revenuePerHectare;
+  // Revenue: for tractors/loaders (none), use hourly rate; for others use hectare-based
+  const annualRevenue = category === "none"
+    ? inputs.annualWorkHours * inputs.revenuePerHectare
+    : inputs.annualHectares * inputs.revenuePerHectare;
   const annualProfit = annualRevenue - totalAnnualCosts;
   
-  const costPerHectare = inputs.annualHectares > 0 ? totalAnnualCosts / inputs.annualHectares : 0;
+  const costPerHectare = category === "none"
+    ? (inputs.annualWorkHours > 0 ? totalAnnualCosts / inputs.annualWorkHours : 0)
+    : (inputs.annualHectares > 0 ? totalAnnualCosts / inputs.annualHectares : 0);
   const costPerHour = inputs.annualWorkHours > 0 ? totalAnnualCosts / inputs.annualWorkHours : 0;
   
   const totalLifetimeBenefits = totalAnnualBenefits * inputs.expectedLifespan;
@@ -508,17 +513,19 @@ export function SingleROICalculator({
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.work ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor={`${variant}-annualHectares`} className="text-xs">Hektarid/a</Label>
-                <Input
-                  id={`${variant}-annualHectares`}
-                  type="number"
-                  value={inputs.annualHectares}
-                  onChange={(e) => onInputChange("annualHectares", e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
+            <div className={`grid ${equipmentCategory === "none" ? "" : "grid-cols-2"} gap-2`}>
+              {equipmentCategory !== "none" && (
+                <div className="space-y-1">
+                  <Label htmlFor={`${variant}-annualHectares`} className="text-xs">Hektarid/a</Label>
+                  <Input
+                    id={`${variant}-annualHectares`}
+                    type="number"
+                    value={inputs.annualHectares}
+                    onChange={(e) => onInputChange("annualHectares", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              )}
               <div className="space-y-1">
                 <Label htmlFor={`${variant}-annualWorkHours`} className="text-xs">Töötunnid/a</Label>
                 <Input
@@ -650,7 +657,9 @@ export function SingleROICalculator({
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-revenuePerHectare`} className="text-xs">Tulu hektari kohta (€/ha)</Label>
+              <Label htmlFor={`${variant}-revenuePerHectare`} className="text-xs">
+                {equipmentCategory === "none" ? "Tulu tunni kohta (€/h)" : "Tulu hektari kohta (€/ha)"}
+              </Label>
               <Input
                 id={`${variant}-revenuePerHectare`}
                 type="number"
@@ -679,7 +688,9 @@ export function SingleROICalculator({
             <div className="font-bold">{formatNumber(calculations.roi, 0)}%</div>
           </div>
           <div>
-            <span className="text-muted-foreground text-xs">Kulu/ha</span>
+            <span className="text-muted-foreground text-xs">
+              {equipmentCategory === "none" ? "Kulu/h" : "Kulu/ha"}
+            </span>
             <div className="font-bold">{formatCurrency(calculations.costPerHectare)}</div>
           </div>
           <div>
