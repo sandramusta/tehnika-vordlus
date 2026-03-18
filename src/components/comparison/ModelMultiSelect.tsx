@@ -3,9 +3,10 @@ import { Equipment, EquipmentType } from "@/types/equipment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertTriangle, ChevronDown, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBrands, useEquipmentTypes } from "@/hooks/useEquipmentData";
 
