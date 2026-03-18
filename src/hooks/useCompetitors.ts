@@ -44,6 +44,19 @@ function isTractor(equipment: Equipment): boolean {
   return equipment.equipment_type?.name === "tractor";
 }
 
+// Parse ECE-R120 power from detailed_specs.mootor.max_võimsus_hj_kw
+// Format examples: "310 (228)", "243", "283 (208)"
+function getTractorECEPower(equipment: Equipment): number | null {
+  const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
+  const raw = specs?.mootor?.max_võimsus_hj_kw;
+  if (typeof raw === 'string') {
+    const match = raw.match(/^(\d+)/);
+    if (match) return parseInt(match[1], 10);
+  }
+  if (typeof raw === 'number') return raw;
+  return equipment.engine_power_hp;
+}
+
 function getHpRange(equipment: Equipment): number {
   if (isTractor(equipment)) return HP_RANGE_TRACTOR;
   if (isForageHarvester(equipment)) return HP_RANGE_FORAGE_HARVESTER;
@@ -104,6 +117,23 @@ export function useCompetitors(
       });
     }
 
+    // For tractors, use ECE-R120 power from detailed_specs
+    if (isTractor(selectedModel)) {
+      const selectedPower = getTractorECEPower(selectedModel);
+      if (!selectedPower) return [];
+
+      return allEquipment.filter((eq) => {
+        if (eq.id === selectedModel.id) return false;
+        if (eq.equipment_type_id !== selectedModel.equipment_type_id) return false;
+        if (eq.brand_id === selectedModel.brand_id) return false;
+
+        const eqPower = getTractorECEPower(eq);
+        if (!eqPower) return false;
+
+        return Math.abs(eqPower - selectedPower) <= HP_RANGE_TRACTOR;
+      });
+    }
+
     // For other equipment types, use HP-based matching
     if (!selectedModel.engine_power_hp) return [];
 
@@ -142,6 +172,13 @@ export function getCompetitorSummary(
       ? `, ${selectedModel.max_lift_capacity_kg} kg` 
       : "";
     return `Leitud ${competitors.length} konkurenti ±${LIFT_HEIGHT_RANGE_M}m tõstekõrguse ja ±${LIFT_CAPACITY_RANGE_KG}kg tõstevõime vahemikus (valitud: ${selectedModel.lift_height_m}m${capacityInfo})`;
+  }
+
+  // For tractors, show ECE-R120 power info
+  if (isTractor(selectedModel)) {
+    const ecePower = getTractorECEPower(selectedModel);
+    if (!ecePower) return null;
+    return `Leitud ${competitors.length} konkurenti ±${HP_RANGE_TRACTOR} hj vahemikus (valitud: ${ecePower} hj, ECE-R120)`;
   }
 
   // For other equipment, show HP info
