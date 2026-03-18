@@ -50,6 +50,20 @@ interface SpecRowConfig {
   bestType?: "max" | "min";
   showJDAdvantage?: boolean;
   conditional?: boolean;
+  /** Custom value getter – overrides model[key] when provided */
+  getValue?: (model: Equipment) => number | null;
+}
+
+// Parse ECE-R120 power from detailed_specs for tractors
+function getTractorECEPower(equipment: Equipment): number | null {
+  const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
+  const raw = specs?.mootor?.max_võimsus_hj_kw;
+  if (typeof raw === 'string') {
+    const match = raw.match(/^(\d+)/);
+    if (match) return parseInt(match[1], 10);
+  }
+  if (typeof raw === 'number') return raw;
+  return equipment.engine_power_hp;
 }
 
 // Combine-specific specs
