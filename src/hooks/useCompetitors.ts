@@ -174,6 +174,13 @@ export function getCompetitorSummary(
     return `Leitud ${competitors.length} konkurenti ±${LIFT_HEIGHT_RANGE_M}m tõstekõrguse ja ±${LIFT_CAPACITY_RANGE_KG}kg tõstevõime vahemikus (valitud: ${selectedModel.lift_height_m}m${capacityInfo})`;
   }
 
+  // For tractors, show ECE-R120 power info
+  if (isTractor(selectedModel)) {
+    const ecePower = getTractorECEPower(selectedModel);
+    if (!ecePower) return null;
+    return `Leitud ${competitors.length} konkurenti ±${HP_RANGE_TRACTOR} hj vahemikus (valitud: ${ecePower} hj, ECE-R120)`;
+  }
+
   // For other equipment, show HP info
   if (!selectedModel.engine_power_hp) return null;
   const hpRange = getHpRange(selectedModel);
