@@ -29,27 +29,6 @@ function resolveAppBaseUrl(req: Request): string {
   return FALLBACK_APP_BASE_URL;
 }
 
-function forcePasswordResetRedirect(actionLink: string, passwordResetUrl: string): string {
-  try {
-    const url = new URL(actionLink);
-    url.searchParams.set("redirect_to", passwordResetUrl);
-    return url.toString();
-  } catch {
-    return actionLink;
-  }
-}
-
-function buildPasswordSetupLink(
-  resetProps: { hashed_token?: string; action_link: string },
-  passwordResetUrl: string,
-): string {
-  if (resetProps?.hashed_token) {
-    return `${passwordResetUrl}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
-  }
-
-  return forcePasswordResetRedirect(resetProps.action_link, passwordResetUrl);
-}
-
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
   const roleNames: Record<string, string> = {
     user: "Kasutaja",
@@ -218,25 +197,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     const role = roleData?.role || "user";
 
-    const passwordResetUrl = `${resolveAppBaseUrl(req)}/reset`;
+    // Generate custom 24h setup token
+    const setupToken = crypto.randomUUID() + "-" + crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    // Generate new password reset link
-    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: {
-        redirectTo: passwordResetUrl,
-      },
-    });
+    const { error: tokenError } = await supabaseAdmin
+      .from("password_setup_tokens")
+      .insert({
+        user_id: user.id,
+        token: setupToken,
+        expires_at: expiresAt,
+      });
 
-    if (resetError || !resetData?.properties?.action_link) {
-      throw new Error("Password reset link generation failed");
+    if (tokenError) {
+      console.error("Error creating setup token:", tokenError);
+      throw new Error("Setup token creation failed");
     }
 
-    const passwordSetupLink = buildPasswordSetupLink(
-      resetData.properties as { hashed_token?: string; action_link: string },
-      passwordResetUrl,
-    );
+    const passwordSetupLink = `${resolveAppBaseUrl(req)}/reset?setup_token=${encodeURIComponent(setupToken)}`;
 
     // Send email via Resend API
     const emailRes = await fetch("https://api.resend.com/emails", {

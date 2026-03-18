@@ -28,32 +28,11 @@ function resolveAppBaseUrl(req: Request): string {
     try {
       return new URL(candidate).origin;
     } catch {
-      // ignore invalid candidate
+      // ignore
     }
   }
 
   return FALLBACK_APP_BASE_URL;
-}
-
-function forcePasswordResetRedirect(actionLink: string, passwordResetUrl: string): string {
-  try {
-    const url = new URL(actionLink);
-    url.searchParams.set("redirect_to", passwordResetUrl);
-    return url.toString();
-  } catch {
-    return actionLink;
-  }
-}
-
-function buildPasswordSetupLink(
-  resetProps: { hashed_token?: string; action_link: string },
-  passwordResetUrl: string,
-): string {
-  if (resetProps?.hashed_token) {
-    return `${passwordResetUrl}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
-  }
-
-  return forcePasswordResetRedirect(resetProps.action_link, passwordResetUrl);
 }
 
 function buildInviteEmail(name: string, role: string, actionLink: string): string {
@@ -281,26 +260,24 @@ const handler = async (req: Request): Promise<Response> => {
     // Update staff_users
     await supabaseAdmin.from("staff_users").update({ is_active: true }).eq("email", email);
 
-    const passwordResetUrl = `${resolveAppBaseUrl(req)}/reset`;
+    // Generate custom 24h setup token
+    const setupToken = crypto.randomUUID() + "-" + crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    // Generate password reset link
-    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: {
-        redirectTo: passwordResetUrl,
-      },
-    });
+    const { error: tokenError } = await supabaseAdmin
+      .from("password_setup_tokens")
+      .insert({
+        user_id: userId,
+        token: setupToken,
+        expires_at: expiresAt,
+      });
 
-    if (resetError || !resetData?.properties?.action_link) {
-      console.error("Error generating reset link:", resetError);
-      throw new Error("Password reset link generation failed");
+    if (tokenError) {
+      console.error("Error creating setup token:", tokenError);
+      throw new Error("Setup token creation failed");
     }
 
-    const passwordSetupLink = buildPasswordSetupLink(
-      resetData.properties as { hashed_token?: string; action_link: string },
-      passwordResetUrl,
-    );
+    const passwordSetupLink = `${resolveAppBaseUrl(req)}/reset?setup_token=${encodeURIComponent(setupToken)}`;
 
     // Send invitation email via Resend API
     const emailRes = await fetch("https://api.resend.com/emails", {

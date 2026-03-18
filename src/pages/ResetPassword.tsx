@@ -21,21 +21,31 @@ export default function ResetPassword() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tokenHash, setTokenHash] = useState<string | null>(null);
   const [flowType, setFlowType] = useState<string | null>(null);
+  const [setupToken, setSetupToken] = useState<string | null>(null);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
+
+    // New flow: custom 24h setup token
+    const setup = queryParams.get("setup_token");
+    if (setup) {
+      setSetupToken(setup);
+      setPageState("confirm");
+      return;
+    }
+
+    // Legacy flow: Supabase token_hash
     const hash = queryParams.get("token_hash");
     const type = queryParams.get("type");
 
     if (hash && (type === "recovery" || type === "invite")) {
-      // We have a token — show confirmation button instead of auto-verifying
       setTokenHash(hash);
       setFlowType(type);
       setPageState("confirm");
       return;
     }
 
-    // No token in URL — check if user already has a session (e.g. after successful verify)
+    // No token in URL — check if user already has a session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -45,7 +55,6 @@ export default function ResetPassword() {
       }
     };
 
-    // Listen for auth state changes (PASSWORD_RECOVERY event from hash-based links)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
         setPageState("form");
@@ -58,15 +67,53 @@ export default function ResetPassword() {
   }, [navigate]);
 
   const handleConfirmToken = async () => {
-    if (!tokenHash || !flowType) return;
     setPageState("loading");
+
+    // New flow: custom setup token → call verify-setup-token edge function
+    if (setupToken) {
+      try {
+        const { data, error } = await supabase.functions.invoke("verify-setup-token", {
+          body: { setup_token: setupToken },
+        });
+
+        // Clear token from URL
+        window.history.replaceState({}, "", window.location.pathname);
+
+        if (error || !data?.success) {
+          console.error("Setup token verification failed:", error || data?.error);
+          setPageState("error");
+          return;
+        }
+
+        // Use the fresh token_hash returned by the edge function
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          type: "recovery",
+          token_hash: data.token_hash,
+        });
+
+        if (otpError) {
+          console.error("OTP verification failed:", otpError.message);
+          setPageState("error");
+          return;
+        }
+
+        setPageState("form");
+      } catch (err) {
+        console.error("Setup token flow error:", err);
+        window.history.replaceState({}, "", window.location.pathname);
+        setPageState("error");
+      }
+      return;
+    }
+
+    // Legacy flow: direct Supabase token_hash
+    if (!tokenHash || !flowType) return;
 
     const { error } = await supabase.auth.verifyOtp({
       type: flowType as "recovery" | "invite",
       token_hash: tokenHash,
     });
 
-    // Clear token from URL so refresh won't re-attempt
     window.history.replaceState({}, "", window.location.pathname);
 
     if (error) {
