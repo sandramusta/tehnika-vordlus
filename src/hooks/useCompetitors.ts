@@ -44,6 +44,19 @@ function isTractor(equipment: Equipment): boolean {
   return equipment.equipment_type?.name === "tractor";
 }
 
+// Parse ECE-R120 power from detailed_specs.mootor.max_võimsus_hj_kw
+// Format examples: "310 (228)", "243", "283 (208)"
+function getTractorECEPower(equipment: Equipment): number | null {
+  const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
+  const raw = specs?.mootor?.max_võimsus_hj_kw;
+  if (typeof raw === 'string') {
+    const match = raw.match(/^(\d+)/);
+    if (match) return parseInt(match[1], 10);
+  }
+  if (typeof raw === 'number') return raw;
+  return equipment.engine_power_hp;
+}
+
 function getHpRange(equipment: Equipment): number {
   if (isTractor(equipment)) return HP_RANGE_TRACTOR;
   if (isForageHarvester(equipment)) return HP_RANGE_FORAGE_HARVESTER;
