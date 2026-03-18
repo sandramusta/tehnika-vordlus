@@ -59,8 +59,9 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     if (key === "machineName") {
       setExistingInputs(prev => ({ ...prev, [key]: String(value) }));
     } else {
-      const numValue = parseFloat(String(value)) || 0;
-      setExistingInputs(prev => ({ ...prev, [key]: numValue }));
+      const strVal = String(value);
+      const numValue = strVal === "" ? 0 : parseFloat(strVal);
+      setExistingInputs(prev => ({ ...prev, [key]: isNaN(numValue) ? 0 : numValue }));
     }
   };
 
@@ -68,8 +69,9 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     if (key === "machineName") {
       setNewInputs(prev => ({ ...prev, [key]: String(value) }));
     } else {
-      const numValue = parseFloat(String(value)) || 0;
-      setNewInputs(prev => ({ ...prev, [key]: numValue }));
+      const strVal = String(value);
+      const numValue = strVal === "" ? 0 : parseFloat(strVal);
+      setNewInputs(prev => ({ ...prev, [key]: isNaN(numValue) ? 0 : numValue }));
     }
   };
 
