@@ -34,14 +34,22 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
   
   const { data: equipmentTypes } = useEquipmentTypes();
 
-  // Determine equipment category - from prop or local selector
+  // Auto-sync with parent equipment type
+  const hasParentType = !!equipmentTypeName;
+  
+  useEffect(() => {
+    if (equipmentTypeName) {
+      const category = getROIEquipmentCategory(equipmentTypeName);
+      setSelectedTypeId(category);
+    }
+  }, [equipmentTypeName]);
+
+  // Determine equipment category
   const equipmentCategory: ROIEquipmentCategory = useMemo(() => {
-    // Always use local selector
     if (selectedTypeId === "combine") return "combine";
     if (selectedTypeId === "sprayer") return "sprayer";
     if (selectedTypeId === "baler") return "baler";
     if (selectedTypeId === "none") return "none";
-    // Try to match from equipment types list
     const typeObj = equipmentTypes?.find(t => t.id === selectedTypeId);
     if (typeObj) return getROIEquipmentCategory(typeObj.name);
     return "combine";
