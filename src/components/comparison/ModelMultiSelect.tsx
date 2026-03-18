@@ -194,13 +194,24 @@ export function ModelMultiSelect({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0 bg-popover" align="start">
-              <div className="max-h-[400px] overflow-auto p-2">
+              <div className="p-2 border-b">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Otsi mudelit..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div className="max-h-[350px] overflow-auto p-2">
                 {selectedModels.length >= maxModels && (
                   <div className="mb-2 p-2 rounded-md bg-muted text-sm text-muted-foreground">
                     Maksimaalselt {maxModels} mudelit valitud
                   </div>
                 )}
-                {Object.entries(modelsByBrand).map(([brandName, models]) => (
+                {Object.entries(filteredModelsByBrand).map(([brandName, models]) => (
                   <div key={brandName} className="mb-3">
                     <div className={cn(
                       "text-sm font-semibold px-2 py-1 rounded-t-md bg-muted/50",
@@ -246,6 +257,11 @@ export function ModelMultiSelect({
                     </div>
                   </div>
                 ))}
+                {Object.keys(filteredModelsByBrand).length === 0 && availableModels.length > 0 && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    Mudeleid ei leitud
+                  </div>
+                )}
                 {availableModels.length === 0 && (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     Selles kategoorias mudeleid ei leitud
