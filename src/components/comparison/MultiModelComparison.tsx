@@ -102,6 +102,13 @@ const TELEHANDLER_SPEC_ROWS: SpecRowConfig[] = [
   { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", bestType: "max" },
 ];
 
+// Tractor-specific specs – uses ECE-R120 power, not IPM
+const TRACTOR_SPEC_ROWS: SpecRowConfig[] = [
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true, getValue: getTractorECEPower },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
+  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min", conditional: true },
+];
+
 // Generic specs for other equipment types
 const GENERIC_SPEC_ROWS: SpecRowConfig[] = [
   { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true },
@@ -115,6 +122,8 @@ function getSpecRowsForEquipmentType(typeName?: string): SpecRowConfig[] {
       return TELEHANDLER_SPEC_ROWS;
     case "combine":
       return COMBINE_SPEC_ROWS;
+    case "tractor":
+      return TRACTOR_SPEC_ROWS;
     default:
       return GENERIC_SPEC_ROWS;
   }
