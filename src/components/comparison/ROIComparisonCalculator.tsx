@@ -292,24 +292,26 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Equipment type selector (only if not provided via prop) */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Tehnika tüüp</Label>
-          <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
-            <SelectTrigger className="w-full sm:w-64">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="combine">Kombain / Hekseldi</SelectItem>
-              <SelectItem value="sprayer">Taimekaitseprits</SelectItem>
-              <SelectItem value="baler">Ruloonpress</SelectItem>
-              <SelectItem value="none">Traktor / Laadur / Teleskooplaadur</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            Tüüp määrab, milliseid näitajaid kuvatakse kalkulaatoris
-          </p>
-        </div>
+        {/* Equipment type selector - only shown when no parent type */}
+        {!hasParentType && (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Tehnika tüüp</Label>
+            <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+              <SelectTrigger className="w-full sm:w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="combine">Kombain / Hekseldi</SelectItem>
+                <SelectItem value="sprayer">Taimekaitseprits</SelectItem>
+                <SelectItem value="baler">Ruloonpress</SelectItem>
+                <SelectItem value="none">Traktor / Laadur / Teleskooplaadur</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Tüüp määrab, milliseid näitajaid kuvatakse kalkulaatoris
+            </p>
+          </div>
+        )}
 
         {/* Desktop: Two columns side by side */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
