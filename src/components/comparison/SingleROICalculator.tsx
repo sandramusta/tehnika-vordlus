@@ -508,17 +508,19 @@ export function SingleROICalculator({
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.work ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor={`${variant}-annualHectares`} className="text-xs">Hektarid/a</Label>
-                <Input
-                  id={`${variant}-annualHectares`}
-                  type="number"
-                  value={inputs.annualHectares}
-                  onChange={(e) => onInputChange("annualHectares", e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
+            <div className={`grid gap-2 ${equipmentCategory === "none" ? "grid-cols-1" : "grid-cols-2"}`}>
+              {equipmentCategory !== "none" && (
+                <div className="space-y-1">
+                  <Label htmlFor={`${variant}-annualHectares`} className="text-xs">Hektarid/a</Label>
+                  <Input
+                    id={`${variant}-annualHectares`}
+                    type="number"
+                    value={inputs.annualHectares}
+                    onChange={(e) => onInputChange("annualHectares", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              )}
               <div className="space-y-1">
                 <Label htmlFor={`${variant}-annualWorkHours`} className="text-xs">Töötunnid/a</Label>
                 <Input
