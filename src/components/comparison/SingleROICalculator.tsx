@@ -652,7 +652,9 @@ export function SingleROICalculator({
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-revenuePerHectare`} className="text-xs">Tulu hektari kohta (€/ha)</Label>
+              <Label htmlFor={`${variant}-revenuePerHectare`} className="text-xs">
+                {equipmentCategory === "none" ? "Tulu tunni kohta (€/h)" : "Tulu hektari kohta (€/ha)"}
+              </Label>
               <Input
                 id={`${variant}-revenuePerHectare`}
                 type="number"
