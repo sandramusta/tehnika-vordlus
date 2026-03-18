@@ -161,9 +161,9 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
   }
 
   // Calculate best values for highlighting
-  const calculateBestValue = (key: keyof Equipment, type: "max" | "min"): number => {
+  const calculateBestValue = (key: keyof Equipment, type: "max" | "min", getValue?: (m: Equipment) => number | null): number => {
     const values = selectedModels
-      .map((m) => m[key] as number | null)
+      .map((m) => getValue ? getValue(m) : m[key] as number | null)
       .filter((v): v is number => v !== null && v !== undefined);
     if (values.length === 0) return type === "max" ? -Infinity : Infinity;
     return type === "max" ? Math.max(...values) : Math.min(...values);
