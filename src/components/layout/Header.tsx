@@ -30,7 +30,7 @@ const roleLabels: Record<string, string> = {
 const getNavItems = (canEdit: boolean) => [
   { href: "/", label: "Võrdlus", icon: BarChart3, show: true },
   { href: "/myths", label: "Müüdid", icon: MessageSquareWarning, show: true },
-  { href: "/stats", label: "Statistika", icon: Trophy, show: canEdit },
+  { href: "/stats", label: "Statistika", icon: Trophy, show: true },
   { href: "/admin", label: "Admin", icon: Settings, show: canEdit },
 ];
 
