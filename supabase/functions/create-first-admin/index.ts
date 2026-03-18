@@ -14,25 +14,6 @@ interface CreateFirstAdminRequest {
 }
 
 const APP_BASE_URL = "https://agrifacts.app";
-const PASSWORD_RESET_URL = `${APP_BASE_URL}/reset`;
-
-function forcePasswordResetRedirect(actionLink: string): string {
-  try {
-    const url = new URL(actionLink);
-    url.searchParams.set("redirect_to", PASSWORD_RESET_URL);
-    return url.toString();
-  } catch {
-    return actionLink;
-  }
-}
-
-function buildPasswordSetupLink(resetProps: { hashed_token?: string; action_link: string }): string {
-  if (resetProps?.hashed_token) {
-    return `${PASSWORD_RESET_URL}?token_hash=${encodeURIComponent(resetProps.hashed_token)}&type=recovery`;
-  }
-
-  return forcePasswordResetRedirect(resetProps.action_link);
-}
 
 function buildAdminInviteEmail(name: string, actionLink: string): string {
   return `<!DOCTYPE html>
@@ -217,23 +198,24 @@ const handler = async (req: Request): Promise<Response> => {
     // Update staff_users
     await supabaseAdmin.from("staff_users").update({ is_active: true }).eq("email", email);
 
-    // Generate password reset link
-    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: {
-        redirectTo: PASSWORD_RESET_URL,
-      },
-    });
+    // Generate custom 24h setup token
+    const setupToken = crypto.randomUUID() + "-" + crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    if (resetError || !resetData?.properties?.action_link) {
-      console.error("Error generating reset link:", resetError);
-      throw new Error("Password reset link generation failed");
+    const { error: tokenError } = await supabaseAdmin
+      .from("password_setup_tokens")
+      .insert({
+        user_id: newUser.user.id,
+        token: setupToken,
+        expires_at: expiresAt,
+      });
+
+    if (tokenError) {
+      console.error("Error creating setup token:", tokenError);
+      throw new Error("Setup token creation failed");
     }
 
-    const passwordSetupLink = buildPasswordSetupLink(
-      resetData.properties as { hashed_token?: string; action_link: string }
-    );
+    const passwordSetupLink = `${APP_BASE_URL}/reset?setup_token=${encodeURIComponent(setupToken)}`;
 
     // Send invitation email via Resend API
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -257,7 +239,6 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Email send error:", errText);
       throw new Error("Email sending failed");
     }
-
 
     console.log(`First admin invitation email sent to ${email}`);
 
