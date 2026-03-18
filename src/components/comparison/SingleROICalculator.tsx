@@ -184,10 +184,15 @@ export function calculateROI(inputs: ROIInputs, category: ROIEquipmentCategory =
   const totalAnnualCosts = actualFuelCost + actualMaintenanceCost + operatorCost + annualDepreciation;
   const netAnnualOwnershipCost = annualDepreciation - totalAnnualBenefits;
   
-  const annualRevenue = inputs.annualHectares * inputs.revenuePerHectare;
+  // Revenue: for tractors/loaders (none), use hourly rate; for others use hectare-based
+  const annualRevenue = category === "none"
+    ? inputs.annualWorkHours * inputs.revenuePerHectare
+    : inputs.annualHectares * inputs.revenuePerHectare;
   const annualProfit = annualRevenue - totalAnnualCosts;
   
-  const costPerHectare = inputs.annualHectares > 0 ? totalAnnualCosts / inputs.annualHectares : 0;
+  const costPerHectare = category === "none"
+    ? (inputs.annualWorkHours > 0 ? totalAnnualCosts / inputs.annualWorkHours : 0)
+    : (inputs.annualHectares > 0 ? totalAnnualCosts / inputs.annualHectares : 0);
   const costPerHour = inputs.annualWorkHours > 0 ? totalAnnualCosts / inputs.annualWorkHours : 0;
   
   const totalLifetimeBenefits = totalAnnualBenefits * inputs.expectedLifespan;
