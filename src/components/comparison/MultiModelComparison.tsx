@@ -186,14 +186,17 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
   };
 
   const renderSpecRow = (config: SpecRowConfig) => {
-    const { key, labelKey, defaultLabel, format, suffix = "", bestType, showJDAdvantage, conditional } = config;
+    const { key, labelKey, defaultLabel, format, suffix = "", bestType, showJDAdvantage, conditional, getValue } = config;
 
     // Skip conditional rows if no model has the value
-    if (conditional && !selectedModels.some((m) => m[key] !== null && m[key] !== undefined)) {
+    if (conditional && !selectedModels.some((m) => {
+      const v = getValue ? getValue(m) : m[key];
+      return v !== null && v !== undefined;
+    })) {
       return null;
     }
 
-    const bestValue = bestType ? calculateBestValue(key, bestType) : null;
+    const bestValue = bestType ? calculateBestValue(key, bestType, getValue) : null;
     const label = getLabel(labelKey, defaultLabel);
     const cellIdLabel = `label-${labelKey}`;
 
@@ -214,7 +217,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
         </td>
         {selectedModels.map((model) => {
           const isJohnDeere = model.brand?.name === "John Deere";
-          const value = model[key] as number | null;
+          const value = getValue ? getValue(model) : model[key] as number | null;
           const isBest = bestValue !== null && value === bestValue && value !== null;
           const cellId = `${model.id}-${key}`;
 
