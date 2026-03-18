@@ -683,7 +683,9 @@ export function SingleROICalculator({
             <div className="font-bold">{formatNumber(calculations.roi, 0)}%</div>
           </div>
           <div>
-            <span className="text-muted-foreground text-xs">Kulu/ha</span>
+            <span className="text-muted-foreground text-xs">
+              {equipmentCategory === "none" ? "Kulu/h" : "Kulu/ha"}
+            </span>
             <div className="font-bold">{formatCurrency(calculations.costPerHectare)}</div>
           </div>
           <div>
