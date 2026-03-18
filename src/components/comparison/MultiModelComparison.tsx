@@ -50,6 +50,20 @@ interface SpecRowConfig {
   bestType?: "max" | "min";
   showJDAdvantage?: boolean;
   conditional?: boolean;
+  /** Custom value getter – overrides model[key] when provided */
+  getValue?: (model: Equipment) => number | null;
+}
+
+// Parse ECE-R120 power from detailed_specs for tractors
+function getTractorECEPower(equipment: Equipment): number | null {
+  const specs = equipment.detailed_specs as Record<string, Record<string, string>> | null;
+  const raw = specs?.mootor?.max_võimsus_hj_kw;
+  if (typeof raw === 'string') {
+    const match = raw.match(/^(\d+)/);
+    if (match) return parseInt(match[1], 10);
+  }
+  if (typeof raw === 'number') return raw;
+  return equipment.engine_power_hp;
 }
 
 // Combine-specific specs
@@ -88,6 +102,13 @@ const TELEHANDLER_SPEC_ROWS: SpecRowConfig[] = [
   { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", bestType: "max" },
 ];
 
+// Tractor-specific specs – uses ECE-R120 power, not IPM
+const TRACTOR_SPEC_ROWS: SpecRowConfig[] = [
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true, getValue: getTractorECEPower },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
+  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min", conditional: true },
+];
+
 // Generic specs for other equipment types
 const GENERIC_SPEC_ROWS: SpecRowConfig[] = [
   { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true },
@@ -101,6 +122,8 @@ function getSpecRowsForEquipmentType(typeName?: string): SpecRowConfig[] {
       return TELEHANDLER_SPEC_ROWS;
     case "combine":
       return COMBINE_SPEC_ROWS;
+    case "tractor":
+      return TRACTOR_SPEC_ROWS;
     default:
       return GENERIC_SPEC_ROWS;
   }
@@ -138,9 +161,9 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
   }
 
   // Calculate best values for highlighting
-  const calculateBestValue = (key: keyof Equipment, type: "max" | "min"): number => {
+  const calculateBestValue = (key: keyof Equipment, type: "max" | "min", getValue?: (m: Equipment) => number | null): number => {
     const values = selectedModels
-      .map((m) => m[key] as number | null)
+      .map((m) => getValue ? getValue(m) : m[key] as number | null)
       .filter((v): v is number => v !== null && v !== undefined);
     if (values.length === 0) return type === "max" ? -Infinity : Infinity;
     return type === "max" ? Math.max(...values) : Math.min(...values);
@@ -163,14 +186,17 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
   };
 
   const renderSpecRow = (config: SpecRowConfig) => {
-    const { key, labelKey, defaultLabel, format, suffix = "", bestType, showJDAdvantage, conditional } = config;
+    const { key, labelKey, defaultLabel, format, suffix = "", bestType, showJDAdvantage, conditional, getValue } = config;
 
     // Skip conditional rows if no model has the value
-    if (conditional && !selectedModels.some((m) => m[key] !== null && m[key] !== undefined)) {
+    if (conditional && !selectedModels.some((m) => {
+      const v = getValue ? getValue(m) : m[key];
+      return v !== null && v !== undefined;
+    })) {
       return null;
     }
 
-    const bestValue = bestType ? calculateBestValue(key, bestType) : null;
+    const bestValue = bestType ? calculateBestValue(key, bestType, getValue) : null;
     const label = getLabel(labelKey, defaultLabel);
     const cellIdLabel = `label-${labelKey}`;
 
@@ -191,7 +217,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
         </td>
         {selectedModels.map((model) => {
           const isJohnDeere = model.brand?.name === "John Deere";
-          const value = model[key] as number | null;
+          const value = getValue ? getValue(model) : model[key] as number | null;
           const isBest = bestValue !== null && value === bestValue && value !== null;
           const cellId = `${model.id}-${key}`;
 
