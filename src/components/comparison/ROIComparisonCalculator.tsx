@@ -397,13 +397,13 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
             <div className={`rounded-lg p-4 ${comparison.costPerHaDiff > 0 ? "bg-green-500/10" : "bg-destructive/10"}`}>
               <div className={`flex items-center gap-2 mb-2 ${comparison.costPerHaDiff > 0 ? "text-green-600" : "text-destructive"}`}>
                 <ArrowRight className="h-4 w-4" />
-                <span className="text-sm font-medium">Kulu/ha sääst</span>
+                <span className="text-sm font-medium">{equipmentCategory === "none" ? "Kulu/h sääst" : "Kulu/ha sääst"}</span>
               </div>
               <div className="text-2xl font-bold">
                 {comparison.costPerHaDiff >= 0 ? "+" : ""}{formatCurrency(comparison.costPerHaDiff)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Hektari kohta aastas
+                {equipmentCategory === "none" ? "Tunni kohta aastas" : "Hektari kohta aastas"}
               </div>
             </div>
 
