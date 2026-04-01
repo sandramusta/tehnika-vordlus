@@ -19,6 +19,7 @@ import { addPDFHeader, addPDFFooter, initializePDFGeneration, ensureSpaceForCont
 import { useAuth } from "@/hooks/useAuth";
 import { useActivityLog } from "@/hooks/useActivityLog";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ComparisonPDFExportProps {
   selectedModels: Equipment[];
@@ -214,7 +215,8 @@ function renderChunkedTable(
 async function generateComparisonTablePDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
-  userInfo: { name: string; email: string }
+  userInfo: { name: string; email: string },
+  tcoLabel = "TCO (Kogukulu)"
 ): Promise<void> {
   await initializePDFGeneration();
   
@@ -258,7 +260,7 @@ async function generateComparisonTablePDF(
 
   // TCO row
   specBody.push([
-    "TCO (Kogukulu)",
+    tcoLabel,
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
@@ -283,7 +285,8 @@ async function generateComparisonTablePDF(
 async function generateComparisonWithTCOPDF(
   selectedModels: Equipment[],
   equipmentType: EquipmentType | null,
-  userInfo: { name: string; email: string }
+  userInfo: { name: string; email: string },
+  tcoLabel = "TCO (Kogukulu)"
 ): Promise<void> {
   await initializePDFGeneration();
   
@@ -354,7 +357,7 @@ async function generateComparisonWithTCOPDF(
     }),
   ]);
   tcoBody.push([
-    "TCO (Kogukulu)",
+    tcoLabel,
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
@@ -572,7 +575,8 @@ async function generateFullReportPDF(
   equipmentType: EquipmentType | null,
   existingInputs: ROIInputs,
   newInputs: ROIInputs,
-  userInfo: { name: string; email: string }
+  userInfo: { name: string; email: string },
+  tcoLabel = "TCO (Kogukulu)"
 ): Promise<void> {
   await initializePDFGeneration();
   
@@ -615,7 +619,7 @@ async function generateFullReportPDF(
 
   // TCO row
   specBody.push([
-    "TCO (Kogukulu)",
+    tcoLabel,
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
@@ -662,7 +666,7 @@ async function generateFullReportPDF(
     }),
   ]);
   tcoBody.push([
-    "TCO (Kogukulu)",
+    tcoLabel,
     ...selectedModels.map((m) => formatCurrency(calculateTCO(m))),
   ]);
 
@@ -813,6 +817,7 @@ export function ComparisonPDFExport({
   existingInputs,
   newInputs,
 }: ComparisonPDFExportProps) {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const { logActivity } = useActivityLog();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -830,10 +835,10 @@ export function ComparisonPDFExport({
     try {
       switch (pdfType) {
         case "comparison":
-          await generateComparisonTablePDF(selectedModels, equipmentType, userInfo);
+          await generateComparisonTablePDF(selectedModels, equipmentType, userInfo, t("comparison.tcoTotal"));
           break;
         case "comparison-tco":
-          await generateComparisonWithTCOPDF(selectedModels, equipmentType, userInfo);
+          await generateComparisonWithTCOPDF(selectedModels, equipmentType, userInfo, t("comparison.tcoTotal"));
           break;
         case "roi":
           if (existingInputs && newInputs) {
@@ -847,7 +852,8 @@ export function ComparisonPDFExport({
               equipmentType,
               existingInputs,
               newInputs,
-              userInfo
+              userInfo,
+              t("comparison.tcoTotal")
             );
           }
           break;
@@ -871,13 +877,13 @@ export function ComparisonPDFExport({
           ) : (
             <Download className="h-4 w-4" />
           )}
-          {isGenerating ? "Genereerin..." : "Laadi alla PDF"}
+          {isGenerating ? t("pdf.generating") : t("pdf.downloadButton")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-popover w-[280px]">
         {!hasModels ? (
           <div className="p-3 text-sm text-muted-foreground text-center">
-            Vali vähemalt 1 mudel
+            {t("pdf.selectModel")}
           </div>
         ) : (
           <>
@@ -888,9 +894,9 @@ export function ComparisonPDFExport({
             >
               <Table className="h-4 w-4" />
               <div>
-                <div className="font-medium">Võrdlustabel</div>
+                <div className="font-medium">{t("pdf.comparisonTable")}</div>
                 <div className="text-xs text-muted-foreground">
-                  Tehniline võrdlus (kõik näitajad)
+                  {t("pdf.comparisonTableDesc")}
                 </div>
               </div>
             </DropdownMenuItem>
@@ -902,9 +908,9 @@ export function ComparisonPDFExport({
             >
               <Calculator className="h-4 w-4" />
               <div>
-                <div className="font-medium">Võrdlustabel + TCO</div>
+                <div className="font-medium">{t("pdf.comparisonTco")}</div>
                 <div className="text-xs text-muted-foreground">
-                  Tehniline + omamiskulu
+                  {t("pdf.comparisonTcoDesc")}
                 </div>
               </div>
             </DropdownMenuItem>
@@ -920,9 +926,9 @@ export function ComparisonPDFExport({
                 >
                   <FileText className="h-4 w-4" />
                   <div>
-                    <div className="font-medium">ROI raport</div>
+                    <div className="font-medium">{t("pdf.roiReport")}</div>
                     <div className="text-xs text-muted-foreground">
-                      Tasuvusanalüüs
+                      {t("pdf.roiReportDesc")}
                     </div>
                   </div>
                 </DropdownMenuItem>
@@ -934,9 +940,9 @@ export function ComparisonPDFExport({
                 >
                   <FileDown className="h-4 w-4" />
                   <div>
-                    <div className="font-medium">Kõik (täisraport)</div>
+                    <div className="font-medium">{t("pdf.fullReport")}</div>
                     <div className="text-xs text-muted-foreground">
-                      Võrdlus + TCO + ROI
+                      {t("pdf.fullReportDesc")}
                     </div>
                   </div>
                 </DropdownMenuItem>

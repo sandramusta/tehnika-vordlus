@@ -19,27 +19,31 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from "react";
-import wihuriLogo from "@/assets/wihuri-agri-logo.png";
-
-const roleLabels: Record<string, string> = {
-  user: "Kasutaja",
-  product_manager: "Tootejuht",
-  admin: "Admin",
-};
-
-const getNavItems = (canEdit: boolean) => [
-  { href: "/", label: "Võrdlus", icon: BarChart3, show: true },
-  { href: "/myths", label: "Müüdid", icon: MessageSquareWarning, show: true },
-  { href: "/stats", label: "Statistika", icon: Trophy, show: true },
-  { href: "/admin", label: "Admin", icon: Settings, show: canEdit },
-];
+import { useTranslation } from "react-i18next";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 export function Header() {
+  const { t } = useTranslation();
+  const flags = useFeatureFlags();
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, signOut, canEdit, isAdmin } = useAuthContext();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navItems = getNavItems(canEdit);
+
+  const roleLabels: Record<string, string> = {
+    user: t("role.user"),
+    product_manager: t("role.productManager"),
+    admin: t("role.admin"),
+  };
+
+  const logoUrl = import.meta.env.VITE_APP_LOGO_URL;
+
+  const navItems = [
+    { href: "/",      label: t("nav.comparison"), icon: BarChart3,            show: true },
+    { href: "/myths", label: t("nav.myths"),      icon: MessageSquareWarning, show: flags.enableMyths },
+    { href: "/stats", label: t("nav.stats"),      icon: Trophy,               show: flags.enableStats && canEdit },
+    { href: "/admin", label: t("nav.admin"),      icon: Settings,             show: canEdit },
+  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -56,10 +60,13 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={wihuriLogo} alt="Wihuri Agri" className="h-10 w-auto" />
-          <span className="text-lg font-bold text-foreground">
-            Tehnika võrdlus
-          </span>
+          {logoUrl ? (
+            <img src={logoUrl} alt={t("header.appTitle")} className="h-10 w-auto" />
+          ) : (
+            <span className="text-lg font-bold text-foreground">
+              {t("header.appTitle")}
+            </span>
+          )}
         </Link>
 
         <div className="flex items-center gap-4">
@@ -112,7 +119,7 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logi välja
+                  {t("header.signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -123,12 +130,12 @@ export function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Menüü</span>
+                <span className="sr-only">{t("header.mobileMenu")}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
-                <SheetTitle>Menüü</SheetTitle>
+                <SheetTitle>{t("header.menu")}</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2 mt-6">
                 {navItems
@@ -177,7 +184,7 @@ export function Header() {
                     }}
                   >
                     <LogOut className="h-4 w-4" />
-                    Logi välja
+                    {t("header.signOut")}
                   </Button>
                 </div>
               )}

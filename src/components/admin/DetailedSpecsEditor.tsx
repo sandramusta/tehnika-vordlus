@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Equipment } from "@/types/equipment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,9 +34,10 @@ interface DetailedSpecsEditorProps {
   equipmentTypeId?: string;
 }
 
+// Boolean display is handled inline in the component using t()
 function formatDisplayValue(value: unknown): string {
   if (value === null || value === undefined) return "";
-  if (typeof value === "boolean") return value ? "Jah" : "Ei";
+  if (typeof value === "boolean") return value ? "●" : "○";
   if (typeof value === "number") {
     return new Intl.NumberFormat("et-EE").format(value);
   }
@@ -72,13 +74,14 @@ interface FieldInfo {
   label: string;
 }
 
-export function DetailedSpecsEditor({ 
-  equipment, 
+export function DetailedSpecsEditor({
+  equipment,
   initialSpecs = {},
   onChange,
   equipmentTypeName,
   equipmentTypeId,
 }: DetailedSpecsEditorProps) {
+  const { t } = useTranslation();
   const categoryOrder = useMemo(() => getCategoryOrderForType(equipmentTypeName), [equipmentTypeName]);
   const categoryNames = useMemo(() => getCategoryNamesForType(equipmentTypeName), [equipmentTypeName]);
   const fieldNames = useMemo(() => getFieldNamesForType(equipmentTypeName), [equipmentTypeName]);
@@ -366,7 +369,7 @@ export function DetailedSpecsEditor({
       });
 
       bulkRemoveField(categoryKey, fieldKey);
-      toast.success("Näitaja eemaldatud kõikidelt selle tüübi masinatelt");
+      toast.success(t("detailedSpecs.indicatorRemoved"));
     },
     [fieldNames, onChange, bulkRemoveField]
   );
@@ -376,13 +379,13 @@ export function DetailedSpecsEditor({
       if (!newFieldName.trim()) return;
       const key = sanitizeKey(newFieldName);
       if (!key) {
-        toast.error("Vigane näitaja nimi");
+        toast.error(t("detailedSpecs.invalidIndicatorName"));
         return;
       }
       const existing = specs[categoryKey] || {};
       const predefined = fieldNames[categoryKey] || {};
       if (existing[key] !== undefined || predefined[key] !== undefined) {
-        toast.error("See näitaja on juba olemas");
+        toast.error(t("detailedSpecs.indicatorExists"));
         return;
       }
       
@@ -410,7 +413,7 @@ export function DetailedSpecsEditor({
       bulkAddField(categoryKey, key);
       setNewFieldName("");
       setAddingToCategory(null);
-      toast.success("Näitaja lisatud kõikidele selle tüübi masinatele");
+      toast.success(t("detailedSpecs.indicatorAdded"));
     },
     [newFieldName, specs, fieldNames, onChange, queryClient, bulkAddField]
   );
@@ -428,9 +431,9 @@ export function DetailedSpecsEditor({
         .upsert({ spec_key: compositeKey, custom_label: newLabel }, { onConflict: "spec_key" });
       
       if (error) {
-        toast.error("Viga nime salvestamisel");
+        toast.error(t("detailedSpecs.labelSaveError"));
       } else {
-        toast.success("Nimetus salvestatud");
+        toast.success(t("detailedSpecs.labelSaved"));
         queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
       }
       setEditingLabel(null);
@@ -441,7 +444,8 @@ export function DetailedSpecsEditor({
   // ---- Category management ----
   const getCategoryDisplayName = (categoryKey: string): string => {
     const labelKey = `cat_${categoryKey}`;
-    return specLabels[labelKey] || categoryNames[categoryKey] || categoryKey;
+    const i18nName = t(`specCategoryNames.${categoryKey}`, "");
+    return specLabels[labelKey] || (i18nName || categoryNames[categoryKey] || categoryKey);
   };
 
   const handleSaveCategoryName = useCallback(
@@ -456,9 +460,9 @@ export function DetailedSpecsEditor({
         .from("spec_labels")
         .upsert({ spec_key: labelKey, custom_label: newName }, { onConflict: "spec_key" });
       if (error) {
-        toast.error("Viga kategooria nime salvestamisel");
+        toast.error(t("detailedSpecs.categorySaveError"));
       } else {
-        toast.success("Kategooria nimetus salvestatud");
+        toast.success(t("detailedSpecs.categorySaved"));
         queryClient.invalidateQueries({ queryKey: ["spec-labels"] });
       }
       setEditingCategoryName(null);
@@ -475,7 +479,7 @@ export function DetailedSpecsEditor({
         return updatedSpecs;
       });
       bulkRemoveCategory(categoryKey);
-      toast.success("Kategooria eemaldatud kõikidelt selle tüübi masinatelt");
+      toast.success(t("detailedSpecs.categoryRemoved"));
     },
     [onChange, bulkRemoveCategory]
   );
@@ -484,11 +488,11 @@ export function DetailedSpecsEditor({
     if (!newCategoryName.trim()) return;
     const key = sanitizeKey(newCategoryName);
     if (!key) {
-      toast.error("Vigane kategooria nimi");
+      toast.error(t("detailedSpecs.invalidCategoryName"));
       return;
     }
     if (allCategories.includes(key)) {
-      toast.error("See kategooria on juba olemas");
+      toast.error(t("detailedSpecs.categoryExists"));
       return;
     }
     const labelKey = `cat_${key}`;
@@ -509,7 +513,7 @@ export function DetailedSpecsEditor({
     setExpandedCategories(prev => new Set([...prev, key]));
     setNewCategoryName("");
     setAddingNewCategory(false);
-    toast.success("Kategooria lisatud kõikidele selle tüübi masinatele");
+    toast.success(t("detailedSpecs.categoryAdded"));
   }, [newCategoryName, allCategories, onChange, queryClient, bulkAddCategory]);
 
   const getFieldValue = (categoryKey: string, fieldKey: string): string => {
@@ -524,20 +528,20 @@ export function DetailedSpecsEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Unlock className="h-4 w-4 text-primary" />
-          <Label className="text-base font-semibold">Detailsed spetsifikatsioonid</Label>
+          <Label className="text-base font-semibold">{t("detailedSpecs.title")}</Label>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={expandAll} className="text-xs text-primary hover:underline">
-            Ava kõik
+            {t("detailedSpecs.expandAll")}
           </button>
           <span className="text-muted-foreground">|</span>
           <button type="button" onClick={collapseAll} className="text-xs text-muted-foreground hover:underline">
-            Sulge kõik
+            {t("detailedSpecs.collapseAll")}
           </button>
         </div>
       </div>
       <p className="text-xs text-muted-foreground mb-3">
-        Kõik väljad on muudetavad. Nimetusi saab muuta pliiatsiikooni alt, näitajaid kustutada ja juurde lisada.
+        {t("detailedSpecs.description")}
       </p>
       
       <div className="border border-border rounded-lg overflow-hidden">
@@ -599,7 +603,7 @@ export function DetailedSpecsEditor({
                         {categoryDisplayName}
                       </span>
                       <span className="ml-auto text-xs text-muted-foreground">
-                        {filledCount}/{fields.length} täidetud
+                        {filledCount}/{fields.length} {t("detailedSpecs.filled")}
                       </span>
                     </button>
                     <button
@@ -610,7 +614,7 @@ export function DetailedSpecsEditor({
                         setEditingCategoryValue(categoryDisplayName);
                       }}
                       className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity"
-                      title="Muuda kategooria nimetust"
+                      title={t("detailedSpecs.editCategoryTooltip")}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -621,7 +625,7 @@ export function DetailedSpecsEditor({
                         handleDeleteCategory(categoryKey);
                       }}
                       className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                      title="Eemalda kategooria"
+                      title={t("detailedSpecs.removeCategoryTooltip")}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -690,7 +694,7 @@ export function DetailedSpecsEditor({
                                     setEditingLabelValue(fieldLabel);
                                   }}
                                   className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity"
-                                  title="Muuda nimetust"
+                                  title={t("detailedSpecs.editLabelTooltip")}
                                 >
                                   <Pencil className="h-3 w-3" />
                                 </button>
@@ -698,7 +702,7 @@ export function DetailedSpecsEditor({
                                   type="button"
                                   onClick={() => handleDeleteField(categoryKey, fieldKey)}
                                   className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                                  title="Eemalda näitaja"
+                                  title={t("detailedSpecs.removeIndicatorTooltip")}
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
@@ -714,7 +718,7 @@ export function DetailedSpecsEditor({
                                 "h-8 text-sm",
                                 hasValue && "border-primary/30 bg-primary/5"
                               )}>
-                                <SelectValue placeholder="Vali käigukast" />
+                                <SelectValue placeholder={t("detailedSpecs.selectTransmission")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {TRACTOR_TRANSMISSION_OPTIONS.map((opt) => (
@@ -755,7 +759,7 @@ export function DetailedSpecsEditor({
                             setNewFieldName("");
                           }
                         }}
-                        placeholder="Näitaja nimetus, nt 'Paagi maht (l)'"
+                        placeholder={t("detailedSpecs.addIndicatorPlaceholder")}
                         className="h-8 text-sm flex-1"
                         autoFocus
                       />
@@ -767,7 +771,7 @@ export function DetailedSpecsEditor({
                         onClick={() => handleAddField(categoryKey)}
                       >
                         <Check className="h-3 w-3 mr-1" />
-                        Lisa
+                        {t("common.add")}
                       </Button>
                       <Button
                         type="button"
@@ -792,7 +796,7 @@ export function DetailedSpecsEditor({
                       className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 pt-2 border-t border-border/50"
                     >
                       <Plus className="h-3 w-3" />
-                      Lisa näitaja
+                      {t("detailedSpecs.addIndicator")}
                     </button>
                   )}
                 </div>
@@ -817,13 +821,13 @@ export function DetailedSpecsEditor({
                   setNewCategoryName("");
                 }
               }}
-              placeholder="Kategooria nimetus, nt 'Hüdraulika'"
+              placeholder={t("detailedSpecs.addCategoryPlaceholder")}
               className="h-8 text-sm flex-1"
               autoFocus
             />
             <Button type="button" size="sm" variant="default" className="h-8 px-3" onClick={handleAddCategory}>
               <Check className="h-3 w-3 mr-1" />
-              Lisa
+              {t("common.add")}
             </Button>
             <Button
               type="button"
@@ -842,7 +846,7 @@ export function DetailedSpecsEditor({
             className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 p-3 w-full"
           >
             <Plus className="h-3.5 w-3.5" />
-            Lisa kategooria
+            {t("detailedSpecs.addCategory")}
           </button>
         )}
       </div>

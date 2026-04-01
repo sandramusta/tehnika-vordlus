@@ -5,11 +5,12 @@ import { cn } from "@/lib/utils";
 import { EditableCell, EditableValueCell } from "./EditableCell";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
-import { 
-  formatFieldKey, 
-  getCategoryOrderForType, 
-  getCategoryNamesForType, 
-  getFieldNamesForType 
+import { useTranslation } from "react-i18next";
+import {
+  formatFieldKey,
+  getCategoryOrderForType,
+  getCategoryNamesForType,
+  getFieldNamesForType
 } from "@/lib/pdfSpecsHelpers";
 import { toast } from "sonner";
 
@@ -89,6 +90,7 @@ export function DetailedSpecsTableRows({
   selectedModelId,
   equipmentTypeName,
 }: DetailedSpecsTableRowsProps) {
+  const { t } = useTranslation();
   // For combines, always show all categories
   const isCombine = equipmentTypeName === "combine";
   const typeCategoryOrder = getCategoryOrderForType(equipmentTypeName);
@@ -99,8 +101,8 @@ export function DetailedSpecsTableRows({
   );
   const { data: specLabels = {} } = useSpecLabels();
   const inlineEdit = useInlineEdit({
-    onSuccess: () => toast.success("Salvestatud"),
-    onError: (error) => toast.error(`Viga: ${error.message}`),
+    onSuccess: () => toast.success(t("comparison.saved")),
+    onError: (error) => toast.error(t("comparison.error", { error: error.message })),
   });
 
   const toggleCategory = (categoryKey: string) => {
@@ -146,7 +148,8 @@ export function DetailedSpecsTableRows({
     <>
       {availableCategories.map((categoryKey) => {
         const isExpanded = expandedCategories.has(categoryKey);
-        const categoryName = typeCategoryNames[categoryKey] || categoryKey;
+        const i18nCategoryName = t(`specCategoryNames.${categoryKey}`, "");
+        const categoryName = specLabels[`cat_${categoryKey}`] || (i18nCategoryName || typeCategoryNames[categoryKey] || categoryKey);
         const fields = getAllFieldsForCategoryDynamic(allModels, categoryKey, typeFieldNames);
         const fieldNames = typeFieldNames[categoryKey] || {};
 

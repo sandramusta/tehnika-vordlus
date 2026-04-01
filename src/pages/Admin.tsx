@@ -1,4 +1,4 @@
- import { useState, useCallback } from "react";
+ import { useState, useCallback, useEffect } from "react";
  import { getCategoryOrderForType } from "@/lib/pdfSpecsHelpers";
  import { useQueryClient } from "@tanstack/react-query";
  import { Layout } from "@/components/layout/Layout";
@@ -50,6 +50,9 @@
  import { supabase } from "@/integrations/supabase/client";
  import { useAuthContext } from "@/contexts/AuthContext";
  import { getBrandTextColor } from "@/lib/brandColors";
+ import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { useTranslation } from "react-i18next";
+import { getTranslation } from "@/lib/i18nHelpers";
  
 const MYTH_CATEGORIES = [
    { value: "uncertainty", label: "Ebakindlus ja ajastus", icon: Clock },
@@ -77,11 +80,15 @@ const ARGUMENT_CATEGORIES: Record<string, string> = {
 function getCategoryLabel(category: string): string {
   return ARGUMENT_CATEGORIES[category] || category;
 }
+
+const SUPPORTED_LANGS = ["et","en","de","fi","sv","da","no","pl","lv","lt"] as const;
+type SupportedLang = typeof SUPPORTED_LANGS[number];
  
  export default function Admin() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const { canManageUsers } = useAuthContext();
+  const flags = useFeatureFlags();
   const [equipmentDialogOpen, setEquipmentDialogOpen] = useState(false);
   const [argumentDialogOpen, setArgumentDialogOpen] = useState(false);
   const [mythDialogOpen, setMythDialogOpen] = useState(false);
@@ -97,6 +104,10 @@ function getCategoryLabel(category: string): string {
   const [argumentTypeFilter, setArgumentTypeFilter] = useState<string>("all");
   const [isSavingEquipment, setIsSavingEquipment] = useState(false);
   const [openArgBrands, setOpenArgBrands] = useState<Set<string>>(new Set());
+  const [mythLang, setMythLang] = useState<SupportedLang>("et");
+  const [argLang, setArgLang] = useState<SupportedLang>("et");
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
  
    const { data: equipment = [] } = useEquipment();
    const { data: brands = [] } = useBrands();
@@ -115,6 +126,10 @@ function getCategoryLabel(category: string): string {
    const updateMyth = useUpdateMyth();
    const deleteMyth = useDeleteMyth();
  
+  // Reset language tab when dialogs open/close
+  useEffect(() => { setMythLang("et"); }, [mythDialogOpen]);
+  useEffect(() => { setArgLang("et"); }, [argumentDialogOpen]);
+
   const combineType = types.find((t) => t.name === "combine");
   const defaultTypeId = combineType?.id || types[0]?.id || "";
    // Equipment form submit handler
@@ -181,10 +196,10 @@ function getCategoryLabel(category: string): string {
         try {
           if (editingEquipment) {
             await updateEquipment.mutateAsync({ id: editingEquipment.id, ...equipmentData });
-            toast({ title: "Tehnika uuendatud!" });
+            toast({ title: t("admin.equipmentUpdated") });
           } else {
             await createEquipment.mutateAsync({ ...equipmentData, features: [] });
-            toast({ title: "Tehnika lisatud!" });
+            toast({ title: t("admin.equipmentAdded") });
           }
           setEquipmentDialogOpen(false);
           setEditingEquipment(null);
@@ -192,7 +207,7 @@ function getCategoryLabel(category: string): string {
          console.error("Equipment save error:", error);
          toast({
            title: "Viga",
-           description: error instanceof Error ? error.message : (editingEquipment ? "Tehnika uuendamine ebaõnnestus" : "Tehnika lisamine ebaõnnestus"),
+           description: error instanceof Error ? error.message : (editingEquipment ? t("admin.equipmentUpdateFailed") : t("admin.equipmentAddFailed")),
            variant: "destructive",
          });
        } finally {
@@ -206,37 +221,44 @@ function getCategoryLabel(category: string): string {
      e.preventDefault();
      const formData = new FormData(e.currentTarget);
  
-     const problemText = formData.get("problem_text") as string;
-     const solutionText = formData.get("solution_text") as string;
-     const benefitText = formData.get("benefit_text") as string;
+     // Collect translations from all language-specific form fields
+     const argTranslations: Record<string, Record<string, string>> = {};
+     ["et","en","de","fi","sv","da","no","pl","lv","lt"].forEach((l) => {
+       const title = formData.get(`argument_title_${l}`) as string || "";
+       const prob = formData.get(`problem_text_${l}`) as string || "";
+       const sol = formData.get(`solution_text_${l}`) as string || "";
+       const ben = formData.get(`benefit_text_${l}`) as string || "";
+       if (title || sol) argTranslations[l] = { argument_title: title, problem_text: prob, solution_text: sol, benefit_text: ben };
+     });
  
      const argumentData = {
       competitor_brand_id: formData.get("competitor_brand_id") as string,
       equipment_type_id: formData.get("equipment_type_id") as string || defaultTypeId,
-       argument_title: formData.get("argument_title") as string,
-       argument_description: solutionText || "",
+       argument_title: formData.get("argument_title_et") as string || "",
+       argument_description: formData.get("solution_text_et") as string || "",
        category: formData.get("category") as string,
        sort_order: editingArgument?.sort_order ?? 0,
-       problem_text: problemText || null,
-       solution_text: solutionText || null,
-       benefit_text: benefitText || null,
+       problem_text: (formData.get("problem_text_et") as string) || null,
+       solution_text: (formData.get("solution_text_et") as string) || null,
+       benefit_text: (formData.get("benefit_text_et") as string) || null,
        icon_name: formData.get("icon_name") as string || "Lightbulb",
+       translations: argTranslations,
      };
  
      try {
        if (editingArgument) {
          await updateArgument.mutateAsync({ id: editingArgument.id, ...argumentData });
-         toast({ title: "Argument uuendatud!" });
+         toast({ title: t("admin.argumentUpdated") });
        } else {
          await createArgument.mutateAsync(argumentData);
-         toast({ title: "Argument lisatud!" });
+         toast({ title: t("admin.argumentAdded") });
        }
         setArgumentDialogOpen(false);
         setEditingArgument(null);
      } catch (error) {
        toast({
          title: "Viga",
-         description: editingArgument ? "Argumendi uuendamine ebaõnnestus" : "Argumendi lisamine ebaõnnestus",
+         description: editingArgument ? t("admin.argumentUpdateFailed") : t("admin.argumentAddFailed"),
          variant: "destructive",
        });
      }
@@ -428,8 +450,8 @@ function getCategoryLabel(category: string): string {
        }
  
        toast({
-         title: "Andmed salvestatud!",
-         description: `${brochureEquipment.model_name} tehnilised andmed on uuendatud.`,
+         title: t("admin.dataSaved"),
+         description: t("admin.dataUpdated", { model: brochureEquipment.model_name }),
        });
  
         closeBrochureDialog();
@@ -438,7 +460,7 @@ function getCategoryLabel(category: string): string {
        console.error("Failed to save brochure data:", error);
        toast({
          title: "Viga",
-         description: "Andmete salvestamine ebaõnnestus",
+         description: t("admin.dataSaveFailed"),
          variant: "destructive",
        });
      } finally {
@@ -449,28 +471,38 @@ function getCategoryLabel(category: string): string {
    const handleMythSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
      e.preventDefault();
      const formData = new FormData(e.currentTarget);
- 
+
+     // Build translations object from all language fields
+     const translations: Record<string, Record<string, string>> = {};
+     SUPPORTED_LANGS.forEach((l) => {
+       const myth = formData.get(`myth_${l}`) as string || "";
+       const reality = formData.get(`reality_${l}`) as string || "";
+       const advantage = formData.get(`advantage_${l}`) as string || "";
+       if (myth || reality || advantage) translations[l] = { myth, reality, advantage };
+     });
+
      const mythData = {
        category: formData.get("category") as string,
-       myth: formData.get("myth") as string,
-       reality: formData.get("reality") as string,
-       advantage: formData.get("advantage") as string,
+       myth: formData.get("myth_et") as string || "",
+       reality: formData.get("reality_et") as string || "",
+       advantage: formData.get("advantage_et") as string || "",
        sort_order: Number(formData.get("sort_order")) || 0,
+       translations,
      };
  
      try {
        if (editingMyth) {
          await updateMyth.mutateAsync({ id: editingMyth.id, ...mythData });
-         toast({ title: "Müüt uuendatud!" });
+         toast({ title: t("admin.mythUpdated") });
        } else {
          await createMyth.mutateAsync(mythData);
-         toast({ title: "Müüt lisatud!" });
+         toast({ title: t("admin.mythAdded") });
        }
        closeMythDialog();
      } catch (error) {
        toast({
          title: "Viga",
-         description: editingMyth ? "Müüdi uuendamine ebaõnnestus" : "Müüdi lisamine ebaõnnestus",
+         description: editingMyth ? t("admin.mythUpdateFailed") : t("admin.mythAddFailed"),
          variant: "destructive",
        });
      }
@@ -487,9 +519,9 @@ function getCategoryLabel(category: string): string {
      <Layout>
        <div className="space-y-8">
           <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
-            <h1 className="text-3xl font-bold">Administreerimine</h1>
+            <h1 className="text-3xl font-bold">{t("admin.title")}</h1>
             <p className="mt-2 text-primary-foreground/80">
-              Halda tehnikaid, konkurentsieeliseid ja müüte.
+              {t("admin.description")}
             </p>
           </div>
  
@@ -498,25 +530,29 @@ function getCategoryLabel(category: string): string {
               <TabsList className="w-auto">
                 <TabsTrigger value="equipment" className="gap-2">
                   <Tractor className="h-4 w-4" />
-                  Tehnika
+                  {t("admin.tabEquipment")}
                 </TabsTrigger>
-                <TabsTrigger value="arguments" className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Argumendid
-                </TabsTrigger>
-                <TabsTrigger value="myths" className="gap-2">
-                  <MessageSquareWarning className="h-4 w-4" />
-                  Müüdid
-                </TabsTrigger>
+                {flags.enableArguments && (
+                  <TabsTrigger value="arguments" className="gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    {t("admin.tabArguments")}
+                  </TabsTrigger>
+                )}
+                {flags.enableMyths && (
+                  <TabsTrigger value="myths" className="gap-2">
+                    <MessageSquareWarning className="h-4 w-4" />
+                    {t("admin.tabMyths")}
+                  </TabsTrigger>
+                )}
               </TabsList>
               {canManageUsers && (
                 <TabsList className="w-auto bg-primary/10">
-                  <TabsTrigger 
-                    value="users" 
+                  <TabsTrigger
+                    value="users"
                     className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                   >
                     <Users className="h-4 w-4" />
-                    Kasutajad
+                    {t("admin.tabUsers")}
                   </TabsTrigger>
                 </TabsList>
               )}
@@ -525,7 +561,7 @@ function getCategoryLabel(category: string): string {
            {/* Equipment Tab */}
            <TabsContent value="equipment" className="space-y-4">
              <div className="flex justify-between items-center">
-               <h2 className="text-xl font-semibold">Tehnika nimekiri</h2>
+               <h2 className="text-xl font-semibold">{t("admin.equipmentList")}</h2>
                <Dialog open={equipmentDialogOpen} onOpenChange={(open) => {
                  if (!open) closeEquipmentDialog();
                  else setEquipmentDialogOpen(true);
@@ -533,13 +569,13 @@ function getCategoryLabel(category: string): string {
                  <DialogTrigger asChild>
                    <Button className="gap-2" onClick={() => setEditingEquipment(null)}>
                      <Plus className="h-4 w-4" />
-                     Lisa tehnika
+                     {t("admin.addEquipment")}
                    </Button>
                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden" onCloseAutoFocus={(e) => e.preventDefault()}>
                     <DialogHeader>
                       <DialogTitle>
-                        {editingEquipment ? "Muuda tehnikat" : "Lisa uus tehnika"}
+                        {editingEquipment ? t("admin.editEquipment") : t("admin.newEquipment")}
                       </DialogTitle>
                     </DialogHeader>
                     <div className="overflow-y-auto flex-1 -mx-6 px-6 pb-2">
@@ -562,15 +598,15 @@ function getCategoryLabel(category: string): string {
                brands={brands}
                types={types}
                onEdit={openEditEquipment}
-               onBrochure={openBrochureDialog}
+               onBrochure={flags.enableBrochureUpload ? openBrochureDialog : undefined}
                onDelete={(id) => deleteEquipment.mutate(id)}
              />
            </TabsContent>
  
            {/* Arguments Tab */}
-           <TabsContent value="arguments" className="space-y-4">
+           {flags.enableArguments && <TabsContent value="arguments" className="space-y-4">
              <div className="flex justify-between items-center">
-               <h2 className="text-xl font-semibold">Konkurentsieelised</h2>
+               <h2 className="text-xl font-semibold">{t("admin.competitiveAdvantages")}</h2>
                <Dialog open={argumentDialogOpen} onOpenChange={(open) => {
                  if (!open) closeArgumentDialog();
                  else setArgumentDialogOpen(true);
@@ -578,37 +614,37 @@ function getCategoryLabel(category: string): string {
                  <DialogTrigger asChild>
                    <Button className="gap-2" onClick={() => setEditingArgument(null)}>
                      <Plus className="h-4 w-4" />
-                     Lisa argument
+                     {t("admin.addArgument")}
                    </Button>
                  </DialogTrigger>
-                  <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                  <DialogContent key={editingArgument?.id ?? "new-arg"} onCloseAutoFocus={(e) => e.preventDefault()}>
                    <DialogHeader>
                      <DialogTitle>
-                       {editingArgument ? "Muuda argumenti" : "Lisa uus argument"}
+                       {editingArgument ? t("admin.editArgument") : t("admin.newArgument")}
                      </DialogTitle>
                    </DialogHeader>
                     <form onSubmit={handleArgumentSubmit} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Tehnika tüüp</Label>
+                          <Label>{t("admin.equipmentType")}</Label>
                           <Select name="equipment_type_id" required defaultValue={editingArgument?.equipment_type_id || defaultTypeId}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Vali tehnika tüüp" />
+                              <SelectValue placeholder={t("admin.selectEquipmentType")} />
                             </SelectTrigger>
                             <SelectContent>
                               {types.map((type) => (
                                 <SelectItem key={type.id} value={type.id}>
-                                  {type.name_et}
+                                  {getTranslation(type.name_translations, lang, type.name_et)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Konkurent</Label>
+                          <Label>{t("admin.competitor")}</Label>
                           <Select name="competitor_brand_id" required defaultValue={editingArgument?.competitor_brand_id}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Vali konkurent" />
+                              <SelectValue placeholder={t("admin.selectCompetitor")} />
                             </SelectTrigger>
                             <SelectContent>
                               {competitorBrands.map((brand) => (
@@ -623,63 +659,81 @@ function getCategoryLabel(category: string): string {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Kategooria</Label>
+                          <Label>{t("admin.category")}</Label>
                           <Select name="category" defaultValue={editingArgument?.category || "technology"}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="technology">Tehnoloogia</SelectItem>
-                              <SelectItem value="performance">Jõudlus</SelectItem>
-                              <SelectItem value="fuel">Kütusesääst</SelectItem>
-                              <SelectItem value="efficiency">Tõhusus</SelectItem>
-                              <SelectItem value="automation">Automatiseerimine</SelectItem>
-                              <SelectItem value="precision">Täppispõllumajandus</SelectItem>
-                              <SelectItem value="comfort">Mugavus</SelectItem>
-                              <SelectItem value="service">Teenindus</SelectItem>
-                              <SelectItem value="value">Väärtus</SelectItem>
+                              <SelectItem value="technology">{t("advantage.category.technology")}</SelectItem>
+                              <SelectItem value="performance">{t("advantage.category.performance")}</SelectItem>
+                              <SelectItem value="fuel">{t("advantage.category.fuel")}</SelectItem>
+                              <SelectItem value="efficiency">{t("advantage.category.efficiency")}</SelectItem>
+                              <SelectItem value="automation">{t("advantage.category.automation")}</SelectItem>
+                              <SelectItem value="precision">{t("advantage.category.precision")}</SelectItem>
+                              <SelectItem value="comfort">{t("advantage.category.comfort")}</SelectItem>
+                              <SelectItem value="service">{t("advantage.category.service")}</SelectItem>
+                              <SelectItem value="value">{t("advantage.category.value")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="argument_title">Pealkiri</Label>
-                          <Input name="argument_title" required placeholder="nt. ActiveYield automaatika" defaultValue={editingArgument?.argument_title} />
+                          <Label>{t("admin.iconName")}</Label>
+                          <Select name="icon_name" defaultValue={editingArgument?.icon_name || "Lightbulb"}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Lightbulb">{t("iconLabel.Lightbulb")}</SelectItem>
+                              <SelectItem value="Fuel">{t("iconLabel.Fuel")}</SelectItem>
+                              <SelectItem value="Zap">{t("iconLabel.Zap")}</SelectItem>
+                              <SelectItem value="Wrench">{t("iconLabel.Wrench")}</SelectItem>
+                              <SelectItem value="TrendingUp">{t("iconLabel.TrendingUp")}</SelectItem>
+                              <SelectItem value="Shield">{t("iconLabel.Shield")}</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="icon_name">Ikooni nimi</Label>
-                        <Select name="icon_name" defaultValue={editingArgument?.icon_name || "Lightbulb"}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Lightbulb">Lambipirn (Tehnoloogia)</SelectItem>
-                            <SelectItem value="Fuel">Kütus</SelectItem>
-                            <SelectItem value="Zap">Välk (Jõudlus)</SelectItem>
-                            <SelectItem value="Wrench">Mutrivõti (Hooldus)</SelectItem>
-                            <SelectItem value="TrendingUp">Trend üles (Kasum)</SelectItem>
-                            <SelectItem value="Shield">Kilp (Kvaliteet)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {/* Language tabs for translatable fields */}
+                      <div className="flex gap-1 flex-wrap border-b pb-2">
+                        {SUPPORTED_LANGS.map((l) => (
+                          <button key={l} type="button" onClick={() => setArgLang(l)}
+                            className={`px-2 py-1 text-xs rounded uppercase font-mono ${argLang === l ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+                            {l}
+                          </button>
+                        ))}
                       </div>
- 
-                     <div className="space-y-2">
-                       <Label htmlFor="problem_text">Probleem</Label>
-                       <Textarea name="problem_text" placeholder="Kirjelda kliendi probleem" rows={2} defaultValue={editingArgument?.problem_text || ""} />
-                     </div>
- 
-                     <div className="space-y-2">
-                       <Label htmlFor="solution_text">John Deere lahendus</Label>
-                       <Textarea name="solution_text" required placeholder="Kirjelda John Deere tehnoloogia lahendust" rows={3} defaultValue={editingArgument?.solution_text || editingArgument?.argument_description || ""} />
-                     </div>
- 
-                     <div className="space-y-2">
-                       <Label htmlFor="benefit_text">Kasu kliendile</Label>
-                       <Input name="benefit_text" placeholder="nt '+3€/ha sääst'" defaultValue={editingArgument?.benefit_text || ""} />
-                     </div>
+                      {SUPPORTED_LANGS.map((l) => (
+                        <div key={l} style={{ display: argLang === l ? "block" : "none" }} className="space-y-3">
+                          <div className="space-y-2">
+                            <Label>{t("admin.titleField")} ({l.toUpperCase()})</Label>
+                            <Input name={`argument_title_${l}`} required={l === "et"}
+                              placeholder={l === "et" ? "nt. ActiveYield automaatika" : ""}
+                              defaultValue={l === "et" ? (editingArgument?.argument_title || "") : (editingArgument?.translations?.[l]?.argument_title || "")} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>{t("admin.problemField")} ({l.toUpperCase()})</Label>
+                            <Textarea name={`problem_text_${l}`} rows={2}
+                              placeholder={l === "et" ? "Kirjelda kliendi probleem" : ""}
+                              defaultValue={l === "et" ? (editingArgument?.problem_text || "") : (editingArgument?.translations?.[l]?.problem_text || "")} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>{t("admin.jdSolution")} ({l.toUpperCase()})</Label>
+                            <Textarea name={`solution_text_${l}`} rows={3} required={l === "et"}
+                              placeholder={l === "et" ? "Kirjelda John Deere tehnoloogia lahendust" : ""}
+                              defaultValue={l === "et" ? (editingArgument?.solution_text || editingArgument?.argument_description || "") : (editingArgument?.translations?.[l]?.solution_text || "")} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>{t("admin.customerBenefit")} ({l.toUpperCase()})</Label>
+                            <Input name={`benefit_text_${l}`}
+                              placeholder={l === "et" ? "nt '+3€/ha sääst'" : ""}
+                              defaultValue={l === "et" ? (editingArgument?.benefit_text || "") : (editingArgument?.translations?.[l]?.benefit_text || "")} />
+                          </div>
+                        </div>
+                      ))}
  
                      <Button type="submit" className="w-full" disabled={createArgument.isPending || updateArgument.isPending}>
-                       {createArgument.isPending || updateArgument.isPending ? "Salvestan..." : "Salvesta"}
+                       {createArgument.isPending || updateArgument.isPending ? t("admin.saving") : t("common.save")}
                      </Button>
                    </form>
                  </DialogContent>
@@ -688,16 +742,16 @@ function getCategoryLabel(category: string): string {
 
               {/* Equipment type filter */}
               <div className="flex items-center gap-4">
-                <Label className="text-sm text-muted-foreground">Filtreeri tehnika tüübi järgi:</Label>
+                <Label className="text-sm text-muted-foreground">{t("admin.filterByType")}</Label>
                 <Select value={argumentTypeFilter} onValueChange={setArgumentTypeFilter}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="Kõik tüübid" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Kõik tüübid</SelectItem>
+                    <SelectItem value="all">{t("admin.allTypes")}</SelectItem>
                     {types.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
-                        {type.name_et}
+                        {getTranslation(type.name_translations, lang, type.name_et)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -706,7 +760,7 @@ function getCategoryLabel(category: string): string {
 
               {args.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                  Argumente pole veel lisatud
+                  {t("admin.argsEmpty")}
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -720,8 +774,8 @@ function getCategoryLabel(category: string): string {
                         <div key={type.id} className="space-y-4">
                           <div className="flex items-center gap-2 border-b pb-2">
                             <Tractor className="h-5 w-5 text-primary" />
-                            <h3 className="font-semibold text-lg">{type.name_et}</h3>
-                            <Badge variant="outline" className="ml-auto">{typeArgs.length} argumenti</Badge>
+                            <h3 className="font-semibold text-lg">{getTranslation(type.name_translations, lang, type.name_et)}</h3>
+                            <Badge variant="outline" className="ml-auto">{t("admin.argCount", { count: typeArgs.length })}</Badge>
                           </div>
 
                           {/* Group by competitor brand within each type - collapsible */}
@@ -763,15 +817,15 @@ function getCategoryLabel(category: string): string {
                                       <h4 className="font-semibold mb-2">{arg.argument_title}</h4>
                                       {arg.problem_text && (
                                         <p className="text-xs text-destructive mb-1">
-                                          <span className="font-medium">Probleem:</span> {arg.problem_text}
+                                          <span className="font-medium">{t("admin.argProblem")}</span> {arg.problem_text}
                                         </p>
                                       )}
                                       <p className="text-sm text-muted-foreground mb-1">
-                                        <span className="font-medium text-primary">Lahendus:</span> {arg.solution_text || arg.argument_description}
+                                        <span className="font-medium text-primary">{t("admin.argSolution")}</span> {arg.solution_text || arg.argument_description}
                                       </p>
                                       {arg.benefit_text && (
                                         <p className="text-sm font-medium text-success">
-                                          <span>Kasu:</span> {arg.benefit_text}
+                                          <span>{t("admin.argBenefit")}</span> {arg.benefit_text}
                                         </p>
                                       )}
                                     </div>
@@ -786,12 +840,12 @@ function getCategoryLabel(category: string): string {
                     })}
                 </div>
               )}
-           </TabsContent>
- 
+           </TabsContent>}
+
            {/* Myths Tab */}
-           <TabsContent value="myths" className="space-y-4">
+           {flags.enableMyths && <TabsContent value="myths" className="space-y-4">
              <div className="flex justify-between items-center">
-               <h2 className="text-xl font-semibold">Müütide haldamine</h2>
+               <h2 className="text-xl font-semibold">{t("admin.mythsManagement")}</h2>
                <Dialog open={mythDialogOpen} onOpenChange={(open) => {
                  if (!open) closeMythDialog();
                  else setMythDialogOpen(true);
@@ -799,55 +853,72 @@ function getCategoryLabel(category: string): string {
                  <DialogTrigger asChild>
                    <Button className="gap-2" onClick={() => setEditingMyth(null)}>
                      <Plus className="h-4 w-4" />
-                     Lisa müüt
+                     {t("admin.addMyth")}
                    </Button>
                  </DialogTrigger>
-                 <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                 <DialogContent key={editingMyth?.id ?? "new-myth"} onCloseAutoFocus={(e) => e.preventDefault()}>
                    <DialogHeader>
                      <DialogTitle>
-                       {editingMyth ? "Muuda müüti" : "Lisa uus müüt"}
+                       {editingMyth ? t("admin.editMyth") : t("admin.newMyth")}
                      </DialogTitle>
                    </DialogHeader>
                    <form onSubmit={handleMythSubmit} className="space-y-4">
                      <div className="grid grid-cols-2 gap-4">
                        <div className="space-y-2">
-                         <Label>Kategooria</Label>
+                         <Label>{t("admin.category")}</Label>
                          <Select name="category" required defaultValue={editingMyth?.category}>
                            <SelectTrigger>
-                             <SelectValue placeholder="Vali kategooria" />
+                             <SelectValue placeholder={t("admin.selectCategory")} />
                            </SelectTrigger>
                            <SelectContent>
                              {MYTH_CATEGORIES.map((cat) => (
                                <SelectItem key={cat.value} value={cat.value}>
-                                 {cat.label}
+                                 {t(`myths.category.${cat.value}`)}
                                </SelectItem>
                              ))}
                            </SelectContent>
                          </Select>
                        </div>
                        <div className="space-y-2">
-                         <Label htmlFor="sort_order">Järjekord</Label>
+                         <Label htmlFor="sort_order">{t("admin.sortOrder")}</Label>
                          <Input name="sort_order" type="number" defaultValue={editingMyth?.sort_order ?? 0} />
                        </div>
                      </div>
  
-                     <div className="space-y-2">
-                       <Label htmlFor="myth">Müüt</Label>
-                       <Textarea name="myth" required placeholder="Kirjelda levinud müüti..." rows={2} defaultValue={editingMyth?.myth || ""} />
+                     {/* Language tabs */}
+                     <div className="flex gap-1 flex-wrap border-b pb-2">
+                       {SUPPORTED_LANGS.map((l) => (
+                         <button key={l} type="button" onClick={() => setMythLang(l)}
+                           className={`px-2 py-1 text-xs rounded uppercase font-mono ${mythLang === l ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+                           {l}
+                         </button>
+                       ))}
                      </div>
- 
-                     <div className="space-y-2">
-                       <Label htmlFor="reality">Tegelikkus</Label>
-                       <Textarea name="reality" required placeholder="Kirjelda tegelikku olukorda..." rows={2} defaultValue={editingMyth?.reality || ""} />
-                     </div>
- 
-                     <div className="space-y-2">
-                       <Label htmlFor="advantage">John Deere eelis</Label>
-                       <Textarea name="advantage" required placeholder="Kirjelda John Deere eelist..." rows={2} defaultValue={editingMyth?.advantage || ""} />
-                     </div>
+                     {SUPPORTED_LANGS.map((l) => (
+                       <div key={l} style={{ display: mythLang === l ? "block" : "none" }} className="space-y-4">
+                         <div className="space-y-2">
+                           <Label>{t("admin.mythField")} ({l.toUpperCase()})</Label>
+                           <Textarea name={`myth_${l}`} rows={2} required={l === "et"}
+                             defaultValue={l === "et" ? (editingMyth?.myth || "") : (editingMyth?.translations?.[l]?.myth || "")}
+                             placeholder={l === "et" ? "Kirjelda levinud müüti..." : ""} />
+                         </div>
+                         <div className="space-y-2">
+                           <Label>{t("admin.realityField")} ({l.toUpperCase()})</Label>
+                           <Textarea name={`reality_${l}`} rows={2} required={l === "et"}
+                             defaultValue={l === "et" ? (editingMyth?.reality || "") : (editingMyth?.translations?.[l]?.reality || "")}
+                             placeholder={l === "et" ? "Kirjelda tegelikku olukorda..." : ""} />
+                         </div>
+                         <div className="space-y-2">
+                           <Label>{t("admin.jdAdvantage")} ({l.toUpperCase()})</Label>
+                           <Textarea name={`advantage_${l}`} rows={2} required={l === "et"}
+                             defaultValue={l === "et" ? (editingMyth?.advantage || "") : (editingMyth?.translations?.[l]?.advantage || "")}
+                             placeholder={l === "et" ? "Kirjelda John Deere eelist..." : ""} />
+                         </div>
+                       </div>
+                     ))}
  
                      <Button type="submit" className="w-full" disabled={createMyth.isPending || updateMyth.isPending}>
-                       {createMyth.isPending || updateMyth.isPending ? "Salvestan..." : "Salvesta"}
+                       {createMyth.isPending || updateMyth.isPending ? t("admin.saving") : t("common.save")}
                      </Button>
                    </form>
                  </DialogContent>
@@ -856,7 +927,7 @@ function getCategoryLabel(category: string): string {
  
              {myths.length === 0 ? (
                <div className="text-center text-muted-foreground py-8">
-                 Müüte pole veel lisatud
+                 {t("admin.mythsEmpty")}
                </div>
              ) : (
                <div className="space-y-6">
@@ -868,7 +939,7 @@ function getCategoryLabel(category: string): string {
                      <div key={cat.value} className="space-y-3">
                        <div className="flex items-center gap-2">
                          <Icon className="h-5 w-5 text-primary" />
-                         <h3 className="font-semibold text-lg">{cat.label}</h3>
+                         <h3 className="font-semibold text-lg">{t(`myths.category.${cat.value}`)}</h3>
                          <Badge variant="secondary" className="ml-auto">{cat.myths.length}</Badge>
                        </div>
                        
@@ -885,15 +956,15 @@ function getCategoryLabel(category: string): string {
                              </div>
                              <div className="space-y-2">
                                <div>
-                                 <span className="text-xs font-medium text-destructive">MÜÜT:</span>
+                                 <span className="text-xs font-medium text-destructive">{t("admin.mythLabel")}</span>
                                  <p className="text-sm font-semibold">{myth.myth}</p>
                                </div>
                                <div>
-                                 <span className="text-xs font-medium text-primary">TEGELIKKUS:</span>
+                                 <span className="text-xs font-medium text-primary">{t("admin.realityLabel")}</span>
                                  <p className="text-sm text-muted-foreground">{myth.reality}</p>
                                </div>
                                <div>
-                                 <span className="text-xs font-medium text-success">JOHN DEERE EELIS:</span>
+                                 <span className="text-xs font-medium text-success">{t("admin.jdAdvantageLabel")}</span>
                                  <p className="text-sm">{myth.advantage}</p>
                                </div>
                              </div>
@@ -905,8 +976,8 @@ function getCategoryLabel(category: string): string {
                  })}
                </div>
              )}
-           </TabsContent>
- 
+           </TabsContent>}
+
            {/* Users Tab */}
            {canManageUsers && (
              <TabsContent value="users">
@@ -922,7 +993,7 @@ function getCategoryLabel(category: string): string {
            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onCloseAutoFocus={(e) => e.preventDefault()}>
              <DialogHeader>
                <DialogTitle>
-                 Laadi üles brošüür: {brochureEquipment?.model_name}
+                 {t("admin.uploadBrochure")}: {brochureEquipment?.model_name}
                </DialogTitle>
              </DialogHeader>
              {brochureEquipment && !extractedData && (

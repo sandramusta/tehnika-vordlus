@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calculator, FileDown, TrendingUp, ArrowRight, Scale } from "lucide-react";
@@ -27,11 +28,18 @@ interface ROIComparisonCalculatorProps {
 }
 
 export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalculatorProps) {
-  const [existingInputs, setExistingInputs] = useState<ROIInputs>(defaultInputsExisting);
-  const [newInputs, setNewInputs] = useState<ROIInputs>(defaultInputsNew);
+  const { t } = useTranslation();
+  const [existingInputs, setExistingInputs] = useState<ROIInputs>(() => ({
+    ...defaultInputsExisting,
+    machineName: t("roi.defaultExistingMachine"),
+  }));
+  const [newInputs, setNewInputs] = useState<ROIInputs>(() => ({
+    ...defaultInputsNew,
+    machineName: t("roi.defaultNewMachine"),
+  }));
   const [selectedTypeId, setSelectedTypeId] = useState<string>("combine");
   const { logActivity } = useActivityLog();
-  
+
   const { data: equipmentTypes } = useEquipmentTypes();
 
   // Auto-sync with parent equipment type
@@ -140,35 +148,35 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     const pageWidth = doc.internal.pageSize.getWidth();
     
     let yPos = addPDFHeader(doc, pageWidth, {
-      title: "ROI Võrdlusraport",
+      title: t("pdf.roiReport"),
       generatorName: profile?.full_name || "",
       generatorEmail: profile?.email || "",
     });
 
     doc.setFontSize(16);
     doc.setTextColor(34, 87, 46);
-    doc.text("ROI Võrdlusraport", pageWidth / 2, yPos, { align: "center" });
+    doc.text(t("pdf.roiReport"), pageWidth / 2, yPos, { align: "center" });
     
     yPos += 12;
     
     doc.setFontSize(12);
     doc.setTextColor(0);
-    doc.text("Sisendparameetrid", 14, yPos);
+    doc.text(t("pdf.inputParameters"), 14, yPos);
     yPos += 6;
     
     autoTable(doc, {
       startY: yPos,
-      head: [["Parameeter", existingInputs.machineName, newInputs.machineName]],
+      head: [[t("pdf.parameter"), existingInputs.machineName, newInputs.machineName]],
       body: [
-        ["Ostuhind", formatCurrency(existingInputs.purchasePrice), formatCurrency(newInputs.purchasePrice)],
-        ["Analüüsiperiood", `${existingInputs.expectedLifespan} a`, `${newInputs.expectedLifespan} a`],
-        ["Jääkväärtus", `${existingInputs.residualValuePercent}%`, `${newInputs.residualValuePercent}%`],
-        ["Hektarid aastas", `${existingInputs.annualHectares} ha`, `${newInputs.annualHectares} ha`],
-        ["Töötunnid aastas", `${existingInputs.annualWorkHours} h`, `${newInputs.annualWorkHours} h`],
-        ["Kütusekulu", `${existingInputs.fuelConsumption} l/h`, `${newInputs.fuelConsumption} l/h`],
-        ["Kütusesääst", `${existingInputs.fuelSavingsPercent}%`, `${newInputs.fuelSavingsPercent}%`],
-        ["Hoolduskulu", formatCurrency(existingInputs.annualMaintenance), formatCurrency(newInputs.annualMaintenance)],
-        ["Hoolduse sääst", `${existingInputs.maintenanceSavingsPercent}%`, `${newInputs.maintenanceSavingsPercent}%`],
+        [t("pdf.purchasePrice"), formatCurrency(existingInputs.purchasePrice), formatCurrency(newInputs.purchasePrice)],
+        [t("pdf.analysisperiod"), `${existingInputs.expectedLifespan} a`, `${newInputs.expectedLifespan} a`],
+        [t("pdf.residualValue"), `${existingInputs.residualValuePercent}%`, `${newInputs.residualValuePercent}%`],
+        [t("pdf.annualHectares"), `${existingInputs.annualHectares} ha`, `${newInputs.annualHectares} ha`],
+        [t("pdf.annualWorkHours"), `${existingInputs.annualWorkHours} h`, `${newInputs.annualWorkHours} h`],
+        [t("pdf.fuelConsumption"), `${existingInputs.fuelConsumption} l/h`, `${newInputs.fuelConsumption} l/h`],
+        [t("pdf.fuelSavings"), `${existingInputs.fuelSavingsPercent}%`, `${newInputs.fuelSavingsPercent}%`],
+        [t("pdf.maintenanceCost"), formatCurrency(existingInputs.annualMaintenance), formatCurrency(newInputs.annualMaintenance)],
+        [t("pdf.maintenanceSavings"), `${existingInputs.maintenanceSavingsPercent}%`, `${newInputs.maintenanceSavingsPercent}%`],
       ],
       theme: "striped",
       headStyles: { fillColor: [34, 87, 46] },
@@ -180,39 +188,39 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     yPos = ensureSpaceForContent(doc, yPos, 70);
     
     doc.setFontSize(12);
-    doc.text("Tulemused", 14, yPos);
+    doc.text(t("pdf.results"), 14, yPos);
     yPos += 6;
     
     autoTable(doc, {
       startY: yPos,
-      head: [["Näitaja", existingInputs.machineName, newInputs.machineName, "Vahe"]],
+      head: [[t("pdf.indicator"), existingInputs.machineName, newInputs.machineName, t("pdf.difference")]],
       body: [
         [
-          `TCO (${newInputs.expectedLifespan}a)`, 
+          `${t("pdf.tco")} (${newInputs.expectedLifespan}a)`, 
           formatCurrency(existingCalc.totalLifetimeCosts), 
           formatCurrency(newCalc.totalLifetimeCosts),
           formatCurrency(comparison.tcoSavings)
         ],
         [
-          "ROI", 
+          t("pdf.roi"), 
           `${formatNumber(existingCalc.roi, 0)}%`, 
           `${formatNumber(newCalc.roi, 0)}%`,
           `${comparison.roiDiff >= 0 ? "+" : ""}${formatNumber(comparison.roiDiff, 0)}%`
         ],
         [
-          "Kulu/ha", 
+          t("pdf.costPerHectare"), 
           formatCurrency(existingCalc.costPerHectare), 
           formatCurrency(newCalc.costPerHectare),
           formatCurrency(comparison.costPerHaDiff)
         ],
         [
-          "Aastane sääst", 
+          t("pdf.annualSavings"), 
           formatCurrency(existingCalc.totalAnnualBenefits), 
           formatCurrency(newCalc.totalAnnualBenefits),
           formatCurrency(comparison.annualSavingsDiff)
         ],
         [
-          "Aastane kasum", 
+          t("pdf.annualProfit"), 
           formatCurrency(existingCalc.annualProfit), 
           formatCurrency(newCalc.annualProfit),
           formatCurrency(newCalc.annualProfit - existingCalc.annualProfit)
@@ -229,7 +237,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     
     doc.setFontSize(11);
     doc.setTextColor(34, 87, 46);
-    doc.text("Kokkuvõte", 14, yPos);
+    doc.text(t("pdf.summary"), 14, yPos);
     yPos += 8;
     
     doc.setFontSize(10);
@@ -237,27 +245,27 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
     
     if (comparison.newIsBetter) {
       doc.text(
-        `• Uue masina (${newInputs.machineName}) valik säästab ${newInputs.expectedLifespan} aasta jooksul ${formatCurrency(comparison.tcoSavings)} (${formatNumber(comparison.tcoSavingsPercent, 1)}% madalam TCO).`,
+        `• ${t("roi.pdfSummaryNewBetter", { newMachine: newInputs.machineName, years: newInputs.expectedLifespan, savings: formatCurrency(comparison.tcoSavings), percent: formatNumber(comparison.tcoSavingsPercent, 1) })}`,
         14, yPos, { maxWidth: pageWidth - 28 }
       );
       yPos += 10;
       if (comparison.paybackYears !== Infinity && comparison.paybackYears > 0) {
         doc.text(
-          `• Lisainvesteeringu (${formatCurrency(comparison.additionalInvestment)}) tasuvusaeg: ${formatNumber(comparison.paybackYears, 1)} aastat.`,
+          `• ${t("roi.pdfSummaryPayback", { investment: formatCurrency(comparison.additionalInvestment), years: formatNumber(comparison.paybackYears, 1) })}`,
           14, yPos, { maxWidth: pageWidth - 28 }
         );
         yPos += 10;
       }
     } else {
       doc.text(
-        `• Olemasoleva masina (${existingInputs.machineName}) jätkamine on ${formatCurrency(Math.abs(comparison.tcoSavings))} soodsam.`,
+        `• ${t("roi.pdfSummaryExistingBetter", { existingMachine: existingInputs.machineName, savings: formatCurrency(Math.abs(comparison.tcoSavings)) })}`,
         14, yPos, { maxWidth: pageWidth - 28 }
       );
       yPos += 10;
     }
-    
+
     doc.text(
-      `• ${newInputs.machineName} ROI on ${formatNumber(comparison.roiDiff, 0)}% ${comparison.roiDiff >= 0 ? "kõrgem" : "madalam"} kui ${existingInputs.machineName}.`,
+      `• ${t("roi.pdfSummaryROIDiff", { newMachine: newInputs.machineName, diff: formatNumber(comparison.roiDiff, 0), direction: comparison.roiDiff >= 0 ? t("roi.roiHigher") : t("roi.roiLower"), existingMachine: existingInputs.machineName })}`,
       14, yPos, { maxWidth: pageWidth - 28 }
     );
     
@@ -275,42 +283,43 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
   // Category label for display
   const categoryLabel = useMemo(() => {
     switch (equipmentCategory) {
-      case "combine": return "Kombain / Hekseldi";
-      case "sprayer": return "Taimekaitseprits";
-      case "baler": return "Ruloonpress";
-      case "none": return "Traktor / Laadur";
+      case "combine": return t("roi.equipmentTypeCombine");
+      case "sprayer": return t("roi.equipmentTypeSprayer");
+      case "baler": return t("roi.equipmentTypeBaler");
+      case "none": return t("roi.equipmentTypeNone");
+      default: return t("roi.equipmentType");
     }
-  }, [equipmentCategory]);
+  }, [equipmentCategory, t]);
 
   return (
     <Card className="border-border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Scale className="h-5 w-5 text-primary" />
-          ROI võrdluskalkulaator
+          {t("roi.title")}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Võrdle olemasolevat ja uut masinat, et näha, milline on targem valik.
+          {t("roi.description")}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Equipment type selector - only shown when no parent type */}
         {!hasParentType && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Tehnika tüüp</Label>
+            <Label className="text-sm font-medium">{t("roi.equipmentType")}</Label>
             <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
               <SelectTrigger className="w-full sm:w-64">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="combine">Kombain / Hekseldi</SelectItem>
-                <SelectItem value="sprayer">Taimekaitseprits</SelectItem>
-                <SelectItem value="baler">Ruloonpress</SelectItem>
-                <SelectItem value="none">Traktor / Laadur / Teleskooplaadur</SelectItem>
+                <SelectItem value="combine">{t("roi.equipmentTypeCombine")}</SelectItem>
+                <SelectItem value="sprayer">{t("roi.equipmentTypeSprayer")}</SelectItem>
+                <SelectItem value="baler">{t("roi.equipmentTypeBaler")}</SelectItem>
+                <SelectItem value="none">{t("roi.equipmentTypeNone")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Tüüp määrab, milliseid näitajaid kuvatakse kalkulaatoris
+              {t("roi.typeHint")}
             </p>
           </div>
         )}
@@ -321,14 +330,14 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
             inputs={existingInputs}
             onInputChange={updateExistingInput}
             variant="existing"
-            title="Olemasolev masin"
+            title={t("roi.defaultExistingMachine")}
             equipmentCategory={equipmentCategory}
           />
           <SingleROICalculator
             inputs={newInputs}
             onInputChange={updateNewInput}
             variant="new"
-            title="Uus masin"
+            title={t("roi.defaultNewMachine")}
             equipmentCategory={equipmentCategory}
           />
         </div>
@@ -337,15 +346,15 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
         <div className="lg:hidden">
           <Tabs defaultValue="existing" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="existing">Olemasolev</TabsTrigger>
-              <TabsTrigger value="new">Uus masin</TabsTrigger>
+              <TabsTrigger value="existing">{t("roi.defaultExistingMachine")}</TabsTrigger>
+              <TabsTrigger value="new">{t("roi.defaultNewMachine")}</TabsTrigger>
             </TabsList>
             <TabsContent value="existing" className="mt-4">
               <SingleROICalculator
                 inputs={existingInputs}
                 onInputChange={updateExistingInput}
                 variant="existing"
-                title="Olemasolev masin"
+                title={t("roi.defaultExistingMachine")}
                 equipmentCategory={equipmentCategory}
               />
             </TabsContent>
@@ -354,7 +363,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
                 inputs={newInputs}
                 onInputChange={updateNewInput}
                 variant="new"
-                title="Uus masin"
+                title={t("roi.defaultNewMachine")}
                 equipmentCategory={equipmentCategory}
               />
             </TabsContent>
@@ -365,7 +374,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
         <div className="border-t border-border pt-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <Calculator className="h-5 w-5 text-primary" />
-            Võrdluskokkuvõte
+            {t("roi.comparisonSummary")}
           </h3>
           
           {/* Key Comparison Metrics */}
@@ -373,56 +382,56 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
             <div className={`rounded-lg p-4 ${comparison.tcoSavings > 0 ? "bg-green-500/10" : "bg-destructive/10"}`}>
               <div className={`flex items-center gap-2 mb-2 ${comparison.tcoSavings > 0 ? "text-green-600" : "text-destructive"}`}>
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">TCO sääst</span>
+                <span className="text-sm font-medium">{t("roi.tcoSavings")}</span>
               </div>
               <div className="text-2xl font-bold">
                 {comparison.tcoSavings >= 0 ? "+" : ""}{formatCurrency(comparison.tcoSavings)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {formatNumber(Math.abs(comparison.tcoSavingsPercent), 1)}% {comparison.newIsBetter ? "madalam" : "kõrgem"}
+                {formatNumber(Math.abs(comparison.tcoSavingsPercent), 1)}% {comparison.newIsBetter ? t("roi.lower") : t("roi.higher")}
               </div>
             </div>
 
             <div className={`rounded-lg p-4 ${comparison.roiDiff >= 0 ? "bg-green-500/10" : "bg-destructive/10"}`}>
               <div className={`flex items-center gap-2 mb-2 ${comparison.roiDiff >= 0 ? "text-green-600" : "text-destructive"}`}>
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">ROI erinevus</span>
+                <span className="text-sm font-medium">{t("roi.roiDifference")}</span>
               </div>
               <div className="text-2xl font-bold">
                 {comparison.roiDiff >= 0 ? "+" : ""}{formatNumber(comparison.roiDiff, 0)}%
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Uue masina ROI vs olemasolev
+                {t("roi.newVsExisting")}
               </div>
             </div>
 
             <div className={`rounded-lg p-4 ${comparison.costPerHaDiff > 0 ? "bg-green-500/10" : "bg-destructive/10"}`}>
               <div className={`flex items-center gap-2 mb-2 ${comparison.costPerHaDiff > 0 ? "text-green-600" : "text-destructive"}`}>
                 <ArrowRight className="h-4 w-4" />
-                <span className="text-sm font-medium">Kulu/ha sääst</span>
+                <span className="text-sm font-medium">{t("roi.costPerHaSavings")}</span>
               </div>
               <div className="text-2xl font-bold">
                 {comparison.costPerHaDiff >= 0 ? "+" : ""}{formatCurrency(comparison.costPerHaDiff)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Hektari kohta aastas
+                {t("roi.costPerHaPerYear")}
               </div>
             </div>
 
             <div className="rounded-lg bg-muted p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Calculator className="h-4 w-4" />
-                <span className="text-sm font-medium">Tasuvusaeg</span>
+                <span className="text-sm font-medium">{t("roi.paybackYears")}</span>
               </div>
               <div className="text-2xl font-bold">
                 {comparison.paybackYears === Infinity 
-                  ? "—" 
-                  : comparison.paybackYears < 0 
-                    ? "Kohene" 
+                  ? "—"
+                  : comparison.paybackYears < 0
+                    ? t("roi.immediate")
                     : `${formatNumber(comparison.paybackYears, 1)}a`}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Lisainvesteeringu tasuvus
+                {t("roi.additionalPayback")}
               </div>
             </div>
           </div>
@@ -430,29 +439,29 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
           {/* Savings breakdown comparison */}
           {(newCalc.totalAnnualBenefits > 0 || existingCalc.totalAnnualBenefits > 0) && (
             <div className="rounded-lg border border-border p-4 mb-6">
-              <h4 className="font-medium mb-3 text-sm">Säästu jaotus (aastane)</h4>
+              <h4 className="font-medium mb-3 text-sm">{t("roi.savingsBreakdown")}</h4>
               <div className="grid grid-cols-3 gap-2 text-sm">
-                <div className="text-muted-foreground font-medium">Kategooria</div>
+                <div className="text-muted-foreground font-medium">{t("roi.category")}</div>
                 <div className="text-muted-foreground font-medium text-right">{existingInputs.machineName}</div>
                 <div className="text-muted-foreground font-medium text-right">{newInputs.machineName}</div>
                 
-                <div className="text-muted-foreground">Kütuselt</div>
+                <div className="text-muted-foreground">{t("roi.fuel")}</div>
                 <div className="text-right">{formatCurrency(existingCalc.fuelSavings)}</div>
                 <div className="text-right">{formatCurrency(newCalc.fuelSavings)}</div>
                 
-                <div className="text-muted-foreground">Hoolduselt</div>
+                <div className="text-muted-foreground">{t("roi.maintenance")}</div>
                 <div className="text-right">{formatCurrency(existingCalc.maintenanceSavings)}</div>
                 <div className="text-right">{formatCurrency(newCalc.maintenanceSavings)}</div>
                 
                 {equipmentCategory !== "none" && (
                   <>
-                    <div className="text-muted-foreground">{newCalc.qualitySavingsLabel || existingCalc.qualitySavingsLabel || "Kvaliteedilt"}</div>
+                    <div className="text-muted-foreground">{t(`roi.${newCalc.qualitySavingsLabel || existingCalc.qualitySavingsLabel || "qualityGeneric"}`)}</div>
                     <div className="text-right">{formatCurrency(existingCalc.qualitySavings)}</div>
                     <div className="text-right">{formatCurrency(newCalc.qualitySavings)}</div>
                   </>
                 )}
                 
-                <div className="font-semibold border-t border-border pt-1">Kokku</div>
+                <div className="font-semibold border-t border-border pt-1">{t("roi.total")}</div>
                 <div className="font-semibold text-right border-t border-border pt-1">{formatCurrency(existingCalc.totalAnnualBenefits)}</div>
                 <div className="font-semibold text-right border-t border-border pt-1 text-green-600">{formatCurrency(newCalc.totalAnnualBenefits)}</div>
               </div>
@@ -461,7 +470,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
 
           {/* TCO Bar Chart */}
           <div className="rounded-lg border border-border p-4">
-            <h4 className="font-medium mb-4">TCO võrdlus ({newInputs.expectedLifespan} aastat)</h4>
+            <h4 className="font-medium mb-4">{t("roi.tcoComparison", { years: newInputs.expectedLifespan })}</h4>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={tcoChartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -488,7 +497,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
             {comparison.newIsBetter && (
               <div className="mt-4 p-3 rounded-lg bg-success/10 text-center">
                 <span className="text-success font-medium">
-                  {newInputs.machineName} säästab {formatCurrency(comparison.tcoSavings)} võrreldes {existingInputs.machineName}iga
+                  {t("roi.newSaves", { newMachine: newInputs.machineName, savings: formatCurrency(comparison.tcoSavings), existingMachine: existingInputs.machineName })}
                 </span>
               </div>
             )}
@@ -502,7 +511,7 @@ export function ROIComparisonCalculator({ equipmentTypeName }: ROIComparisonCalc
               onClick={generatePDFReport}
             >
               <FileDown className="h-5 w-5" />
-              Genereeri ROI võrdlus PDF-raport
+              {t("roi.generatePdf")}
             </Button>
           </div>
         </div>

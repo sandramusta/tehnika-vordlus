@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(node migrate.mjs)",
+      "Bash(node -e \":*)",
+      "Bash(node migrate_storage.mjs)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node:*)",
+      "Bash(npx supabase:*)",
+      "Bash(cd:*)",
+      "Bash(cmd //c \"taskkill /PID 5708 /F\" 2>&1)",
+      "Bash(cmd //c \"taskkill /F /IM node.exe\")",
+      "Bash(npx vite:*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(find C:UserssandrOneDriveDesktoptehnika-vordlus -maxdepth 2 -type d -not -path */node_modules/* -not -path */.git/* -not -path */dist/*)",
+      "Bash(find /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src -type f \\\\\\(-name *myth* -o -name *Myth* \\\\\\))",
+      "Bash(find /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src -type f \\\\\\(-name *[Ss]tat* -o -name *[Ee]detabel* \\\\\\))",
+      "Bash(find /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src -type f \\\\\\(-name *Advantage* -o -name *advantage* -o -name *Argument* \\\\\\))",
+      "Bash(find /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src -type f \\\\\\(-name *Automat* -o -name *Automation* \\\\\\))",
+      "Bash(find /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus -type f \\\\\\(-name *.sql -o -name *seed* -o -name *migration* \\\\\\))",
+      "Bash(grep -r \"Olemasolev masin\\\\|Uus masin\\\\|Kategooria\\\\|Koristuse\\\\|Terakadude\\\\|Hektari kohta\\\\|Lisainvesteeringu\" /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -r \"Masina nimi\\\\|Soetamine\\\\|Jääkväärtus\\\\|Töö parameetrid\\\\|Operaatori\\\\|Kütus\\\\|Hooldus\\\\|Hektarid\\\\|Töötunnid\\\\|Pritsimise\\\\|Rulli tihedus\\\\|Tiheduse\" /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -rn \"Kategooria\\\\|Keemia kulu\\\\|Ülekate\\\\|Pritsitav\\\\|Rullide arv\\\\|Kile/võrgu\\\\|Transpordi kulu\" /c/Users/sandr/OneDrive/Desktop/tehnika-vordlus/src --include=*.tsx --include=*.ts)",
+      "Bash(find . -type f -name \"*.sql\" -exec grep -l \"equipment_types\" {})",
+      "Bash(grep -rn \"round\" ./supabase/migrations/*.sql)",
+      "Bash(grep -n \"INSERT INTO equipment_types\\\\|forage_harvester\\\\|round_baler\" supabase/migrations/*.sql)",
+      "Bash(wc -l ./supabase/migrations/*.sql)",
+      "Bash(grep -i \"INSERT.*round\\\\|INSERT.*baler\" supabase/migrations/*.sql)"
+    ]
+  }
+}

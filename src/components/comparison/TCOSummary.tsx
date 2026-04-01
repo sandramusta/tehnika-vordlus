@@ -40,6 +40,7 @@ function getBrandColorClass(brandName: string): string {
 }
 
 export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
+  const { t } = useTranslation();
   const allModels = [selectedModel, ...competitors];
   
   // Calculate TCO for all models
@@ -74,7 +75,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
     <div className="rounded-xl border border-border bg-card p-6">
       <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
         <TrendingDown className="h-5 w-5 text-primary" />
-        Omamiskogukulu võrdlus
+        {t("tco.title")}
       </h3>
 
       {/* TCO Comparison Table */}
@@ -82,7 +83,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-border">
-              <th className="sticky left-0 z-10 bg-card p-3 text-left text-sm font-medium text-muted-foreground">Näitaja</th>
+              <th className="sticky left-0 z-10 bg-card p-3 text-left text-sm font-medium text-muted-foreground">{t("comparison.indicator")}</th>
               {allModels.map((model) => (
                 <th 
                   key={model.id} 
@@ -107,7 +108,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
               <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 shrink-0" />
-                  Ostuhind
+                  {t("comparison.price")}
                 </div>
               </td>
               {allModels.map((model) => (
@@ -128,7 +129,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
               <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Wrench className="h-4 w-4 shrink-0" />
-                  Hooldus/aasta
+                  {t("comparison.maintenancePerYear")}
                 </div>
               </td>
               {allModels.map((model) => {
@@ -157,7 +158,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
               <td className="sticky left-0 z-10 bg-card p-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 shrink-0" />
-                  Eeldatav eluiga
+                  {t("comparison.expectedLifespan")}
                 </div>
               </td>
               {allModels.map((model) => {
@@ -187,7 +188,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
               <td className="sticky left-0 z-10 bg-muted p-3 text-sm font-semibold text-foreground">
                 <div className="flex items-center gap-2">
                   <TrendingDown className="h-4 w-4 shrink-0" />
-                  Omamiskogukulu
+                  {t("comparison.tcoTotal")}
                 </div>
               </td>
               {allModels.map((model) => {
@@ -252,7 +253,7 @@ export function TCOSummary({ selectedModel, competitors }: TCOSummaryProps) {
       {tcoSavings > 0 && selectedTCO && (
         <div className="mt-4 rounded-lg bg-success/10 p-4 text-center">
           <span className="text-lg font-semibold text-success">
-            Konkureerivate brändidega säästaksid keskmiselt {formatCurrency(tcoSavings)}
+            {t("tco.summary", { savings: formatCurrency(tcoSavings) })}
           </span>
         </div>
       )}

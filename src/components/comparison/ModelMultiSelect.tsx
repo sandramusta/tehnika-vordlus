@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Equipment, EquipmentType } from "@/types/equipment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { AlertTriangle, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBrands, useEquipmentTypes } from "@/hooks/useEquipmentData";
+import { useTranslation } from "react-i18next";
+import { getTranslation } from "@/lib/i18nHelpers";
 
 interface ModelMultiSelectProps {
   selectedType: string;
@@ -37,102 +39,87 @@ export function ModelMultiSelect({
   equipment,
   maxModels = 3,
 }: ModelMultiSelectProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryChangeAlert, setCategoryChangeAlert] = useState(false);
-  const [previousType, setPreviousType] = useState(selectedType);
 
   const { data: types } = useEquipmentTypes();
   const { data: brands } = useBrands();
 
   const filteredTypes = types?.filter((t) => allowedTypes.includes(t.name)) || [];
 
-  // Filter equipment by selected type
   const availableModels = useMemo(() => {
     if (selectedType === "all") return [];
     return equipment.filter((model) => model.equipment_type_id === selectedType);
   }, [equipment, selectedType]);
 
-  // Group models by brand for display
   const modelsByBrand = useMemo(() => {
     const grouped: Record<string, Equipment[]> = {};
     availableModels.forEach((model) => {
       const brandName = model.brand?.name || "Unknown";
-      if (!grouped[brandName]) {
-        grouped[brandName] = [];
-      }
+      if (!grouped[brandName]) grouped[brandName] = [];
       grouped[brandName].push(model);
     });
     return grouped;
   }, [availableModels]);
 
-  // Filter by search query
   const filteredModelsByBrand = useMemo(() => {
     if (!searchQuery.trim()) return modelsByBrand;
     const q = searchQuery.toLowerCase();
     const result: Record<string, Equipment[]> = {};
     Object.entries(modelsByBrand).forEach(([brandName, models]) => {
       const filtered = models.filter(
-        (m) =>
-          m.model_name.toLowerCase().includes(q) ||
-          brandName.toLowerCase().includes(q)
+        (m) => m.model_name.toLowerCase().includes(q) || brandName.toLowerCase().includes(q)
       );
-      if (filtered.length > 0) {
-        result[brandName] = filtered;
-      }
+      if (filtered.length > 0) result[brandName] = filtered;
     });
     return result;
   }, [modelsByBrand, searchQuery]);
 
-  // Handle type change - clear selections
   const handleTypeChange = (value: string) => {
     if (value !== selectedType && selectedModels.length > 0) {
       setCategoryChangeAlert(true);
-      setPreviousType(selectedType);
     }
     onTypeChange(value);
     onModelsChange([]);
-    
-    // Auto-hide alert after 3 seconds
     setTimeout(() => setCategoryChangeAlert(false), 3000);
   };
 
-  // Toggle model selection
   const toggleModel = (model: Equipment) => {
     const isSelected = selectedModels.some((m) => m.id === model.id);
-    
     if (isSelected) {
       onModelsChange(selectedModels.filter((m) => m.id !== model.id));
-    } else {
-      if (selectedModels.length < maxModels) {
-        onModelsChange([...selectedModels, model]);
-      }
+    } else if (selectedModels.length < maxModels) {
+      onModelsChange([...selectedModels, model]);
     }
   };
 
-  // Remove model from selection
   const removeModel = (modelId: string) => {
     onModelsChange(selectedModels.filter((m) => m.id !== modelId));
   };
 
   const isTypeSelected = selectedType !== "all";
-  const selectedTypeName = filteredTypes.find((t) => t.id === selectedType)?.name_et || "";
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
         {/* Type Selector */}
         <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-          <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
+          <label className="text-sm font-medium text-muted-foreground">
+            {t("modelSelect.equipmentType")}
+          </label>
           <Select value={selectedType} onValueChange={handleTypeChange}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Vali tüüp" />
+              <SelectValue placeholder={t("modelSelect.selectType")} />
             </SelectTrigger>
             <SelectContent className="bg-popover">
-              <SelectItem value="all">Vali tüüp...</SelectItem>
+              <SelectItem value="all">{t("modelSelect.selectTypeHint")}</SelectItem>
               {filteredTypes.map((type) => (
                 <SelectItem key={type.id} value={type.id}>
-                  {type.name_et}
+                  {getTranslation(type.name_translations, lang, type.name_et)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -142,7 +129,7 @@ export function ModelMultiSelect({
         {/* Model Multi-Select */}
         <div className="flex flex-col gap-1.5 w-full sm:flex-1 sm:min-w-[300px]">
           <label className="text-sm font-medium text-muted-foreground">
-            Mudelid võrdluseks (max {maxModels})
+            {t("modelSelect.modelsLabel", { max: maxModels })}
           </label>
           <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSearchQuery(""); }}>
             <PopoverTrigger asChild>
@@ -157,17 +144,13 @@ export function ModelMultiSelect({
                 )}
               >
                 {!isTypeSelected ? (
-                  "Vali esmalt tehnika tüüp"
+                  t("modelSelect.selectFirst")
                 ) : selectedModels.length === 0 ? (
-                  "Vali 1–3 mudelit võrdluseks..."
+                  t("modelSelect.selectModels")
                 ) : (
                   <div className="flex flex-wrap gap-1">
                     {selectedModels.map((model) => (
-                      <Badge
-                        key={model.id}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
+                      <Badge key={model.id} variant="secondary" className="flex items-center gap-1">
                         <span className={cn(
                           "font-medium",
                           model.brand?.name === "John Deere" && "text-john-deere",
@@ -181,10 +164,7 @@ export function ModelMultiSelect({
                         {model.model_name}
                         <X
                           className="h-3 w-3 cursor-pointer hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeModel(model.id);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); removeModel(model.id); }}
                         />
                       </Badge>
                     ))}
@@ -198,7 +178,7 @@ export function ModelMultiSelect({
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Otsi mudelit..."
+                    placeholder={t("modelSelect.search")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8 h-9"
@@ -208,7 +188,7 @@ export function ModelMultiSelect({
               <div className="max-h-[350px] overflow-auto p-2">
                 {selectedModels.length >= maxModels && (
                   <div className="mb-2 p-2 rounded-md bg-muted text-sm text-muted-foreground">
-                    Maksimaalselt {maxModels} mudelit valitud
+                    {t("modelSelect.maxReached", { max: maxModels })}
                   </div>
                 )}
                 {Object.entries(filteredModelsByBrand).map(([brandName, models]) => (
@@ -227,7 +207,6 @@ export function ModelMultiSelect({
                       {models.map((model) => {
                         const isSelected = selectedModels.some((m) => m.id === model.id);
                         const isDisabled = !isSelected && selectedModels.length >= maxModels;
-                        
                         return (
                           <div
                             key={model.id}
@@ -247,7 +226,7 @@ export function ModelMultiSelect({
                               <div className="text-sm font-medium">{model.model_name}</div>
                               {model.engine_power_hp && (
                                 <div className="text-xs text-muted-foreground">
-                                  {model.engine_power_hp} hj
+                                  {model.engine_power_hp} hp
                                 </div>
                               )}
                             </div>
@@ -259,12 +238,12 @@ export function ModelMultiSelect({
                 ))}
                 {Object.keys(filteredModelsByBrand).length === 0 && availableModels.length > 0 && (
                   <div className="p-4 text-center text-sm text-muted-foreground">
-                    Mudeleid ei leitud
+                    {t("modelSelect.noModelsFound")}
                   </div>
                 )}
                 {availableModels.length === 0 && (
                   <div className="p-4 text-center text-sm text-muted-foreground">
-                    Selles kategoorias mudeleid ei leitud
+                    {t("modelSelect.noCategoryModels")}
                   </div>
                 )}
               </div>
@@ -273,20 +252,16 @@ export function ModelMultiSelect({
         </div>
       </div>
 
-      {/* Category change alert */}
       {categoryChangeAlert && (
         <div className="flex items-center gap-2 p-3 rounded-md bg-warning/10 border border-warning/20 text-sm text-warning-foreground">
           <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
-          <span>
-            Kategooria vahetamisel eelmised valikud tühjendati. Vali uued mudelid võrdluseks.
-          </span>
+          <span>{t("modelSelect.categoryChangeAlert")}</span>
         </div>
       )}
 
-      {/* Selection status */}
       {isTypeSelected && selectedModels.length === 0 && (
         <div className="text-sm text-muted-foreground">
-          Vali vähemalt 1 mudel, et näha võrdlustabelit
+          {t("modelSelect.selectMinOne")}
         </div>
       )}
     </div>

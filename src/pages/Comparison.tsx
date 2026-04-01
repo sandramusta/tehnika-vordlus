@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Layout } from "@/components/layout/Layout";
 import { ComparisonModeSelector, ComparisonMode } from "@/components/comparison/ComparisonModeSelector";
 import { AutoModeFilters } from "@/components/comparison/AutoModeFilters";
@@ -22,11 +23,17 @@ import {
   defaultInputsNew 
 } from "@/components/comparison/SingleROICalculator";
 import { useActivityLog } from "@/hooks/useActivityLog";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 export default function Comparison() {
+  const { t } = useTranslation();
   const { logActivity } = useActivityLog();
-  // Shared state
-  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>("auto");
+  const flags = useFeatureFlags();
+
+  // If auto mode is disabled, always use manual
+  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(
+    flags.enableAutoMode ? "auto" : "manual"
+  );
   const [selectedType, setSelectedType] = useState<string>("all");
 
   // Auto mode state
@@ -104,8 +111,9 @@ export default function Comparison() {
 
   const { data: competitiveArgs = [] } = useCompetitiveArguments(effectiveTypeId);
 
-  // Handle mode change - reset selections
+  // Handle mode change - reset selections (only called when auto mode is enabled)
   const handleModeChange = (mode: ComparisonMode) => {
+    if (!flags.enableAutoMode) return;
     setComparisonMode(mode);
     // Reset selections when switching modes
     setSelectedBrand("all");
@@ -146,30 +154,32 @@ export default function Comparison() {
       <div className="space-y-8">
         {/* Hero Section */}
         <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-6 sm:p-8 text-primary-foreground">
-          <h1 className="text-2xl sm:text-3xl font-bold">Tehnika võrdlus</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{t("comparison.pageTitle")}</h1>
           <p className="mt-2 text-sm sm:text-base text-primary-foreground/80">
-            Vali tehnika tüüp ja kasuta automaatset konkurentide võrdlust või vali ise kuni 3 mudelit.
+            {t("comparison.pageDescription")}
           </p>
         </div>
 
         {/* Filters & PDF Export */}
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-6 overflow-hidden">
-          {/* Mode Selector */}
-          <ComparisonModeSelector
-            mode={comparisonMode}
-            onModeChange={handleModeChange}
-          />
+          {/* Mode Selector — only shown when auto mode is enabled */}
+          {flags.enableAutoMode && (
+            <ComparisonModeSelector
+              mode={comparisonMode}
+              onModeChange={handleModeChange}
+            />
+          )}
 
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end sm:justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h2 className="mb-4 text-lg font-semibold">
-                {comparisonMode === "auto" 
-                  ? "Automaatne konkurentide võrdlus" 
-                  : "Vali mudelid võrdluseks"}
+                {comparisonMode === "auto"
+                  ? t("comparison.modeAuto")
+                  : t("comparison.selectModels")}
               </h2>
-              
+
               {/* Auto Mode Filters */}
-              {comparisonMode === "auto" && (
+              {comparisonMode === "auto" && flags.enableAutoMode && (
                 <AutoModeFilters
                   selectedType={selectedType}
                   selectedBrand={selectedBrand}
@@ -197,17 +207,19 @@ export default function Comparison() {
                 />
               )}
             </div>
-            
+
             {/* PDF Export Dropdown */}
-            <div className="flex-shrink-0">
-              <ComparisonPDFExport
-                selectedModels={displayModels}
-                equipmentType={currentEquipmentType}
-                showTCO={displayModels.length > 1}
-                existingInputs={roiExisting}
-                newInputs={roiNew}
-              />
-            </div>
+            {flags.enablePdfExport && (
+              <div className="flex-shrink-0">
+                <ComparisonPDFExport
+                  selectedModels={displayModels}
+                  equipmentType={currentEquipmentType}
+                  showTCO={displayModels.length > 1 && flags.enableTco}
+                  existingInputs={roiExisting}
+                  newInputs={roiNew}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -221,25 +233,31 @@ export default function Comparison() {
             {/* Multi-Model Comparison Table */}
             <MultiModelComparison selectedModels={displayModels} equipmentTypeName={currentEquipmentType?.name} comparisonMode={comparisonMode} />
 
-            {/* Show TCO and Advantages sections when multiple models are selected */}
+            {/* TCO and Advantages sections — shown when multiple models selected */}
             {primaryModel && otherModels.length > 0 && (
               <>
-                <TCOSummary
-                  selectedModel={primaryModel}
-                  competitors={otherModels}
-                />
+                {flags.enableTco && (
+                  <TCOSummary
+                    selectedModel={primaryModel}
+                    competitors={otherModels}
+                  />
+                )}
 
-                <CompetitiveAdvantages
-                  selectedModel={primaryModel}
-                  competitors={otherModels}
-                  arguments={competitiveArgs}
-                  brands={brands}
-                />
+                {flags.enableCompetitiveAdvantages && (
+                  <CompetitiveAdvantages
+                    selectedModel={primaryModel}
+                    competitors={otherModels}
+                    arguments={competitiveArgs}
+                    brands={brands}
+                  />
+                )}
               </>
             )}
 
-            {/* ROI Comparison Calculator - always visible */}
-            <ROIComparisonCalculator equipmentTypeName={currentEquipmentType?.name} />
+            {/* ROI Comparison Calculator */}
+            {flags.enableRoiCalculator && (
+              <ROIComparisonCalculator equipmentTypeName={currentEquipmentType?.name} />
+            )}
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign, Tractor, Fuel, Cog, Wheat, PiggyBank, TrendingUp, Droplets, Circle } from "lucide-react";
@@ -157,16 +158,16 @@ export function calculateROI(inputs: ROIInputs, category: ROIEquipmentCategory =
   
   if (category === "combine") {
     qualitySavings = inputs.grainLossReduction * inputs.annualHectares;
-    qualitySavingsLabel = "Terakadudelt";
+    qualitySavingsLabel = "qualityFromGrains";
   } else if (category === "sprayer") {
     // No comparison between machines - just this machine's overlap waste
     qualitySavings = inputs.sprayAreaHa * inputs.chemicalCostPerHa * (inputs.overlapPercent / 100);
     // For comparison, the difference is handled by comparing two calculators
-    qualitySavingsLabel = "Keemialt (ülekate)";
+    qualitySavingsLabel = "qualityFromChemistry";
   } else if (category === "baler") {
     const fewerBales = inputs.balesPerYear * (inputs.densityIncreasePercent / 100);
     qualitySavings = fewerBales * (inputs.wrapCostPerBale + inputs.handlingCostPerBale);
-    qualitySavingsLabel = "Tiheduselt";
+    qualitySavingsLabel = "qualityFromDensity";
   }
   
   // For "none" category, grainLossSavings stays 0
@@ -249,6 +250,8 @@ export function SingleROICalculator({
     revenue: false,
   });
 
+  const { t } = useTranslation();
+
   const calculations = useMemo(() => calculateROI(inputs, equipmentCategory), [inputs, equipmentCategory]);
 
   const formatCurrency = (value: number) =>
@@ -292,19 +295,19 @@ export function SingleROICalculator({
     switch (equipmentCategory) {
       case "combine":
         return {
-          title: "Koristuse kvaliteet",
+          title: t("roi.harvestQuality"),
           icon: Wheat,
           visible: true,
         };
       case "sprayer":
         return {
-          title: "Pritsimise täpsus ja keemia",
+          title: t("roi.sprayingPrecision"),
           icon: Droplets,
           visible: true,
         };
       case "baler":
         return {
-          title: "Rulli tihedus ja materjalikulu",
+          title: t("roi.baleDensity"),
           icon: Circle,
           visible: true,
         };
@@ -316,13 +319,13 @@ export function SingleROICalculator({
           visible: false,
         };
     }
-  }, [equipmentCategory]);
+  }, [equipmentCategory, t]);
 
   const renderQualityFields = () => {
     if (equipmentCategory === "combine") {
       return (
         <div className="space-y-1">
-          <Label htmlFor={`${variant}-grainLossReduction`} className="text-xs">Terakadude vähenemine (€/ha)</Label>
+          <Label htmlFor={`${variant}-grainLossReduction`} className="text-xs">{t("roi.grainLossLabel")}</Label>
           <Input
             id={`${variant}-grainLossReduction`}
             type="number"
@@ -339,7 +342,7 @@ export function SingleROICalculator({
       return (
         <div className="space-y-2">
           <div className="space-y-1">
-            <Label htmlFor={`${variant}-chemicalCostPerHa`} className="text-xs">Keemia kulu (€/ha)</Label>
+            <Label htmlFor={`${variant}-chemicalCostPerHa`} className="text-xs">{t("roi.chemCostLabel")}</Label>
             <Input
               id={`${variant}-chemicalCostPerHa`}
               type="number"
@@ -349,7 +352,7 @@ export function SingleROICalculator({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`${variant}-overlapPercent`} className="text-xs">Ülekate (%)</Label>
+            <Label htmlFor={`${variant}-overlapPercent`} className="text-xs">{t("roi.overlapLabel")}</Label>
             <Input
               id={`${variant}-overlapPercent`}
               type="number"
@@ -360,7 +363,7 @@ export function SingleROICalculator({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`${variant}-sprayAreaHa`} className="text-xs">Pritsitav pind aastas (ha)</Label>
+            <Label htmlFor={`${variant}-sprayAreaHa`} className="text-xs">{t("roi.sprayAreaLabel")}</Label>
             <Input
               id={`${variant}-sprayAreaHa`}
               type="number"
@@ -377,7 +380,7 @@ export function SingleROICalculator({
       return (
         <div className="space-y-2">
           <div className="space-y-1">
-            <Label htmlFor={`${variant}-balesPerYear`} className="text-xs">Rullide arv aastas (tk)</Label>
+            <Label htmlFor={`${variant}-balesPerYear`} className="text-xs">{t("roi.balesPerYearLabel")}</Label>
             <Input
               id={`${variant}-balesPerYear`}
               type="number"
@@ -388,7 +391,7 @@ export function SingleROICalculator({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-wrapCostPerBale`} className="text-xs">Kile/võrgu kulu (€/rull)</Label>
+              <Label htmlFor={`${variant}-wrapCostPerBale`} className="text-xs">{t("roi.wrapCostLabel")}</Label>
               <Input
                 id={`${variant}-wrapCostPerBale`}
                 type="number"
@@ -399,7 +402,7 @@ export function SingleROICalculator({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-handlingCostPerBale`} className="text-xs">Transpordi kulu (€/rull)</Label>
+              <Label htmlFor={`${variant}-handlingCostPerBale`} className="text-xs">{t("roi.handlingCostLabel")}</Label>
               <Input
                 id={`${variant}-handlingCostPerBale`}
                 type="number"
@@ -411,7 +414,7 @@ export function SingleROICalculator({
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`${variant}-densityIncreasePercent`} className="text-xs">Tiheduse suurenemine (%)</Label>
+            <Label htmlFor={`${variant}-densityIncreasePercent`} className="text-xs">{t("roi.densityIncreaseLabel")}</Label>
             <Input
               id={`${variant}-densityIncreasePercent`}
               type="number"
@@ -438,7 +441,7 @@ export function SingleROICalculator({
       {/* Machine Name Input */}
       <div className="space-y-1.5">
         <Label htmlFor={`${variant}-machineName`} className="text-sm font-medium">
-          Masina nimi
+          {t("roi.machineName")}
         </Label>
         <Input
           id={`${variant}-machineName`}
@@ -456,14 +459,14 @@ export function SingleROICalculator({
           <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
             <span className="flex items-center gap-2 text-sm font-medium">
               <DollarSign className="h-4 w-4" />
-              Soetamine & Jääkväärtus
+              {t("roi.purchaseAndResidual")}
             </span>
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.purchase ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
             <div className="grid gap-2">
               <div className="space-y-1">
-                <Label htmlFor={`${variant}-purchasePrice`} className="text-xs">Ostuhind (€)</Label>
+                <Label htmlFor={`${variant}-purchasePrice`} className="text-xs">{t("roi.purchasePriceLabel")}</Label>
                 <Input
                   id={`${variant}-purchasePrice`}
                   type="number"
@@ -474,7 +477,7 @@ export function SingleROICalculator({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label htmlFor={`${variant}-expectedLifespan`} className="text-xs">Periood (a)</Label>
+                  <Label htmlFor={`${variant}-expectedLifespan`} className="text-xs">{t("roi.periodLabel")}</Label>
                   <Input
                     id={`${variant}-expectedLifespan`}
                     type="number"
@@ -484,7 +487,7 @@ export function SingleROICalculator({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor={`${variant}-residualValuePercent`} className="text-xs">Jääkväärtus (%)</Label>
+                  <Label htmlFor={`${variant}-residualValuePercent`} className="text-xs">{t("roi.residualValueLabel")}</Label>
                   <Input
                     id={`${variant}-residualValuePercent`}
                     type="number"
@@ -503,7 +506,7 @@ export function SingleROICalculator({
           <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
             <span className="flex items-center gap-2 text-sm font-medium">
               <Tractor className="h-4 w-4" />
-              Töö parameetrid
+              {t("roi.workParams")}
             </span>
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.work ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
@@ -511,7 +514,7 @@ export function SingleROICalculator({
             <div className={`grid gap-2 ${equipmentCategory === "none" ? "grid-cols-1" : "grid-cols-2"}`}>
               {equipmentCategory !== "none" && (
                 <div className="space-y-1">
-                  <Label htmlFor={`${variant}-annualHectares`} className="text-xs">Hektarid/a</Label>
+                  <Label htmlFor={`${variant}-annualHectares`} className="text-xs">{t("roi.hectaresPerYear")}</Label>
                   <Input
                     id={`${variant}-annualHectares`}
                     type="number"
@@ -522,7 +525,7 @@ export function SingleROICalculator({
                 </div>
               )}
               <div className="space-y-1">
-                <Label htmlFor={`${variant}-annualWorkHours`} className="text-xs">Töötunnid/a</Label>
+                <Label htmlFor={`${variant}-annualWorkHours`} className="text-xs">{t("roi.workHoursPerYear")}</Label>
                 <Input
                   id={`${variant}-annualWorkHours`}
                   type="number"
@@ -533,7 +536,7 @@ export function SingleROICalculator({
               </div>
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-operatorHourlyCost`} className="text-xs">Operaatori €/h</Label>
+              <Label htmlFor={`${variant}-operatorHourlyCost`} className="text-xs">{t("roi.operatorCostPerHour")}</Label>
               <Input
                 id={`${variant}-operatorHourlyCost`}
                 type="number"
@@ -550,14 +553,14 @@ export function SingleROICalculator({
           <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
             <span className="flex items-center gap-2 text-sm font-medium">
               <Fuel className="h-4 w-4" />
-              Kütus
+              {t("roi.fuel")}
             </span>
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.fuel ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label htmlFor={`${variant}-fuelConsumption`} className="text-xs">Kulu (l/h)</Label>
+                <Label htmlFor={`${variant}-fuelConsumption`} className="text-xs">{t("roi.fuelConsumptionLabel")}</Label>
                 <Input
                   id={`${variant}-fuelConsumption`}
                   type="number"
@@ -568,7 +571,7 @@ export function SingleROICalculator({
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`${variant}-fuelPrice`} className="text-xs">Hind (€/l)</Label>
+                <Label htmlFor={`${variant}-fuelPrice`} className="text-xs">{t("roi.fuelPriceLabel")}</Label>
                 <Input
                   id={`${variant}-fuelPrice`}
                   type="number"
@@ -580,7 +583,7 @@ export function SingleROICalculator({
               </div>
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-fuelSavingsPercent`} className="text-xs">Sääst optimeerimisest (%)</Label>
+              <Label htmlFor={`${variant}-fuelSavingsPercent`} className="text-xs">{t("roi.fuelOptSavingsLabel")}</Label>
               <Input
                 id={`${variant}-fuelSavingsPercent`}
                 type="number"
@@ -597,13 +600,13 @@ export function SingleROICalculator({
           <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
             <span className="flex items-center gap-2 text-sm font-medium">
               <Cog className="h-4 w-4" />
-              Hooldus
+              {t("roi.maintenance")}
             </span>
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.maintenance ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-annualMaintenance`} className="text-xs">Hoolduskulu aastas (€)</Label>
+              <Label htmlFor={`${variant}-annualMaintenance`} className="text-xs">{t("roi.maintenanceCostLabel")}</Label>
               <Input
                 id={`${variant}-annualMaintenance`}
                 type="number"
@@ -613,7 +616,7 @@ export function SingleROICalculator({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-maintenanceSavingsPercent`} className="text-xs">Sääst ennetavast hooldusest (%)</Label>
+              <Label htmlFor={`${variant}-maintenanceSavingsPercent`} className="text-xs">{t("roi.maintenancePrevSavingsLabel")}</Label>
               <Input
                 id={`${variant}-maintenanceSavingsPercent`}
                 type="number"
@@ -646,13 +649,13 @@ export function SingleROICalculator({
           <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
             <span className="flex items-center gap-2 text-sm font-medium">
               <PiggyBank className="h-4 w-4" />
-              Tulu
+              {t("roi.revenue")}
             </span>
             <ChevronDown className={`h-4 w-4 transition-transform ${openSections.revenue ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`${variant}-revenuePerHectare`} className="text-xs">Tulu hektari kohta (€/ha)</Label>
+              <Label htmlFor={`${variant}-revenuePerHectare`} className="text-xs">{t("roi.revenuePerHaLabel")}</Label>
               <Input
                 id={`${variant}-revenuePerHectare`}
                 type="number"
@@ -669,7 +672,7 @@ export function SingleROICalculator({
       <div className={`rounded-lg ${accentBg} p-3 space-y-2`}>
         <h4 className={`font-semibold text-sm ${accentColor} flex items-center gap-2`}>
           <TrendingUp className="h-4 w-4" />
-          Tulemused
+          {t("roi.results")}
         </h4>
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>
@@ -681,34 +684,34 @@ export function SingleROICalculator({
             <div className="font-bold">{formatNumber(calculations.roi, 0)}%</div>
           </div>
           <div>
-            <span className="text-muted-foreground text-xs">Kulu/ha</span>
+            <span className="text-muted-foreground text-xs">{t("pdf.costPerHectare")}</span>
             <div className="font-bold">{formatCurrency(calculations.costPerHectare)}</div>
           </div>
           <div>
-            <span className="text-muted-foreground text-xs">Aastane kasum</span>
+            <span className="text-muted-foreground text-xs">{t("roi.annualProfit")}</span>
             <div className={`font-bold ${calculations.annualProfit >= 0 ? "text-green-600" : "text-destructive"}`}>
               {formatCurrency(calculations.annualProfit)}
             </div>
           </div>
         </div>
         <div className="pt-2 border-t border-border/50">
-          <span className="text-muted-foreground text-xs">Aastane kogusääst</span>
+          <span className="text-muted-foreground text-xs">{t("roi.annualTotalSavings")}</span>
           <div className="font-bold text-green-600">+{formatCurrency(calculations.totalAnnualBenefits)}</div>
           {/* Savings breakdown */}
           <div className="mt-1 space-y-0.5">
             {calculations.fuelSavings > 0 && (
               <div className="text-xs text-muted-foreground">
-                Kütuselt: {formatCurrency(calculations.fuelSavings)}
+                {t("roi.fromFuel")}: {formatCurrency(calculations.fuelSavings)}
               </div>
             )}
             {calculations.maintenanceSavings > 0 && (
               <div className="text-xs text-muted-foreground">
-                Hoolduselt: {formatCurrency(calculations.maintenanceSavings)}
+                {t("roi.fromMaintenance")}: {formatCurrency(calculations.maintenanceSavings)}
               </div>
             )}
             {calculations.qualitySavings > 0 && calculations.qualitySavingsLabel && (
               <div className="text-xs text-muted-foreground">
-                {calculations.qualitySavingsLabel}: {formatCurrency(calculations.qualitySavings)}
+                {t(`roi.${calculations.qualitySavingsLabel}`)}: {formatCurrency(calculations.qualitySavings)}
               </div>
             )}
           </div>

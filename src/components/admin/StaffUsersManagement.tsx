@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, User, Mail, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import {
   useAllStaffUsers,
   useInviteStaffUser,
@@ -38,13 +38,8 @@ import {
 } from "@/hooks/useStaffUsers";
 import type { AppRole } from "@/hooks/useAuth";
 
-const roleLabels: Record<AppRole, string> = {
-  user: "Kasutaja",
-  product_manager: "Tootejuht",
-  admin: "Administraator",
-};
-
 export function StaffUsersManagement() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<StaffUser | null>(null);
@@ -68,18 +63,18 @@ export function StaffUsersManagement() {
     try {
       if (editingUser) {
         await updateUser.mutateAsync({ id: editingUser.id, ...userData });
-        toast({ title: "Kasutaja andmed uuendatud!" });
+        toast({ title: t("staffUsers.successUpdate") });
       } else {
         const result = await inviteUser.mutateAsync({ ...userData, role: selectedRole });
         if (result.emailSent === false) {
-          toast({ 
-            title: "Kasutaja loodud!", 
-            description: `Kutse e-kirja ei saanud saata (domeeni pole verifitseeritud). Kasutaja saab sisse logida parooli taastamise kaudu.`,
+          toast({
+            title: t("staffUsers.successCreateNoEmail"),
+            description: t("staffUsers.successCreateNoEmailDesc"),
           });
         } else {
-          toast({ 
-            title: "Kasutaja kutsutud!", 
-            description: `Kutse saadetud aadressile ${userData.email}` 
+          toast({
+            title: t("staffUsers.successCreate"),
+            description: t("staffUsers.successCreateEmail", { email: userData.email })
           });
         }
       }
@@ -89,10 +84,10 @@ export function StaffUsersManagement() {
     } catch (error: any) {
       console.error("Error:", error);
       toast({
-        title: "Viga",
+        title: t("staffUsers.errorViga"),
         description: error.message || (editingUser
-          ? "Kasutaja uuendamine ebaõnnestus"
-          : "Kasutaja kutsumine ebaõnnestus"),
+          ? t("staffUsers.errorUpdate")
+          : t("staffUsers.errorInvite")),
         variant: "destructive",
       });
     }
@@ -105,27 +100,27 @@ export function StaffUsersManagement() {
         is_active: !user.is_active,
       });
       toast({
-        title: user.is_active ? "Kasutaja deaktiveeritud" : "Kasutaja aktiveeritud",
+        title: user.is_active ? t("staffUsers.successToggleDeactivated") : t("staffUsers.successToggleActivated"),
       });
     } catch (error) {
       toast({
-        title: "Viga",
-        description: "Staatuse muutmine ebaõnnestus",
+        title: t("staffUsers.errorViga"),
+        description: t("staffUsers.errorToggle"),
         variant: "destructive",
       });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Kas oled kindel, et soovid selle kasutaja kustutada?")) return;
+    if (!confirm(t("staffUsers.deleteConfirm"))) return;
 
     try {
       await deleteUser.mutateAsync(id);
-      toast({ title: "Kasutaja kustutatud!" });
+      toast({ title: t("staffUsers.successDelete") });
     } catch (error) {
       toast({
-        title: "Viga",
-        description: "Kustutamine ebaõnnestus",
+        title: t("staffUsers.errorViga"),
+        description: t("staffUsers.errorDelete"),
         variant: "destructive",
       });
     }
@@ -143,7 +138,7 @@ export function StaffUsersManagement() {
   };
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Laadin kasutajaid...</div>;
+    return <div className="text-muted-foreground">{t("staffUsers.loading")}</div>;
   }
 
   const isSubmitting = inviteUser.isPending || updateUser.isPending;
@@ -151,7 +146,7 @@ export function StaffUsersManagement() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Ettevõtte kasutajad</h2>
+        <h2 className="text-xl font-semibold">{t("staffUsers.title")}</h2>
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           if (!open) closeDialog();
           else setDialogOpen(true);
@@ -159,80 +154,80 @@ export function StaffUsersManagement() {
           <DialogTrigger asChild>
             <Button className="gap-2" onClick={() => setEditingUser(null)}>
               <Plus className="h-4 w-4" />
-              Lisa kasutaja
+              {t("staffUsers.addButton")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingUser ? "Muuda kasutajat" : "Kutsu uus kasutaja"}
+                {editingUser ? t("staffUsers.dialogEditTitle") : t("staffUsers.dialogNewTitle")}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Täisnimi</Label>
+                <Label htmlFor="full_name">{t("staffUsers.nameLabel")}</Label>
                 <Input
                   id="full_name"
                   name="full_name"
-                  placeholder="Mart Tamm"
+                  placeholder={t("staffUsers.namePlaceholder")}
                   defaultValue={editingUser?.full_name || ""}
                   required
                   disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">E-posti aadress</Label>
+                <Label htmlFor="email">{t("staffUsers.emailLabel")}</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="mart.tamm@wihuri.ee"
+                  placeholder={t("staffUsers.emailPlaceholder")}
                   defaultValue={editingUser?.email || ""}
                   required
                   disabled={isSubmitting || !!editingUser}
                 />
                 {!editingUser && (
                   <p className="text-sm text-muted-foreground">
-                    Sellele aadressile saadetakse kutse parooliga sisselogimiseks
+                    {t("staffUsers.emailHint")}
                   </p>
                 )}
               </div>
-              
+
               {!editingUser && (
                 <div className="space-y-2">
-                  <Label htmlFor="role">Roll</Label>
+                  <Label htmlFor="role">{t("staffUsers.roleLabel")}</Label>
                   <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as AppRole)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Vali roll" />
+                      <SelectValue placeholder={t("staffUsers.roleSelectPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">Kasutaja</SelectItem>
-                      <SelectItem value="product_manager">Tootejuht</SelectItem>
-                      <SelectItem value="admin">Administraator</SelectItem>
+                      <SelectItem value="user">{t("staffUsers.roleUser")}</SelectItem>
+                      <SelectItem value="product_manager">{t("staffUsers.roleProductManager")}</SelectItem>
+                      <SelectItem value="admin">{t("staffUsers.roleAdmin")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-muted-foreground">
-                    {selectedRole === "admin" && "Täielik ligipääs, sh kasutajate haldus"}
-                    {selectedRole === "product_manager" && "Tehnika ja müügiandmete muutmine"}
-                    {selectedRole === "user" && "Põhiligipääs ja PDF-ide allalaadimine"}
+                    {selectedRole === "admin" && t("staffUsers.roleAdminDescription")}
+                    {selectedRole === "product_manager" && t("staffUsers.roleManagerDescription")}
+                    {selectedRole === "user" && t("staffUsers.roleUserDescription")}
                   </p>
                 </div>
               )}
-              
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={closeDialog} disabled={isSubmitting}>
-                  Tühista
+                  {t("staffUsers.cancelButton")}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {editingUser ? "Salvestab..." : "Saadab kutset..."}
+                      {editingUser ? t("staffUsers.savingButton") : t("staffUsers.sendingButton")}
                     </>
                   ) : (
                     <>
                       {!editingUser && <Mail className="mr-2 h-4 w-4" />}
-                      {editingUser ? "Salvesta" : "Saada kutse"}
+                      {editingUser ? t("staffUsers.submitEditButton") : t("staffUsers.submitButton")}
                     </>
                   )}
                 </Button>
@@ -245,9 +240,9 @@ export function StaffUsersManagement() {
       {staffUsers.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <User className="mx-auto h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-semibold">Kasutajaid pole lisatud</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("staffUsers.emptyTitle")}</h3>
           <p className="mt-2 text-muted-foreground">
-            Lisa esimene kasutaja, kes saab e-mailiga kutse
+            {t("staffUsers.emptyDescription")}
           </p>
         </div>
       ) : (
@@ -257,11 +252,11 @@ export function StaffUsersManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nimi</TableHead>
-                  <TableHead>E-post</TableHead>
-                  <TableHead className="w-40">Roll</TableHead>
-                  <TableHead className="w-24">Staatus</TableHead>
-                  <TableHead className="w-32 text-right">Tegevused</TableHead>
+                  <TableHead>{t("staffUsers.tableHeaderName")}</TableHead>
+                  <TableHead>{t("staffUsers.tableHeaderEmail")}</TableHead>
+                  <TableHead className="w-40">{t("staffUsers.tableHeaderRole")}</TableHead>
+                  <TableHead className="w-24">{t("staffUsers.tableHeaderStatus")}</TableHead>
+                  <TableHead className="w-32 text-right">{t("staffUsers.tableHeaderActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -279,11 +274,11 @@ export function StaffUsersManagement() {
                                 authUserId: user.auth_user_id!,
                                 role: value as AppRole,
                               });
-                              toast({ title: "Roll uuendatud!" });
+                              toast({ title: t("staffUsers.successRoleUpdate") });
                             } catch {
                               toast({
-                                title: "Viga",
-                                description: "Rolli muutmine ebaõnnestus",
+                                title: t("staffUsers.errorViga"),
+                                description: t("staffUsers.errorRoleUpdate"),
                                 variant: "destructive",
                               });
                             }
@@ -293,18 +288,18 @@ export function StaffUsersManagement() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="user">Kasutaja</SelectItem>
-                            <SelectItem value="product_manager">Tootejuht</SelectItem>
-                            <SelectItem value="admin">Administraator</SelectItem>
+                            <SelectItem value="user">{t("staffUsers.roleUser")}</SelectItem>
+                            <SelectItem value="product_manager">{t("staffUsers.roleProductManager")}</SelectItem>
+                            <SelectItem value="admin">{t("staffUsers.roleAdmin")}</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge variant="outline" className="text-xs">Ootel</Badge>
+                        <Badge variant="outline" className="text-xs">{t("staffUsers.statusPending")}</Badge>
                       )}
                     </TableCell>
                     <TableCell>
                       <Badge variant={user.has_logged_in ? "default" : "outline"}>
-                        {user.has_logged_in ? "Aktiivne" : "Ootel"}
+                        {user.has_logged_in ? t("staffUsers.statusActive") : t("staffUsers.statusPending")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -352,11 +347,11 @@ export function StaffUsersManagement() {
                               authUserId: user.auth_user_id!,
                               role: value as AppRole,
                             });
-                            toast({ title: "Roll uuendatud!" });
+                            toast({ title: t("staffUsers.successRoleUpdate") });
                           } catch {
                             toast({
-                              title: "Viga",
-                              description: "Rolli muutmine ebaõnnestus",
+                              title: t("staffUsers.errorViga"),
+                              description: t("staffUsers.errorRoleUpdate"),
                               variant: "destructive",
                             });
                           }
@@ -366,17 +361,17 @@ export function StaffUsersManagement() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="user">Kasutaja</SelectItem>
-                          <SelectItem value="product_manager">Tootejuht</SelectItem>
-                          <SelectItem value="admin">Administraator</SelectItem>
+                          <SelectItem value="user">{t("staffUsers.roleUser")}</SelectItem>
+                          <SelectItem value="product_manager">{t("staffUsers.roleProductManager")}</SelectItem>
+                          <SelectItem value="admin">{t("staffUsers.roleAdmin")}</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Badge variant="outline" className="text-xs">Ootel</Badge>
+                      <Badge variant="outline" className="text-xs">{t("staffUsers.statusPending")}</Badge>
                     )}
                   </div>
                   <Badge variant={user.has_logged_in ? "default" : "outline"} className="text-xs">
-                    {user.has_logged_in ? "Aktiivne" : "Ootel"}
+                    {user.has_logged_in ? t("staffUsers.statusActive") : t("staffUsers.statusPending")}
                   </Badge>
                 </div>
               </div>

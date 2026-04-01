@@ -1,39 +1,43 @@
  // Configuration for which fields to show based on equipment type
  // Maps equipment type names to their relevant form fields
- 
+
  export interface FieldConfig {
    name: string;
    label: string;
+   i18nKey?: string;
    type: "text" | "number" | "textarea";
    step?: string;
    placeholder?: string;
  }
- 
+
  export interface FieldGroup {
    title: string;
+   titleKey?: string;
    fields: FieldConfig[];
  }
- 
+
  // Common fields that appear for all equipment types
  export const COMMON_FIELDS: FieldGroup[] = [
    {
      title: "Põhiandmed",
+     titleKey: "fields.basicData",
      fields: [
-       { name: "engine_power_hp", label: "Võimsus (hj)", type: "number", placeholder: "473" },
-       { name: "weight_kg", label: "Kaal (kg)", type: "number", placeholder: "18500" },
-       { name: "fuel_consumption_lh", label: "Kütusekulu (l/h)", type: "number", step: "0.1", placeholder: "45" },
+       { name: "engine_power_hp", label: "Võimsus (hj)", i18nKey: "fields.enginePower", type: "number", placeholder: "473" },
+       { name: "weight_kg", label: "Kaal (kg)", i18nKey: "fields.weight", type: "number", placeholder: "18500" },
+       { name: "fuel_consumption_lh", label: "Kütusekulu (l/h)", i18nKey: "fields.fuelConsumption", type: "number", step: "0.1", placeholder: "45" },
      ],
    },
    {
      title: "Majandusandmed",
+     titleKey: "fields.economicData",
      fields: [
-       { name: "price_eur", label: "Hind (€)", type: "number", placeholder: "450000" },
-       { name: "annual_maintenance_eur", label: "Hooldus/aastas (€)", type: "number", placeholder: "12000" },
-       { name: "expected_lifespan_years", label: "Eluiga (aastaid)", type: "number", placeholder: "10" },
+       { name: "price_eur", label: "Hind (€)", i18nKey: "fields.price", type: "number", placeholder: "450000" },
+       { name: "annual_maintenance_eur", label: "Hooldus/aastas (€)", i18nKey: "fields.annualMaintenance", type: "number", placeholder: "12000" },
+       { name: "expected_lifespan_years", label: "Eluiga (aastaid)", i18nKey: "fields.expectedLifespan", type: "number", placeholder: "10" },
      ],
    },
  ];
- 
+
  // Fields specific to each equipment type
  export const TYPE_SPECIFIC_FIELDS: Record<string, FieldGroup[]> = {
    combine: [
@@ -249,12 +253,12 @@
     },
   ],
  };
- 
+
  // Get fields for a specific equipment type
 export function getFieldsForEquipmentType(typeName: string): FieldGroup[] {
   const normalizedName = typeName.toLowerCase().replace(/\s+/g, "_");
   const specificFields = TYPE_SPECIFIC_FIELDS[normalizedName] || [];
-  
+
   // Trailed sprayers don't have their own engine, so exclude engine_power_hp
   if (normalizedName === "trailed_sprayer") {
     const filteredCommon = COMMON_FIELDS.map(group => ({
@@ -263,6 +267,6 @@ export function getFieldsForEquipmentType(typeName: string): FieldGroup[] {
     }));
     return [...filteredCommon, ...specificFields];
   }
-  
+
   return [...COMMON_FIELDS, ...specificFields];
 }

@@ -9,16 +9,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
-import wihuriLogo from "@/assets/wihuri-agri-logo.png";
+import { useTranslation } from "react-i18next";
 
-const emailSchema = z.string().email("Vigane e-posti aadress");
-const passwordSchema = z.string().min(6, "Parool peab olema vähemalt 6 tähemärki");
 
 export default function Auth() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, loading, signIn } = useAuthContext();
+
+  const emailSchema = z.string().email(t("auth.invalidEmail"));
+  const passwordSchema = z.string().min(6, t("auth.passwordMinLength"));
   
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,7 +41,7 @@ export default function Auth() {
     }
     
     if (errorCode === "otp_expired" || error === "access_denied") {
-      setExpiredLinkMessage("See kutse link on aegunud. Palun logi sisse oma parooliga või küsi administraatorilt uus kutse.");
+      setExpiredLinkMessage(t("auth.expiredLink"));
       // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -89,21 +91,21 @@ export default function Auth() {
     const { error } = await signIn(email, password);
 
     if (error) {
-      let message = "Sisselogimine ebaõnnestus";
+      let message = t("auth.signInError");
       if (error.message.includes("Invalid login credentials")) {
-        message = "Vale e-posti aadress või parool";
+        message = t("auth.invalidCredentials");
       } else if (error.message.includes("Email not confirmed")) {
-        message = "E-posti aadress pole kinnitatud. Palun kontrolli oma postkasti.";
+        message = t("auth.emailNotConfirmed");
       }
       toast({
-        title: "Viga",
+        title: t("auth.error"),
         description: message,
         variant: "destructive",
       });
     } else {
       // Reset inactivity timer so Layout doesn't immediately sign out
       localStorage.setItem("last_activity_timestamp", Date.now().toString());
-      toast({ title: "Sisselogimine õnnestus!" });
+      toast({ title: t("auth.signInSuccess") });
       navigate("/");
     }
 
@@ -113,7 +115,7 @@ export default function Auth() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Laadin...</div>
+        <div className="animate-pulse text-muted-foreground">{t("auth.loading")}</div>
       </div>
     );
   }
@@ -122,12 +124,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
-          </div>
-          <CardTitle className="text-2xl">Tehnika võrdlus</CardTitle>
+          <CardTitle className="text-2xl">{t("auth.cardTitle")}</CardTitle>
           <CardDescription>
-            Logi sisse oma kontoga
+            {t("auth.signInDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -139,12 +138,12 @@ export default function Auth() {
           )}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-post</Label>
+              <Label htmlFor="email">{t("auth.emailLabel")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="mari.mets@wihuri.ee"
+                placeholder={t("auth.emailPlaceholder")}
                 required
                 disabled={isLoading}
               />
@@ -153,7 +152,7 @@ export default function Auth() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Parool</Label>
+              <Label htmlFor="password">{t("auth.passwordLabel")}</Label>
               <Input
                 id="password"
                 name="password"
@@ -166,7 +165,7 @@ export default function Auth() {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Laadin..." : "Logi sisse"}
+              {isLoading ? t("auth.loading") : t("auth.signInButton")}
             </Button>
           </form>
         </CardContent>

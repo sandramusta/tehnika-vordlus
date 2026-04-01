@@ -11,16 +11,18 @@ import { cn } from "@/lib/utils";
 import type { Equipment, Brand, EquipmentType } from "@/types/equipment";
 import { getBrandTextColor } from "@/lib/brandColors";
 import { BrochurePopover } from "./BrochurePopover";
+import { useTranslation } from "react-i18next";
+import { getTranslation } from "@/lib/i18nHelpers";
  
  interface EquipmentListProps {
    equipment: Equipment[];
    brands: Brand[];
    types: EquipmentType[];
    onEdit: (item: Equipment) => void;
-   onBrochure: (item: Equipment) => void;
+   onBrochure?: (item: Equipment) => void;
    onDelete: (id: string) => void;
  }
- 
+
  export function EquipmentList({
    equipment,
    brands,
@@ -29,6 +31,8 @@ import { BrochurePopover } from "./BrochurePopover";
    onBrochure,
    onDelete,
  }: EquipmentListProps) {
+   const { t, i18n } = useTranslation();
+   const lang = i18n.language;
    const [openTypes, setOpenTypes] = useState<Set<string>>(new Set());
    const [openBrands, setOpenBrands] = useState<Set<string>>(new Set());
  
@@ -89,7 +93,7 @@ import { BrochurePopover } from "./BrochurePopover";
    if (equipmentByType.length === 0) {
      return (
        <div className="text-center text-muted-foreground py-8 border border-border rounded-lg">
-         Tehnikaid pole veel lisatud
+         {t("equipment.empty")}
        </div>
      );
    }
@@ -113,7 +117,7 @@ import { BrochurePopover } from "./BrochurePopover";
                      isTypeOpen && "rotate-90"
                    )}
                  />
-                 <span className="font-semibold text-lg flex-1">{type.name_et}</span>
+                 <span className="font-semibold text-lg flex-1">{getTranslation(type.name_translations, lang, type.name_et)}</span>
                  <Badge variant="secondary">{totalCount} mudelit</Badge>
                </button>
              </CollapsibleTrigger>
@@ -168,10 +172,12 @@ import { BrochurePopover } from "./BrochurePopover";
                                  >
                                    <Pencil className="h-4 w-4" />
                                  </Button>
-                                  <BrochurePopover
-                                    equipment={item}
-                                    onUploadNew={onBrochure}
-                                  />
+                                 {onBrochure && (
+                                   <BrochurePopover
+                                     equipment={item}
+                                     onUploadNew={onBrochure}
+                                   />
+                                 )}
                                  <Button
                                    variant="ghost"
                                    size="icon"

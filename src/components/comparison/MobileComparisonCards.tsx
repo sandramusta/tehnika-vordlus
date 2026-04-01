@@ -4,6 +4,7 @@ import { CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBrandTextColor } from "@/lib/brandColors";
 import { useSpecLabels } from "@/hooks/useSpecLabels";
+import { useTranslation } from "react-i18next";
 
 interface SpecRowConfig {
   key: keyof Equipment;
@@ -151,6 +152,7 @@ export function MobileComparisonCards({
   bestTCO,
   equipmentTypeName,
 }: MobileComparisonCardsProps) {
+  const { t } = useTranslation();
   const { data: specLabels = {} } = useSpecLabels();
   const isCombine = equipmentTypeName === "combine";
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["mootor"]));
@@ -236,7 +238,7 @@ export function MobileComparisonCards({
           {/* Cost section header */}
           <tr className="bg-muted/50">
             <td className="sticky left-0 z-10 p-2 text-[11px] font-semibold text-foreground uppercase tracking-wide border-y border-border" style={{ backgroundColor: 'hsl(var(--muted))' }}>
-              Hinnad ja kulud
+              {t("comparison.costsAndPrices")}
             </td>
             {selectedModels.map((model, i) => (
               <td key={model.id} className={cn("p-2 border-y border-border", i === 0 && "bg-primary/5")} />
@@ -260,7 +262,7 @@ export function MobileComparisonCards({
           {/* TCO row */}
           <tr className="border-t border-border bg-muted">
             <td className="sticky left-0 z-10 bg-muted p-2 text-[11px] font-semibold text-foreground leading-tight">
-              TCO (Kogukulu)
+              {t("comparison.tcoTotal")}
             </td>
             {selectedModels.map((model, i) => {
               const tco = calculateTCO(model);
@@ -282,7 +284,8 @@ export function MobileComparisonCards({
           {/* Detailed specs categories */}
           {availableCategories.map((categoryKey) => {
             const isExpanded = expandedCategories.has(categoryKey);
-            const categoryName = CATEGORY_NAMES[categoryKey] || categoryKey;
+            const i18nCategoryName = t(`specCategoryNames.${categoryKey}`, "");
+            const categoryName = specLabels[`cat_${categoryKey}`] || (i18nCategoryName || CATEGORY_NAMES[categoryKey] || categoryKey);
             const fields = getAllFieldsForCategory(selectedModels, categoryKey);
             const fieldNames = FIELD_NAMES[categoryKey] || {};
 

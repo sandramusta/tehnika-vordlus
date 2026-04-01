@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { useBrands, useEquipmentTypes } from "@/hooks/useEquipmentData";
 import { Equipment } from "@/types/equipment";
 import { Info } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getTranslation } from "@/lib/i18nHelpers";
 
 interface AutoModeFiltersProps {
   selectedType: string;
@@ -41,6 +43,8 @@ export function AutoModeFilters({
   equipmentTypeName,
   isShowAllModelsType = false,
 }: AutoModeFiltersProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { data: types } = useEquipmentTypes();
   const { data: brands } = useBrands();
 
@@ -75,16 +79,16 @@ export function AutoModeFilters({
       <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
         {/* Type Selector */}
         <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-          <label className="text-sm font-medium text-muted-foreground">Tehnika tüüp</label>
+          <label className="text-sm font-medium text-muted-foreground">{t("autoFilter.equipmentType")}</label>
           <Select value={selectedType} onValueChange={onTypeChange}>
             <SelectTrigger className="w-full sm:w-[240px]">
-              <SelectValue placeholder="Vali tüüp" />
+              <SelectValue placeholder={t("modelSelect.selectType")} />
             </SelectTrigger>
             <SelectContent className="bg-popover">
-              <SelectItem value="all">Vali tüüp...</SelectItem>
+              <SelectItem value="all">{t("modelSelect.selectTypeHint")}</SelectItem>
               {filteredTypes.map((type) => (
                 <SelectItem key={type.id} value={type.id}>
-                  {type.name_et}
+                  {getTranslation(type.name_translations, lang, type.name_et)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -94,17 +98,17 @@ export function AutoModeFilters({
         {/* Brand Selector - hidden for show-all types */}
         {!isShowAllModelsType && (
           <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-            <label className="text-sm font-medium text-muted-foreground">Bränd</label>
-            <Select 
-              value={selectedBrand} 
+            <label className="text-sm font-medium text-muted-foreground">{t("autoFilter.brand")}</label>
+            <Select
+              value={selectedBrand}
               onValueChange={onBrandChange}
               disabled={!isTypeSelected}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder={isTypeSelected ? "Vali bränd" : "Vali esmalt tüüp"} />
+                <SelectValue placeholder={isTypeSelected ? t("autoFilter.selectBrand") : t("autoFilter.selectTypeFirst")} />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Vali bränd...</SelectItem>
+                <SelectItem value="all">{t("autoFilter.allBrands")}</SelectItem>
                 {availableBrands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id}>
                     {brand.name}
@@ -118,17 +122,17 @@ export function AutoModeFilters({
         {/* Model Selector - hidden for show-all types */}
         {!isShowAllModelsType && (
           <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-            <label className="text-sm font-medium text-muted-foreground">Mudel</label>
-            <Select 
-              value={selectedModelId} 
+            <label className="text-sm font-medium text-muted-foreground">{t("autoFilter.model")}</label>
+            <Select
+              value={selectedModelId}
               onValueChange={onModelChange}
               disabled={!isBrandSelected}
             >
               <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue placeholder={isBrandSelected ? "Vali mudel" : "Vali esmalt bränd"} />
+                <SelectValue placeholder={isBrandSelected ? t("autoFilter.allModels") : t("autoFilter.selectBrandFirst")} />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Vali mudel...</SelectItem>
+                <SelectItem value="all">{t("autoFilter.allModels")}</SelectItem>
                 {filteredModels.map((model) => (
                   <SelectItem key={model.id} value={model.id}>
                     {model.model_name}
@@ -149,7 +153,7 @@ export function AutoModeFilters({
         <div className="flex items-center gap-1.5">
           <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5">
             <Info className="h-3.5 w-3.5" />
-            Kuvatakse kõik {equipment.length} mudelit
+            {t("autoFilter.showAllModels", { count: equipment.length })}
           </Badge>
         </div>
       )}
@@ -165,11 +169,11 @@ export function AutoModeFilters({
           ) : (
             <div className="text-sm text-muted-foreground flex items-center gap-1.5">
               <Info className="h-3.5 w-3.5" />
-             {isTrailedSprayer
-                ? "Konkurente sama pumba tüübi ja sarnase paagi mahu vahemikus ei leitud"
-                : isTelehandler 
-                ? "Konkurente sarnase tõstekõrguse ja kandevõime vahemikus ei leitud"
-                : `Konkurente vahemikus ±${hpRangeLabel} hj ei leitud`
+              {isTrailedSprayer
+                ? t("autoFilter.noCompetitorsTrailedSprayer")
+                : isTelehandler
+                ? t("autoFilter.noCompetitorsTelehandler")
+                : t("autoFilter.noCompetitorsHP", { hp: hpRangeLabel })
               }
             </div>
           )}
@@ -180,10 +184,10 @@ export function AutoModeFilters({
       {!isShowAllModelsType && !isModelSelected && isTypeSelected && (
         <div className="text-sm text-muted-foreground">
           {isTrailedSprayer
-            ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sama pumba tüübi ja ±1000L paagi mahu vahemikus teistest brändidest."
-            : isTelehandler 
-            ? "Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid sarnase tõstekõrguse (±0.5m) ja kandevõime (±400kg) vahemikus."
-            : `Vali bränd ja mudel. Süsteem leiab automaatselt konkurendid ±${hpRangeLabel} hj vahemikus teistest brändidest.`
+            ? t("autoFilter.selectionGuideTrailedSprayer")
+            : isTelehandler
+            ? t("autoFilter.selectionGuideTelehandler")
+            : t("autoFilter.selectionGuideHP", { hp: hpRangeLabel })
           }
         </div>
       )}

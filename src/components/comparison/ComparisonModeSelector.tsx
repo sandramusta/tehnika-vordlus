@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Crosshair, Hand } from "lucide-react";
 
@@ -12,10 +13,11 @@ export function ComparisonModeSelector({
   mode,
   onModeChange,
 }: ComparisonModeSelectorProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-muted-foreground">
-        Võrdlusrežiim
+        {t("comparison.mode")}
       </label>
       <Tabs
         value={mode}
@@ -25,11 +27,11 @@ export function ComparisonModeSelector({
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="auto" className="flex items-center gap-2">
             <Crosshair className="h-4 w-4 shrink-0" />
-            <span>Automaatne</span>
+            <span>{t("comparison.modeAuto")}</span>
           </TabsTrigger>
           <TabsTrigger value="manual" className="flex items-center gap-2">
             <Hand className="h-4 w-4 shrink-0" />
-            <span>Käsitsi</span>
+            <span>{t("comparison.modeManual")}</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>

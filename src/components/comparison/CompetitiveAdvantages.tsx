@@ -10,7 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
- import { getBrandTextColor, getBrandHexColor } from "@/lib/brandColors";
+import { getBrandTextColor, getBrandHexColor } from "@/lib/brandColors";
+import { useTranslation } from "react-i18next";
+import { getTranslationField } from "@/lib/i18nHelpers";
 
 interface CompetitiveAdvantagesProps {
   selectedModel: Equipment;
@@ -18,21 +20,6 @@ interface CompetitiveAdvantagesProps {
   arguments: CompetitiveArgument[];
   brands: Brand[];
 }
-
-// Category display names in Estonian
-const CATEGORY_LABELS: Record<string, string> = {
-  technology: "Tehnoloogia",
-  performance: "Jõudlus",
-  fuel: "Kütusesääst",
-  efficiency: "Tõhusus",
-  automation: "Automatiseerimine",
-  comfort: "Mugavus",
-  precision: "Täppispõllumajandus",
-  service: "Teenindus",
-  value: "Väärtus",
-  general: "Üldine",
-};
-
 
 const TOP_COUNT = 3;
 
@@ -42,12 +29,15 @@ export function CompetitiveAdvantages({
   arguments: args,
   brands,
 }: CompetitiveAdvantagesProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+
   const isPrimaryBrand = selectedModel.brand?.is_primary === true;
-  const ourBrandName = isPrimaryBrand ? selectedModel.brand!.name : 
+  const ourBrandName = isPrimaryBrand ? selectedModel.brand!.name :
     brands.find(b => b.is_primary)?.name || "John Deere";
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCompetitorBrandId, setSelectedCompetitorBrandId] = useState<string>("");
-  
+
   // Dynamically get competitor brands that have arguments for this equipment type
   const availableCompetitorBrands = useMemo(() => {
     const brandIdsWithArgs = new Set(args.map(a => a.competitor_brand_id));
@@ -59,11 +49,11 @@ export function CompetitiveAdvantages({
     const brand = brands.find(b => b.id === selectedCompetitorBrandId);
     return brand?.name || "";
   }, [brands, selectedCompetitorBrandId]);
-  
+
   // Filter arguments: only show those matching selected competitor brand
   const filteredArguments = useMemo(() => {
     if (!selectedCompetitorBrandId) return [];
-    
+
     if (isPrimaryBrand) {
       return args.filter(arg => arg.competitor_brand_id === selectedCompetitorBrandId);
     } else {
@@ -71,16 +61,30 @@ export function CompetitiveAdvantages({
     }
   }, [args, isPrimaryBrand, selectedCompetitorBrandId, selectedModel.brand_id]);
 
-  // Group arguments by category
+  // Group arguments by category, applying DB translations
   const argumentsByCategory = useMemo(() => {
     const grouped: Record<string, CompetitiveArgument[]> = {};
-    
+
     filteredArguments.forEach(arg => {
       const category = arg.category || "general";
       if (!grouped[category]) {
         grouped[category] = [];
       }
-      grouped[category].push(arg);
+      // Apply DB translations to argument fields
+      grouped[category].push({
+        ...arg,
+        argument_title: getTranslationField(arg.translations, lang, "argument_title", arg.argument_title),
+        argument_description: getTranslationField(arg.translations, lang, "argument_description", arg.argument_description),
+        problem_text: arg.problem_text
+          ? getTranslationField(arg.translations, lang, "problem_text", arg.problem_text)
+          : arg.problem_text,
+        solution_text: arg.solution_text
+          ? getTranslationField(arg.translations, lang, "solution_text", arg.solution_text)
+          : arg.solution_text,
+        benefit_text: arg.benefit_text
+          ? getTranslationField(arg.translations, lang, "benefit_text", arg.benefit_text)
+          : arg.benefit_text,
+      });
     });
 
     // Sort each category by sort_order
@@ -89,7 +93,7 @@ export function CompetitiveAdvantages({
     });
 
     return grouped;
-  }, [filteredArguments]);
+  }, [filteredArguments, lang]);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => {
@@ -118,30 +122,30 @@ export function CompetitiveAdvantages({
           <div>
             <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
               <Trophy className="h-5 w-5 text-primary" />
-              Meie konkurentsieelised
+              {t("advantage.problem")}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Vali bränd, et näha eeliseid
+              {t("advantage.benefit", { brand: ourBrandName })}
             </p>
           </div>
-          
+
           {/* Brand filter dropdown with brand colors */}
           <Select
             value={selectedCompetitorBrandId}
             onValueChange={setSelectedCompetitorBrandId}
           >
             <SelectTrigger className="w-full sm:w-[220px] bg-card">
-              <SelectValue placeholder="Vali bränd võrdluseks" />
+              <SelectValue placeholder={t("advantage.solution", { brand: "" }).trim()} />
             </SelectTrigger>
             <SelectContent className="bg-card z-50">
               {availableCompetitorBrands.map((brand) => (
-                <SelectItem 
-                  key={brand.id} 
+                <SelectItem
+                  key={brand.id}
                   value={brand.id}
                   className="cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <span 
+                    <span
                       className="h-3 w-3 rounded-full shrink-0"
                       style={{ backgroundColor: getBrandHexColor(brand.name) }}
                     />
@@ -161,7 +165,7 @@ export function CompetitiveAdvantages({
         <div className="rounded-lg border border-border bg-card p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <p className="mt-4 text-muted-foreground">
-            Vali rippmenüüst bränd, et näha {ourBrandName} konkurentsieeliseid.
+            {t("advantage.solution", { brand: ourBrandName })}
           </p>
         </div>
       )}
@@ -171,12 +175,12 @@ export function CompetitiveAdvantages({
         <div className="rounded-lg border border-border bg-card p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <p className="mt-4 text-muted-foreground">
-            Konkurentsieelised pole veel lisatud selle brändi kohta.
+            {t("advantage.benefit", { brand: selectedBrandName })}
           </p>
         </div>
       )}
 
-      {/* Categories with Top 3 logic - Clean minimal design */}
+      {/* Categories with Top 3 logic */}
       {selectedCompetitorBrandId && categories.map(category => {
         const categoryArgs = argumentsByCategory[category];
         const isExpanded = expandedCategories.has(category);
@@ -185,21 +189,21 @@ export function CompetitiveAdvantages({
         const remainingCount = categoryArgs.length - TOP_COUNT;
 
         return (
-          <div 
-            key={category} 
+          <div
+            key={category}
             className="rounded-xl border border-border bg-card p-6"
           >
-            {/* Category Header - Clean without brand badge */}
+            {/* Category Header */}
             <div className="mb-4">
               <h4 className="text-base font-semibold text-foreground">
-                {CATEGORY_LABELS[category] || category}
+                {t(`advantage.category.${category}`, { defaultValue: category })}
                 <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({categoryArgs.length} argumenti)
+                  ({categoryArgs.length})
                 </span>
               </h4>
             </div>
 
-            {/* Advantage Cards Grid - Clean design without brand borders */}
+            {/* Advantage Cards Grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {displayedArgs.map((arg) => (
                 <AdvantageCard
@@ -223,12 +227,12 @@ export function CompetitiveAdvantages({
                   {isExpanded ? (
                     <>
                       <ChevronUp className="h-4 w-4" />
-                      Näita vähem
+                      {t("common.cancel")}
                     </>
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4" />
-                      Näita kõiki {remainingCount + TOP_COUNT} argumenti
+                      +{remainingCount}
                     </>
                   )}
                 </Button>

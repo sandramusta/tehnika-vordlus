@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Wihuri Agri Design System - Professional Agricultural Theme */
+/* Design System */
 
 @layer base {
   :root {
-    /* Wihuri Agri Green Palette */
+    /* Green Palette */
     --background: 0 0% 98%;
     --foreground: 150 10% 15%;
 
@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 150 10% 15%;
 
-    /* Primary: Wihuri Agri Green */
+    /* Primary: Green */
     --primary: 122 39% 30%;
     --primary-foreground: 0 0% 100%;
 

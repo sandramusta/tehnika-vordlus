@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import Stats from "./pages/Stats";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { featureFlags } from "@/lib/featureFlags";
 
 const queryClient = new QueryClient();
 
@@ -40,9 +41,13 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/myths" element={
-              <ProtectedRoute>
-                <Myths />
-              </ProtectedRoute>
+              featureFlags.enableMyths ? (
+                <ProtectedRoute>
+                  <Myths />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/" replace />
+              )
             } />
             <Route path="/admin" element={
               <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
@@ -50,9 +55,13 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/stats" element={
-              <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
-                <Stats />
-              </ProtectedRoute>
+              featureFlags.enableStats ? (
+                <ProtectedRoute requiredRoles={["product_manager", "admin"]}>
+                  <Stats />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/" replace />
+              )
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>

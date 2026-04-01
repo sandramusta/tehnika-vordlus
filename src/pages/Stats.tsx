@@ -22,15 +22,19 @@ import {
 } from "lucide-react";
 import { useLeaderboard, useDashboardStats, type StatsPeriod } from "@/hooks/useActivityStats";
 import { formatDistanceToNow, format } from "date-fns";
-import { et } from "date-fns/locale";
+import { et, lv } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 type SortField = "total_points" | "pdf_count" | "comparison_count";
 
 export default function Stats() {
+  const { t, i18n } = useTranslation();
   const [period, setPeriod] = useState<StatsPeriod>("current_month");
   const { data: leaderboard = [], isLoading: loadingLeaderboard } = useLeaderboard(period);
   const { data: stats, isLoading: loadingStats } = useDashboardStats(period);
   const [sortBy, setSortBy] = useState<SortField>("total_points");
+
+  const dateLocale = i18n.language === "lv" ? lv : et;
 
   const sortedLeaderboard = [...leaderboard].sort((a, b) => {
     if (sortBy === "pdf_count") {
@@ -79,10 +83,10 @@ export default function Stats() {
         <div className="rounded-xl bg-gradient-to-r from-primary to-primary/80 p-6 sm:p-8 text-primary-foreground">
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
             <Trophy className="h-8 w-8" />
-            Statistika ja edetabel
+            {t("stats.title")}
           </h1>
           <p className="mt-2 text-sm sm:text-base text-primary-foreground/80">
-            Jälgi müügimeeste aktiivsust ja vaata, kes on kõige produktiivsem.
+            {t("stats.description")}
           </p>
         </div>
 
@@ -95,7 +99,7 @@ export default function Stats() {
             className="gap-1.5"
           >
             <Calendar className="h-3.5 w-3.5" />
-            Käesolev kuu
+            {t("stats.currentMonth")}
           </Button>
           <Button
             variant={period === "all_time" ? "default" : "outline"}
@@ -104,13 +108,13 @@ export default function Stats() {
             className="gap-1.5"
           >
             <BarChart3 className="h-3.5 w-3.5" />
-            Kogu aeg
+            {t("stats.allTime")}
           </Button>
         </div>
 
         {period === "current_month" && (
           <h2 className="text-2xl sm:text-3xl font-bold capitalize">
-            {format(new Date(), "LLLL yyyy", { locale: et })}
+            {format(new Date(), "LLLL yyyy", { locale: dateLocale })}
           </h2>
         )}
 
@@ -119,7 +123,7 @@ export default function Stats() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Täna alla laetud raportid
+                {t("stats.todayPdfs")}
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -128,7 +132,7 @@ export default function Stats() {
                 {loadingStats ? "..." : stats?.todayPDFs ?? 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Alla laetud PDF-raportid
+                {t("stats.downloadedPdfs")}
               </p>
             </CardContent>
           </Card>
@@ -136,7 +140,7 @@ export default function Stats() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Kõige popim masin
+                {t("stats.mostPopularMachine")}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -144,10 +148,10 @@ export default function Stats() {
               <div className="text-xl font-bold truncate">
                 {loadingStats
                   ? "..."
-                  : stats?.mostPopularModel ?? "Andmed puuduvad"}
+                  : stats?.mostPopularModel ?? t("stats.noData")}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Enim võrreldud mudel
+                {t("stats.mostComparedModel")}
               </p>
             </CardContent>
           </Card>
@@ -155,7 +159,7 @@ export default function Stats() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Aktiivseim müügimees
+                {t("stats.mostActiveUser")}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -163,10 +167,10 @@ export default function Stats() {
               <div className="text-xl font-bold truncate">
                 {loadingStats
                   ? "..."
-                  : stats?.mostActiveUser ?? "Andmed puuduvad"}
+                  : stats?.mostActiveUser ?? t("stats.noData")}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Täna kõige aktiivsem
+                {t("stats.mostActiveToday")}
               </p>
             </CardContent>
           </Card>
@@ -178,7 +182,7 @@ export default function Stats() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Müügimeeste edetabel
+                {t("stats.leaderboard")}
               </CardTitle>
               <div className="flex gap-1.5 flex-wrap">
                 <Button
@@ -188,7 +192,7 @@ export default function Stats() {
                   className="gap-1 text-xs px-2"
                 >
                   <ArrowUpDown className="h-3 w-3" />
-                  Punktid
+                  {t("stats.sortByPoints")}
                 </Button>
                 <Button
                   variant={sortBy === "pdf_count" ? "default" : "outline"}
@@ -206,22 +210,22 @@ export default function Stats() {
                   className="gap-1 text-xs px-2"
                 >
                   <ArrowUpDown className="h-3 w-3" />
-                  Võrdlused
+                  {t("stats.sortByComparisons")}
                 </Button>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Punktid: PDF = 2p, Võrdlus = 1p
+              {t("stats.pointsLegend")}
             </p>
           </CardHeader>
           <CardContent>
             {loadingLeaderboard ? (
               <div className="flex h-32 items-center justify-center text-muted-foreground">
-                Laadin andmeid...
+                {t("stats.loading")}
               </div>
             ) : sortedLeaderboard.length === 0 ? (
               <div className="flex h-32 items-center justify-center text-muted-foreground">
-                Tegevuste andmed puuduvad. Statistika ilmub, kui kasutajad hakkavad rakendust kasutama.
+                {t("stats.empty")}
               </div>
             ) : (
               <>
@@ -246,14 +250,14 @@ export default function Stats() {
                           {entry.last_active
                             ? formatDistanceToNow(new Date(entry.last_active), {
                                 addSuffix: true,
-                                locale: et,
+                                locale: dateLocale,
                               })
                             : "—"}
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">PDF</span>
                           <Badge variant="secondary" className="text-xs">{entry.pdf_count}</Badge>
-                          <span className="text-xs text-muted-foreground">Võrdlus</span>
+                          <span className="text-xs text-muted-foreground">{t("stats.comparison")}</span>
                           <Badge variant="secondary" className="text-xs">{entry.comparison_count}</Badge>
                           <Badge
                             variant={index < 3 ? "default" : "outline"}
@@ -276,12 +280,12 @@ export default function Stats() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-16">Koht</TableHead>
-                        <TableHead>Nimi</TableHead>
-                        <TableHead>Viimati aktiivne</TableHead>
-                        <TableHead className="text-center">PDF-raportid</TableHead>
-                        <TableHead className="text-center">Võrdlused</TableHead>
-                        <TableHead className="text-center">Punktid</TableHead>
+                        <TableHead className="w-16">{t("stats.position")}</TableHead>
+                        <TableHead>{t("stats.name")}</TableHead>
+                        <TableHead>{t("stats.lastActive")}</TableHead>
+                        <TableHead className="text-center">{t("stats.pdfReports")}</TableHead>
+                        <TableHead className="text-center">{t("stats.comparisons")}</TableHead>
+                        <TableHead className="text-center">{t("stats.points")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -303,7 +307,7 @@ export default function Stats() {
                             {entry.last_active
                               ? formatDistanceToNow(new Date(entry.last_active), {
                                   addSuffix: true,
-                                  locale: et,
+                                  locale: dateLocale,
                                 })
                               : "—"}
                           </TableCell>

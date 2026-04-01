@@ -17,6 +17,8 @@ import { COMMON_FIELDS, type FieldGroup, type FieldConfig } from "@/lib/equipmen
 import { getColumnToSpecsMapping, getSpecsToColumnMapping } from "@/lib/fieldSyncMapping";
 import type { Equipment, Brand, PowerClass, EquipmentType } from "@/types/equipment";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { getTranslation } from "@/lib/i18nHelpers";
  
  interface EquipmentFormProps {
    equipment?: Equipment | null;
@@ -37,7 +39,10 @@ import { cn } from "@/lib/utils";
    onSubmit,
    isSubmitting,
  }: EquipmentFormProps) {
-    // Track selected type for dynamic field display and smart filtering
+   const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+
+   // Track selected type for dynamic field display and smart filtering
     const [selectedTypeId, setSelectedTypeId] = useState<string>(equipment?.equipment_type_id || "");
     const [selectedBrandId, setSelectedBrandId] = useState<string>(equipment?.brand_id || "");
     const [imageUrl, setImageUrl] = useState<string>(equipment?.image_url || "");
@@ -201,7 +206,7 @@ import { cn } from "@/lib/utils";
       
       return (
         <div key={field.name} className="space-y-2">
-          <Label htmlFor={field.name}>{field.label}</Label>
+          <Label htmlFor={field.name}>{field.i18nKey ? t(field.i18nKey) : field.label}</Label>
           {field.type === "textarea" ? (
             <Textarea
               name={field.name}
@@ -238,7 +243,7 @@ import { cn } from "@/lib/utils";
        {/* Type and Brand selectors */}
        <div className="grid grid-cols-2 gap-4">
          <div className="space-y-2">
-           <Label htmlFor="equipment_type_id">Tehnika tüüp *</Label>
+           <Label htmlFor="equipment_type_id">{t("equipmentForm.equipmentType")}</Label>
            <Select
              name="equipment_type_id"
              required
@@ -246,19 +251,19 @@ import { cn } from "@/lib/utils";
              onValueChange={setSelectedTypeId}
            >
              <SelectTrigger>
-               <SelectValue placeholder="Vali tüüp" />
+               <SelectValue placeholder={t("equipmentForm.selectType")} />
              </SelectTrigger>
              <SelectContent>
                {types.map((type) => (
                  <SelectItem key={type.id} value={type.id}>
-                   {type.name_et}
+                   {getTranslation(type.name_translations, lang, type.name_et)}
                  </SelectItem>
                ))}
              </SelectContent>
            </Select>
          </div>
          <div className="space-y-2">
-           <Label htmlFor="brand_id">Bränd *</Label>
+           <Label htmlFor="brand_id">{t("equipmentForm.brand")}</Label>
            <Select
              name="brand_id"
              required
@@ -267,7 +272,7 @@ import { cn } from "@/lib/utils";
              disabled={!selectedTypeId}
            >
              <SelectTrigger className={cn(!selectedTypeId && "opacity-50 cursor-not-allowed")}>
-               <SelectValue placeholder={selectedTypeId ? "Vali bränd" : "Vali esmalt tüüp"} />
+               <SelectValue placeholder={selectedTypeId ? t("equipmentForm.selectBrand") : t("equipmentForm.selectTypeFirst")} />
              </SelectTrigger>
              <SelectContent>
                {filteredBrands.map((brand) => (
@@ -283,7 +288,7 @@ import { cn } from "@/lib/utils";
        {/* Model name and power class */}
        <div className="grid grid-cols-2 gap-4">
          <div className="space-y-2">
-           <Label htmlFor="model_name">Mudeli nimi *</Label>
+           <Label htmlFor="model_name">{t("equipmentForm.modelName")}</Label>
            <Input
              name="model_name"
              required
@@ -293,13 +298,13 @@ import { cn } from "@/lib/utils";
          </div>
           {selectedType?.name !== "telehandler" && selectedType?.name !== "round_baler" && selectedType?.name !== "self_propelled_sprayer" && selectedType?.name !== "trailed_sprayer" && (
             <div className="space-y-2">
-              <Label htmlFor="power_class_id">Jõuklass</Label>
+              <Label htmlFor="power_class_id">{t("equipmentForm.powerClass")}</Label>
               <Select
                 name="power_class_id"
                 defaultValue={equipment?.power_class_id || undefined}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Vali jõuklass" />
+                  <SelectValue placeholder={t("equipmentForm.selectPowerClass")} />
                 </SelectTrigger>
                 <SelectContent>
                   {powerClasses.map((pc) => (
@@ -319,7 +324,7 @@ import { cn } from "@/lib/utils";
             {fieldGroups.map((group: FieldGroup) => (
               <div key={group.title} className="space-y-3">
                 <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide border-b pb-1">
-                  {group.title}
+                  {group.titleKey ? t(group.titleKey) : group.title}
                 </h4>
                 <div className="grid grid-cols-3 gap-4">
                   {group.fields.map((field) => renderField(field))}
@@ -333,7 +338,7 @@ import { cn } from "@/lib/utils";
        <div className="grid grid-cols-2 gap-4">
          <ImageUpload
            name="image_url"
-           label="Toote pilt"
+           label={t("equipmentForm.productImage")}
            currentImageUrl={imageUrl || undefined}
            onImageUploaded={setImageUrl}
            folder="equipment"
@@ -341,7 +346,7 @@ import { cn } from "@/lib/utils";
           {selectedType?.name?.toLowerCase() === "combine" && (
             <ImageUpload
               name="threshing_system_image_url"
-              label="Peksusüsteemi pilt"
+              label={t("equipmentForm.threshingImage")}
               currentImageUrl={threshingImageUrl || undefined}
               onImageUploaded={setThreshingImageUrl}
               folder="threshing"
@@ -351,7 +356,7 @@ import { cn } from "@/lib/utils";
  
        {/* Data source URL */}
        <div className="space-y-2">
-         <Label htmlFor="data_source_url">Andmete allikas (URL)</Label>
+         <Label htmlFor="data_source_url">{t("equipmentForm.dataSource")}</Label>
          <Input
            name="data_source_url"
            type="url"
@@ -362,10 +367,10 @@ import { cn } from "@/lib/utils";
  
        {/* Notes */}
        <div className="space-y-2">
-         <Label htmlFor="notes">Märkused</Label>
+         <Label htmlFor="notes">{t("equipmentForm.notes")}</Label>
          <Textarea
            name="notes"
-           placeholder="Lisamärkused..."
+           placeholder={t("equipmentForm.notesPlaceholder")}
            defaultValue={equipment?.notes || ""}
          />
        </div>
@@ -385,7 +390,7 @@ import { cn } from "@/lib/utils";
          )}
   
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Salvestan..." : "Salvesta"}
+          {isSubmitting ? t("admin.saving") : t("common.save")}
         </Button>
       </form>
     );

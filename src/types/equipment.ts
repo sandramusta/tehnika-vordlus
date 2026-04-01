@@ -2,6 +2,7 @@ export interface EquipmentType {
   id: string;
   name: string;
   name_et: string;
+  name_translations?: Record<string, string>;
   created_at: string;
 }
 
@@ -98,6 +99,7 @@ export interface CompetitiveArgument {
   solution_text: string | null;
   benefit_text: string | null;
   icon_name: string | null;
+  translations?: Record<string, Record<string, string>>;
   created_at: string;
   // Joined data
   competitor_brand?: Brand;
@@ -124,6 +126,7 @@ export interface Myth {
   reality: string;
   advantage: string;
   sort_order: number;
+  translations?: Record<string, Record<string, string>>;
   created_at: string;
   updated_at: string;
 }

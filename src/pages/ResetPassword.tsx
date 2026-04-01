@@ -7,15 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import wihuriLogo from "@/assets/wihuri-agri-logo.png";
+import { useTranslation } from "react-i18next";
 
-const passwordSchema = z.string().min(6, "Parool peab olema vähemalt 6 tähemärki");
 
 type PageState = "confirm" | "form" | "loading" | "error";
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const passwordSchema = z.string().min(6, t("resetPassword.passwordMinLength"));
   const [pageState, setPageState] = useState<PageState>("loading");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -147,8 +148,8 @@ export default function ResetPassword() {
 
     if (error) {
       toast({
-        title: "Viga",
-        description: "Parooli seadistamine ebaõnnestus. Proovi uuesti.",
+        title: t("common.error"),
+        description: t("resetPassword.passwordSetError"),
         variant: "destructive",
       });
     } else {
@@ -161,7 +162,7 @@ export default function ResetPassword() {
           details: {},
         });
       }
-      toast({ title: "Parool edukalt salvestatud!" });
+      toast({ title: t("resetPassword.passwordSetSuccess") });
       navigate("/", { replace: true });
     }
 
@@ -174,10 +175,9 @@ export default function ResetPassword() {
         return (
           <CardHeader className="text-center space-y-4">
             <div className="flex justify-center">
-              <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
             </div>
-            <CardTitle className="text-2xl">Parooli seadistamine</CardTitle>
-            <CardDescription>Palun oota...</CardDescription>
+            <CardTitle className="text-2xl">{t("resetPassword.title")}</CardTitle>
+            <CardDescription>{t("resetPassword.loading.description")}</CardDescription>
           </CardHeader>
         );
 
@@ -186,16 +186,15 @@ export default function ResetPassword() {
           <>
             <CardHeader className="text-center space-y-4">
               <div className="flex justify-center">
-                <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
-              </div>
-              <CardTitle className="text-2xl">Tere tulemast!</CardTitle>
+                </div>
+              <CardTitle className="text-2xl">{t("resetPassword.welcome.title")}</CardTitle>
               <CardDescription>
-                Parooli loomiseks vajuta allolevale nupule.
+                {t("resetPassword.welcome.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={handleConfirmToken} className="w-full" size="lg">
-                Kinnita ja loo parool →
+                {t("resetPassword.welcome.button")}
               </Button>
             </CardContent>
           </>
@@ -206,16 +205,15 @@ export default function ResetPassword() {
           <>
             <CardHeader className="text-center space-y-4">
               <div className="flex justify-center">
-                <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
-              </div>
-              <CardTitle className="text-2xl">Link on aegunud</CardTitle>
+                </div>
+              <CardTitle className="text-2xl">{t("resetPassword.error.title")}</CardTitle>
               <CardDescription>
-                See parooli seadistamise link on aegunud või juba kasutatud. Palun palu administraatorilt uut kutset.
+                {t("resetPassword.error.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" onClick={() => navigate("/auth", { replace: true })} className="w-full">
-                Tagasi sisselogimisse
+                {t("resetPassword.error.backButton")}
               </Button>
             </CardContent>
           </>
@@ -226,22 +224,21 @@ export default function ResetPassword() {
           <>
             <CardHeader className="text-center space-y-4">
               <div className="flex justify-center">
-                <img src={wihuriLogo} alt="Wihuri Agri" className="h-16 w-auto" />
-              </div>
-              <CardTitle className="text-2xl">Palun määra omale parool</CardTitle>
+                </div>
+              <CardTitle className="text-2xl">{t("resetPassword.form.title")}</CardTitle>
               <CardDescription>
-                Selle parooliga saad edaspidi rakendusse sisse logida.
+                {t("resetPassword.form.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSetPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">Loo parool</Label>
+                  <Label htmlFor="password">{t("resetPassword.form.label")}</Label>
                   <Input
                     id="password"
                     name="password"
                     type="password"
-                    placeholder="Vähemalt 6 tähemärki"
+                    placeholder={t("resetPassword.form.placeholder")}
                     required
                     disabled={isLoading}
                   />
@@ -250,7 +247,7 @@ export default function ResetPassword() {
                   )}
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Salvestan..." : "Salvesta parool"}
+                  {isLoading ? t("resetPassword.form.savingButton") : t("resetPassword.form.submitButton")}
                 </Button>
               </form>
             </CardContent>

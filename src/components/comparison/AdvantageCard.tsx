@@ -2,8 +2,9 @@ import { CompetitiveArgument } from "@/types/equipment";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import { AlertTriangle, Lightbulb, TrendingUp, LucideIcon } from "lucide-react";
-import { getBrandTextColor, getBrandBgClass, isBrandColorLight } from "@/lib/brandColors";
+import { getBrandBgClass } from "@/lib/brandColors";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 interface AdvantageCardProps {
   argument: CompetitiveArgument;
@@ -11,48 +12,31 @@ interface AdvantageCardProps {
   primaryBrandName?: string;
 }
 
-// Category display names in Estonian
-const CATEGORY_LABELS: Record<string, string> = {
-  technology: "Tehnoloogia",
-  performance: "Jõudlus",
-  fuel: "Kütusesääst",
-  efficiency: "Tõhusus",
-  automation: "Automatiseerimine",
-  comfort: "Mugavus",
-  precision: "Täppispõllumajandus",
-  service: "Teenindus",
-  value: "Väärtus",
-  general: "Üldine",
-};
-
-function getCategoryLabel(category: string): string {
-  return CATEGORY_LABELS[category.toLowerCase()] || category;
-}
-
 // Get icon by name from lucide-react
 function getIconByName(iconName: string | null): LucideIcon {
   if (!iconName) return Lightbulb;
-  
+
   const icons = LucideIcons as unknown as Record<string, LucideIcon>;
   const icon = icons[iconName];
-  
-  if (icon && typeof icon === 'function') {
+
+  if (icon && typeof icon === "function") {
     return icon;
   }
-  
+
   return Lightbulb;
 }
 
 export function AdvantageCard({ argument, competitorBrandName, primaryBrandName = "John Deere" }: AdvantageCardProps) {
+  const { t } = useTranslation();
   const Icon = getIconByName(argument.icon_name);
-  
+
   // Fallback: if only argument_description exists, show it as solution
   const problemText = argument.problem_text;
   const solutionText = argument.solution_text || argument.argument_description;
   const benefitText = argument.benefit_text;
 
   return (
-    <div 
+    <div
       className={cn(
         "relative rounded-xl border border-border bg-card p-5 transition-all hover:shadow-lg shadow-sm"
       )}
@@ -68,12 +52,12 @@ export function AdvantageCard({ argument, competitorBrandName, primaryBrandName 
           </span>
         </div>
       )}
-      
+
       {/* Category badge */}
       <Badge variant="secondary" className="mb-3">
-        {getCategoryLabel(argument.category)}
+        {t(`advantage.category.${argument.category}`, { defaultValue: argument.category })}
       </Badge>
-      
+
       {/* Header with icon */}
       <div className="mb-4 flex items-center gap-3 pr-16">
         <h4 className="text-base font-semibold text-foreground leading-tight">
@@ -91,7 +75,7 @@ export function AdvantageCard({ argument, competitorBrandName, primaryBrandName 
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-destructive">
-                Probleem
+                {t("advantage.problem")}
               </p>
               <p className="mt-0.5 text-sm text-foreground">
                 {problemText}
@@ -100,7 +84,7 @@ export function AdvantageCard({ argument, competitorBrandName, primaryBrandName 
           </div>
         )}
 
-        {/* Solution - John Deere Green accent */}
+        {/* Solution */}
         {solutionText && (
           <div className="flex items-start gap-3 rounded-lg bg-primary/5 p-3">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -108,7 +92,7 @@ export function AdvantageCard({ argument, competitorBrandName, primaryBrandName 
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-primary">
-                {primaryBrandName} lahendus
+                {t("advantage.solution", { brand: primaryBrandName })}
               </p>
               <p className="mt-0.5 text-sm text-foreground">
                 {solutionText}
@@ -117,7 +101,7 @@ export function AdvantageCard({ argument, competitorBrandName, primaryBrandName 
           </div>
         )}
 
-        {/* Benefit - John Deere Green accent */}
+        {/* Benefit */}
         {benefitText && (
           <div className="flex items-start gap-3 rounded-lg bg-primary/10 p-3">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20">
@@ -125,7 +109,7 @@ export function AdvantageCard({ argument, competitorBrandName, primaryBrandName 
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-primary">
-                Kasu kliendile
+                {t("advantage.benefit")}
               </p>
               <p className="mt-0.5 text-sm font-medium text-foreground">
                 {benefitText}

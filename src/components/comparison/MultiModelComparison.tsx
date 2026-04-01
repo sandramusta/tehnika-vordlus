@@ -10,6 +10,7 @@ import { getBrandTextColor, getBrandBgClass } from "@/lib/brandColors";
 import { ComparisonMode } from "./ComparisonModeSelector";
 import { MobileComparisonCards } from "./MobileComparisonCards";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "react-i18next";
 
 interface MultiModelComparisonProps {
   selectedModels: Equipment[];
@@ -45,8 +46,10 @@ interface SpecRowConfig {
   key: keyof Equipment;
   labelKey: string;
   defaultLabel: string;
+  i18nKey?: string;
   format?: "number" | "currency";
   suffix?: string;
+  suffixI18nKey?: string;
   bestType?: "max" | "min";
   showJDAdvantage?: boolean;
   conditional?: boolean;
@@ -68,52 +71,52 @@ function getTractorECEPower(equipment: Equipment): number | null {
 
 // Combine-specific specs
 const COMBINE_SPEC_ROWS: SpecRowConfig[] = [
-  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true },
-  { key: "grain_tank_liters", labelKey: "grain_tank_liters", defaultLabel: "Viljabunker (l)", bestType: "max", showJDAdvantage: true },
-  { key: "header_width_m", labelKey: "header_width_m", defaultLabel: "Heedri laius (m)", bestType: "max", showJDAdvantage: true },
-  { key: "fuel_tank_liters", labelKey: "fuel_tank_liters", defaultLabel: "Kütusepaak (L)", bestType: "max", showJDAdvantage: true, conditional: true },
-  { key: "cleaning_area_m2", labelKey: "cleaning_area_m2", defaultLabel: "Puhasti pindala (m²)", bestType: "max", showJDAdvantage: true, conditional: true },
-  { key: "rotor_diameter_mm", labelKey: "rotor_diameter_mm", defaultLabel: "Rootori läbimõõt (mm)", bestType: "max", showJDAdvantage: true, conditional: true },
-  { key: "throughput_tons_h", labelKey: "throughput_tons_h", defaultLabel: "Läbilaskevõime (t/h)", bestType: "max", showJDAdvantage: true, conditional: true },
-  { key: "engine_cylinders", labelKey: "engine_cylinders", defaultLabel: "Silindrid", bestType: "max", conditional: true },
-  { key: "max_torque_nm", labelKey: "max_torque_nm", defaultLabel: "Max pöördemoment (Nm)", bestType: "max", conditional: true },
-  { key: "feeder_width_mm", labelKey: "feeder_width_mm", defaultLabel: "Etteande laius (mm)", bestType: "max", conditional: true },
-  { key: "rotor_length_mm", labelKey: "rotor_length_mm", defaultLabel: "Rootori pikkus (mm)", bestType: "max", conditional: true },
-  { key: "threshing_area_m2", labelKey: "threshing_area_m2", defaultLabel: "Peksu pindala (m²)", bestType: "max", conditional: true },
-  { key: "separator_area_m2", labelKey: "separator_area_m2", defaultLabel: "Eraldaja pindala (m²)", bestType: "max", conditional: true },
-  { key: "sieve_area_m2", labelKey: "sieve_area_m2", defaultLabel: "Sõela pindala (m²)", bestType: "max", conditional: true },
-  { key: "straw_walker_area_m2", labelKey: "straw_walker_area_m2", defaultLabel: "Kõrreraputite pindala (m²)", bestType: "max", conditional: true },
-  { key: "unloading_rate_ls", labelKey: "unloading_rate_ls", defaultLabel: "Tühjendamiskiirus (l/s)", bestType: "max", conditional: true },
-  { key: "auger_reach_m", labelKey: "auger_reach_m", defaultLabel: "Tigukruvi ulatus (m)", bestType: "max", conditional: true },
-  { key: "max_slope_percent", labelKey: "max_slope_percent", defaultLabel: "Max kalle (%)", suffix: "%", bestType: "max", conditional: true },
-  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
-  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min" },
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", i18nKey: "comparison.combine.power", bestType: "max", showJDAdvantage: true },
+  { key: "grain_tank_liters", labelKey: "grain_tank_liters", defaultLabel: "Viljabunker (l)", i18nKey: "comparison.combine.grainTank", bestType: "max", showJDAdvantage: true },
+  { key: "header_width_m", labelKey: "header_width_m", defaultLabel: "Heedri laius (m)", i18nKey: "comparison.combine.headerWidth", bestType: "max", showJDAdvantage: true },
+  { key: "fuel_tank_liters", labelKey: "fuel_tank_liters", defaultLabel: "Kütusepaak (L)", i18nKey: "comparison.combine.fuelTank", bestType: "max", showJDAdvantage: true, conditional: true },
+  { key: "cleaning_area_m2", labelKey: "cleaning_area_m2", defaultLabel: "Puhasti pindala (m²)", i18nKey: "comparison.combine.cleaningArea", bestType: "max", showJDAdvantage: true, conditional: true },
+  { key: "rotor_diameter_mm", labelKey: "rotor_diameter_mm", defaultLabel: "Rootori läbimõõt (mm)", i18nKey: "comparison.combine.rotorDiameter", bestType: "max", showJDAdvantage: true, conditional: true },
+  { key: "throughput_tons_h", labelKey: "throughput_tons_h", defaultLabel: "Läbilaskevõime (t/h)", i18nKey: "comparison.combine.throughput", bestType: "max", showJDAdvantage: true, conditional: true },
+  { key: "engine_cylinders", labelKey: "engine_cylinders", defaultLabel: "Silindrid", i18nKey: "comparison.combine.cylinders", bestType: "max", conditional: true },
+  { key: "max_torque_nm", labelKey: "max_torque_nm", defaultLabel: "Max pöördemoment (Nm)", i18nKey: "comparison.combine.maxTorque", bestType: "max", conditional: true },
+  { key: "feeder_width_mm", labelKey: "feeder_width_mm", defaultLabel: "Etteande laius (mm)", i18nKey: "comparison.combine.feederWidth", bestType: "max", conditional: true },
+  { key: "rotor_length_mm", labelKey: "rotor_length_mm", defaultLabel: "Rootori pikkus (mm)", i18nKey: "comparison.combine.rotorLength", bestType: "max", conditional: true },
+  { key: "threshing_area_m2", labelKey: "threshing_area_m2", defaultLabel: "Peksu pindala (m²)", i18nKey: "comparison.combine.threshingArea", bestType: "max", conditional: true },
+  { key: "separator_area_m2", labelKey: "separator_area_m2", defaultLabel: "Eraldaja pindala (m²)", i18nKey: "comparison.combine.separatorArea", bestType: "max", conditional: true },
+  { key: "sieve_area_m2", labelKey: "sieve_area_m2", defaultLabel: "Sõela pindala (m²)", i18nKey: "comparison.combine.sieveArea", bestType: "max", conditional: true },
+  { key: "straw_walker_area_m2", labelKey: "straw_walker_area_m2", defaultLabel: "Kõrreraputite pindala (m²)", i18nKey: "comparison.combine.strawWalkerArea", bestType: "max", conditional: true },
+  { key: "unloading_rate_ls", labelKey: "unloading_rate_ls", defaultLabel: "Tühjendamiskiirus (l/s)", i18nKey: "comparison.combine.unloadingRate", bestType: "max", conditional: true },
+  { key: "auger_reach_m", labelKey: "auger_reach_m", defaultLabel: "Tigukruvi ulatus (m)", i18nKey: "comparison.combine.augerReach", bestType: "max", conditional: true },
+  { key: "max_slope_percent", labelKey: "max_slope_percent", defaultLabel: "Max kalle (%)", i18nKey: "comparison.combine.maxSlope", suffix: "%", bestType: "max", conditional: true },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", i18nKey: "comparison.combine.weight", bestType: "min" },
+  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", i18nKey: "comparison.combine.fuelConsumption", bestType: "min" },
 ];
 
 // Telehandler-specific specs - all 8 required indicators
 const TELEHANDLER_SPEC_ROWS: SpecRowConfig[] = [
-  { key: "lift_height_m", labelKey: "lift_height_m", defaultLabel: "Tõstekõrgus (m)", bestType: "max", showJDAdvantage: true },
-  { key: "lift_reach_m", labelKey: "lift_reach_m", defaultLabel: "Tõste kaugus (m)", bestType: "max", showJDAdvantage: true },
-  { key: "max_lift_capacity_kg", labelKey: "max_lift_capacity_kg", defaultLabel: "Max tõstevõime (kg)", bestType: "max", showJDAdvantage: true },
-  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Masina mass (kg)", bestType: "min" },
-  { key: "transport_width_mm", labelKey: "transport_width_mm", defaultLabel: "Laius (mm)", bestType: "min" },
-  { key: "transport_height_mm", labelKey: "transport_height_mm", defaultLabel: "Kõrgus (mm)", bestType: "min" },
-  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Mootori võimsus (hj)", bestType: "max" },
-  { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", bestType: "max" },
+  { key: "lift_height_m", labelKey: "lift_height_m", defaultLabel: "Tõstekõrgus (m)", i18nKey: "comparison.telehandler.liftHeight", bestType: "max", showJDAdvantage: true },
+  { key: "lift_reach_m", labelKey: "lift_reach_m", defaultLabel: "Tõste kaugus (m)", i18nKey: "comparison.telehandler.liftReach", bestType: "max", showJDAdvantage: true },
+  { key: "max_lift_capacity_kg", labelKey: "max_lift_capacity_kg", defaultLabel: "Max tõstevõime (kg)", i18nKey: "comparison.telehandler.maxLiftCapacity", bestType: "max", showJDAdvantage: true },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Masina mass (kg)", i18nKey: "comparison.telehandler.weight", bestType: "min" },
+  { key: "transport_width_mm", labelKey: "transport_width_mm", defaultLabel: "Laius (mm)", i18nKey: "comparison.telehandler.width", bestType: "min" },
+  { key: "transport_height_mm", labelKey: "transport_height_mm", defaultLabel: "Kõrgus (mm)", i18nKey: "comparison.telehandler.height", bestType: "min" },
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Mootori võimsus (hj)", i18nKey: "comparison.telehandler.enginePower", bestType: "max" },
+  { key: "hydraulic_pump_lpm", labelKey: "hydraulic_pump_lpm", defaultLabel: "Hüdraulikapumba võimsus (l/min)", i18nKey: "comparison.telehandler.hydraulicPump", bestType: "max" },
 ];
 
 // Tractor-specific specs – uses ECE-R120 power, not IPM
 const TRACTOR_SPEC_ROWS: SpecRowConfig[] = [
-  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true, getValue: getTractorECEPower },
-  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
-  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min", conditional: true },
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", i18nKey: "comparison.tractor.power", bestType: "max", showJDAdvantage: true, getValue: getTractorECEPower },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", i18nKey: "comparison.generic.weight", bestType: "min" },
+  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", i18nKey: "comparison.generic.fuelConsumption", bestType: "min", conditional: true },
 ];
 
 // Generic specs for other equipment types
 const GENERIC_SPEC_ROWS: SpecRowConfig[] = [
-  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", bestType: "max", showJDAdvantage: true },
-  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", bestType: "min" },
-  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", bestType: "min", conditional: true },
+  { key: "engine_power_hp", labelKey: "engine_power_hp", defaultLabel: "Võimsus (hj)", i18nKey: "comparison.tractor.power", bestType: "max", showJDAdvantage: true },
+  { key: "weight_kg", labelKey: "weight_kg", defaultLabel: "Kaal (kg)", i18nKey: "comparison.generic.weight", bestType: "min" },
+  { key: "fuel_consumption_lh", labelKey: "fuel_consumption_lh", defaultLabel: "Kütusekulu (l/h)", i18nKey: "comparison.generic.fuelConsumption", bestType: "min", conditional: true },
 ];
 
 function getSpecRowsForEquipmentType(typeName?: string): SpecRowConfig[] {
@@ -130,17 +133,18 @@ function getSpecRowsForEquipmentType(typeName?: string): SpecRowConfig[] {
 }
 
 const COST_ROWS: SpecRowConfig[] = [
-  { key: "price_eur", labelKey: "price_eur", defaultLabel: "Hind", format: "currency", bestType: "min" },
-  { key: "annual_maintenance_eur", labelKey: "annual_maintenance_eur", defaultLabel: "Hooldus/aastas", format: "currency", bestType: "min" },
-  { key: "expected_lifespan_years", labelKey: "expected_lifespan_years", defaultLabel: "Eeldatav eluiga", suffix: " aastat", bestType: "max" },
+  { key: "price_eur", labelKey: "price_eur", defaultLabel: "Hind", i18nKey: "comparison.price", format: "currency", bestType: "min" },
+  { key: "annual_maintenance_eur", labelKey: "annual_maintenance_eur", defaultLabel: "Hooldus/aastas", i18nKey: "comparison.maintenancePerYear", format: "currency", bestType: "min" },
+  { key: "expected_lifespan_years", labelKey: "expected_lifespan_years", defaultLabel: "Eeldatav eluiga", i18nKey: "comparison.expectedLifespan", suffix: " aastat", suffixI18nKey: "pdf.years", bestType: "max" },
 ];
 
 export function MultiModelComparison({ selectedModels, equipmentTypeName, comparisonMode }: MultiModelComparisonProps) {
+  const { t } = useTranslation();
   const { data: specLabels = {} } = useSpecLabels();
   const isMobile = useIsMobile();
   const inlineEdit = useInlineEdit({
-    onSuccess: () => toast.success("Salvestatud"),
-    onError: (error) => toast.error(`Viga: ${error.message}`),
+    onSuccess: () => toast.success(t("comparison.saved")),
+    onError: (error) => toast.error(t("comparison.error", { error: error.message })),
   });
 
   if (selectedModels.length === 0) {
@@ -148,12 +152,12 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
       <div className="rounded-lg border border-border bg-card p-12 text-center">
         <Trophy className="mx-auto h-12 w-12 text-muted-foreground/50" />
         <p className="mt-4 text-lg font-medium text-muted-foreground">
-          Vali mudelid võrdluseks
+          {t("comparison.selectModels")}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           {comparisonMode === "auto"
-            ? "Vali tehnika tüüp ja süsteem leiab automaatselt konkurendid."
-            : "Vali tehnika tüüp ja seejärel 1–3 mudelit, mida soovid võrrelda."
+            ? t("comparison.selectModelsAuto")
+            : t("comparison.selectModelDesc")
           }
         </p>
       </div>
@@ -173,8 +177,8 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
     ...selectedModels.filter((m) => calculateTCO(m)).map((m) => calculateTCO(m)!)
   );
 
-  const getLabel = (labelKey: string, defaultLabel: string): string => {
-    return specLabels[labelKey] || defaultLabel;
+  const getLabel = (labelKey: string, defaultLabel: string, i18nKey?: string): string => {
+    return specLabels[labelKey] || (i18nKey ? t(i18nKey) : defaultLabel);
   };
 
   const handleLabelSave = (labelKey: string) => {
@@ -186,7 +190,8 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
   };
 
   const renderSpecRow = (config: SpecRowConfig) => {
-    const { key, labelKey, defaultLabel, format, suffix = "", bestType, showJDAdvantage, conditional, getValue } = config;
+    const { key, labelKey, defaultLabel, i18nKey, format, suffix, suffixI18nKey, bestType, showJDAdvantage, conditional, getValue } = config;
+    const resolvedSuffix = suffixI18nKey ? ` ${t(suffixI18nKey)}` : (suffix ?? "");
 
     // Skip conditional rows if no model has the value
     if (conditional && !selectedModels.some((m) => {
@@ -197,7 +202,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
     }
 
     const bestValue = bestType ? calculateBestValue(key, bestType, getValue) : null;
-    const label = getLabel(labelKey, defaultLabel);
+    const label = getLabel(labelKey, defaultLabel, i18nKey);
     const cellIdLabel = `label-${labelKey}`;
 
     return (
@@ -226,7 +231,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
               ? formatCurrency(value)
               : isMissing(value)
               ? "—"
-              : `${formatNumber(value)}${suffix}`;
+              : `${formatNumber(value)}${resolvedSuffix}`;
 
           return (
             <td
@@ -255,7 +260,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
                 </div>
                 {showJDAdvantage && isJohnDeere && isBest && (
                   <span className="text-[10px] font-medium uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    JD eelis
+                    {t("comparison.jdAdvantage")}
                   </span>
                 )}
               </EditableValueCell>
@@ -292,7 +297,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
     <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
       <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
         <Trophy className="h-5 w-5 text-primary" />
-        Võrdlustabel ({selectedModels.length} mudelit)
+        {t("comparison.comparisonTable", { count: selectedModels.length })}
       </h3>
 
       {/* Comparison Table with sticky header and first column */}
@@ -307,7 +312,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
                   className="sticky left-0 z-30 p-3 text-left text-sm font-medium text-muted-foreground min-w-[150px] border-b border-r border-border"
                   style={{ backgroundColor: 'white' }}
                 >
-                  Näitaja
+                  {t("comparison.indicator")}
                 </th>
                 {selectedModels.map((model, index) => (
                   <th 
@@ -355,7 +360,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
                       />
                     ) : (
                       <div className="h-20 w-full rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
-                        Pilt puudub
+                        {t("comparison.noImage")}
                       </div>
                     )}
                   </th>
@@ -369,7 +374,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
               {/* Price Section Header */}
               <tr className="bg-muted/50">
                 <td colSpan={selectedModels.length + 1} className="p-3 text-sm font-semibold text-foreground border-y border-border">
-                  HINNAD JA KULUD
+                  {t("comparison.costsAndPrices")}
                 </td>
               </tr>
 
@@ -379,7 +384,7 @@ export function MultiModelComparison({ selectedModels, equipmentTypeName, compar
               {/* TCO (Calculated - Read Only) */}
               <tr className="border-b border-border bg-muted">
                 <td className="sticky left-0 z-10 bg-muted p-3 text-sm font-semibold text-foreground border-r border-border">
-                  TCO (Kogukulu)
+                  {t("comparison.tcoTotal")}
                 </td>
                 {selectedModels.map((model, index) => {
                   const isJohnDeere = model.brand?.name === "John Deere";
