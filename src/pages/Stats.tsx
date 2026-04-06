@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useLeaderboard, useDashboardStats, type StatsPeriod } from "@/hooks/useActivityStats";
 import { formatDistanceToNow, format } from "date-fns";
-import { et, lv } from "date-fns/locale";
+import { et, lv, fi } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 
 type SortField = "total_points" | "pdf_count" | "comparison_count";
@@ -34,7 +34,7 @@ export default function Stats() {
   const { data: stats, isLoading: loadingStats } = useDashboardStats(period);
   const [sortBy, setSortBy] = useState<SortField>("total_points");
 
-  const dateLocale = i18n.language === "lv" ? lv : et;
+  const dateLocale = i18n.language === "lv" ? lv : i18n.language === "fi" ? fi : et;
 
   const sortedLeaderboard = [...leaderboard].sort((a, b) => {
     if (sortBy === "pdf_count") {

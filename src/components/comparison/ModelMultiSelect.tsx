@@ -119,7 +119,7 @@ export function ModelMultiSelect({
               <SelectItem value="all">{t("modelSelect.selectTypeHint")}</SelectItem>
               {filteredTypes.map((type) => (
                 <SelectItem key={type.id} value={type.id}>
-                  {getTranslation(type.name_translations, lang, type.name_et)}
+                  {t(`equipmentTypes.${type.name}`, { defaultValue: getTranslation(type.name_translations, lang, type.name_et) })}
                 </SelectItem>
               ))}
             </SelectContent>
